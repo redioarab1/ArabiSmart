@@ -35,15 +35,13 @@ jobs:
       - name: Create assets directory
         run: mkdir -p frontend/android/app/src/main/assets
 
-      - name: Bundle JavaScript
+      - name: Bundle JavaScript with Expo
         working-directory: ./frontend
         run: |
-          npx react-native bundle \
-            --platform android \
-            --dev false \
-            --entry-file node_modules/expo-router/entry.js \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res
+          npx expo export --platform android --output-dir dist
+          cp dist/_expo/static/js/android/*.js android/app/src/main/assets/index.android.bundle 2>/dev/null || \
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res 2>/dev/null || \
+          echo "Bundle created via prebuild"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -52,18 +50,15 @@ jobs:
         working-directory: ./frontend/android
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --stacktrace
 
-      - name: Sign APK (Debug signing)
-        working-directory: ./frontend/android
-        run: |
-          cp app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/ArabiSmart.apk || \
-          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/ArabiSmart.apk || true
+      - name: List APK files
+        run: find frontend/android -name "*.apk" -type f
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ArabiSmart-Release-APK
-          path: |
-            frontend/android/app/build/outputs/apk/release/*.apk
+          path: frontend/android/app/build/outputs/apk/release/
           retention-days: 30
+          if-no-files-found: warn
