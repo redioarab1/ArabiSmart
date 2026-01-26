@@ -58,34 +58,32 @@ rss_cache = {
 
 # ============== RSS Sources ==============
 RSS_SOURCES = [
-    # ========== مصادر عربية في السويد ==========
-    {"name": "الكومبس", "url": "https://alkompis.se/feed/", "language": "ar", "category": "SE"},
-    {"name": "راديو السويد", "url": "https://sverigesradio.se/api/rss/program/2494", "language": "ar", "category": "SE"},
-    {"name": "أكتر", "url": "https://aktarr.se/feed/", "language": "ar", "category": "SE"},
-    {"name": "Swed24", "url": "https://www.swed24.se/feed/", "language": "ar", "category": "SE"},
-    {"name": "المركز السويدي", "url": "https://www.centersweden.com/feed/", "language": "ar", "category": "SE"},
+    # ========== مصادر عربية في السويد (SE) ==========
+    {"name": "الكومبس", "url": "https://alkompis.se/feed", "language": "ar", "category": "SE"},
+    {"name": "راديو السويد", "url": "https://api.sr.se/api/v2/episodes/index.xml?programid=2494", "language": "ar", "category": "SE"},
+    {"name": "أكتر", "url": "https://aktarr.se/feed", "language": "ar", "category": "SE"},
+    {"name": "Swed24", "url": "https://www.swed24.se/feed", "language": "ar", "category": "SE"},
+    {"name": "المركز السويدي", "url": "https://www.centersweden.com/feed", "language": "ar", "category": "SE"},
     
     # ========== مصادر عربية دولية ==========
-    {"name": "الجزيرة", "url": "https://www.aljazeera.net/rss/all.xml", "language": "ar", "category": "عام"},
-    {"name": "الجزيرة عاجل", "url": "https://www.aljazeera.net/rss/breaking-news.xml", "language": "ar", "category": "عاجل"},
-    {"name": "سكاي نيوز عربية", "url": "https://www.skynewsarabia.com/web/rss", "language": "ar", "category": "عام"},
-    {"name": "العربية", "url": "https://www.alarabiya.net/feed/rss2/ar.xml", "language": "ar", "category": "عام"},
-    {"name": "RT عربي", "url": "https://arabic.rt.com/rss/", "language": "ar", "category": "عام"},
+    {"name": "الجزيرة", "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779", "language": "ar", "category": "عام"},
+    {"name": "سكاي نيوز عربية", "url": "https://www.skynewsarabia.com/rss.xml", "language": "ar", "category": "عام"},
+    {"name": "العربية", "url": "https://www.alarabiya.net/.mrss/ar/all.xml", "language": "ar", "category": "عام"},
+    {"name": "RT عربي", "url": "https://arabic.rt.com/rss", "language": "ar", "category": "عام"},
     {"name": "فرانس 24", "url": "https://www.france24.com/ar/rss", "language": "ar", "category": "عام"},
     {"name": "بي بي سي عربي", "url": "https://feeds.bbci.co.uk/arabic/rss.xml", "language": "ar", "category": "عام"},
     
     # ========== مصادر سويدية (SE) ==========
-    {"name": "SVT Nyheter", "url": "https://www.svt.se/nyheter/rss.xml", "language": "sv", "category": "SE"},
-    {"name": "Aftonbladet", "url": "https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/", "language": "sv", "category": "SE"},
-    {"name": "Dagens Nyheter", "url": "https://www.dn.se/rss/", "language": "sv", "category": "SE"},
+    {"name": "Dagens Nyheter", "url": "https://www.dn.se/rss", "language": "sv", "category": "SE"},
     {"name": "Svenska Dagbladet", "url": "https://www.svd.se/feed/articles.rss", "language": "sv", "category": "SE"},
-    {"name": "Expressen", "url": "https://feeds.expressen.se/nyheter/", "language": "sv", "category": "SE"},
-    {"name": "Göteborgs-Posten", "url": "https://www.gp.se/rss/nyheter", "language": "sv", "category": "SE"},
+    {"name": "SVT Nyheter", "url": "https://www.svt.se/rss.xml", "language": "sv", "category": "SE"},
+    {"name": "Expressen", "url": "https://feeds.expressen.se/nyheter", "language": "sv", "category": "SE"},
+    {"name": "Göteborgs-Posten", "url": "https://www.gp.se/feeds/feed.xml", "language": "sv", "category": "SE"},
     {"name": "Sydsvenskan", "url": "https://www.sydsvenskan.se/feeds/feed.xml", "language": "sv", "category": "SE"},
+    {"name": "Aftonbladet", "url": "https://www.aftonbladet.se/rss", "language": "sv", "category": "SE"},
     
     # ========== مصادر دولية بالإنجليزية ==========
     {"name": "BBC World", "url": "https://feeds.bbci.co.uk/news/world/rss.xml", "language": "en", "category": "دولي"},
-    {"name": "Al Arabiya English", "url": "https://english.alarabiya.net/tools/rss", "language": "en", "category": "دولي"},
     {"name": "Reuters", "url": "https://www.reutersagency.com/feed/?taxonomy=best-topics&post_type=best", "language": "en", "category": "دولي"},
 ]
 
