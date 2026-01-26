@@ -46,3 +46,4 @@ npx expo start
 
 ## 👨‍💻 المطور
 ArabiSmart Team
+# Build 1769455989
