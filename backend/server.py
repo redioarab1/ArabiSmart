@@ -60,17 +60,18 @@ rss_cache = {
 RSS_SOURCES = [
     # ========== مصادر عربية في السويد (SE) ==========
     {"name": "الكومبس", "url": "https://alkompis.se/feed", "language": "ar", "category": "SE"},
-    {"name": "راديو السويد", "url": "https://api.sr.se/api/v2/episodes/index.xml?programid=2494", "language": "ar", "category": "SE"},
+    {"name": "راديو السويد العربي", "url": "https://api.sr.se/api/v2/episodes/index.xml?programid=2494", "language": "ar", "category": "SE"},
     {"name": "أكتر", "url": "https://aktarr.se/feed", "language": "ar", "category": "SE"},
     {"name": "Swed24", "url": "https://www.swed24.se/feed", "language": "ar", "category": "SE"},
-    {"name": "المركز السويدي", "url": "https://www.centersweden.com/feed", "language": "ar", "category": "SE"},
+    {"name": "المركز السويدي للمعلومات", "url": "https://www.centersweden.com/feed", "language": "ar", "category": "SE"},
     
     # ========== مصادر عربية دولية ==========
     {"name": "الجزيرة", "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779", "language": "ar", "category": "عام"},
+    {"name": "الجزيرة - أخبار عاجلة", "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779", "language": "ar", "category": "عاجل"},
     {"name": "سكاي نيوز عربية", "url": "https://www.skynewsarabia.com/rss.xml", "language": "ar", "category": "عام"},
     {"name": "العربية", "url": "https://www.alarabiya.net/.mrss/ar/all.xml", "language": "ar", "category": "عام"},
-    {"name": "RT عربي", "url": "https://arabic.rt.com/rss", "language": "ar", "category": "عام"},
-    {"name": "فرانس 24", "url": "https://www.france24.com/ar/rss", "language": "ar", "category": "عام"},
+    {"name": "روسيا اليوم RT عربي", "url": "https://arabic.rt.com/rss", "language": "ar", "category": "عام"},
+    {"name": "فرانس 24 عربي", "url": "https://www.france24.com/ar/rss", "language": "ar", "category": "عام"},
     {"name": "بي بي سي عربي", "url": "https://feeds.bbci.co.uk/arabic/rss.xml", "language": "ar", "category": "عام"},
     
     # ========== مصادر سويدية (SE) ==========
@@ -85,6 +86,7 @@ RSS_SOURCES = [
     # ========== مصادر دولية بالإنجليزية ==========
     {"name": "BBC World", "url": "https://feeds.bbci.co.uk/news/world/rss.xml", "language": "en", "category": "دولي"},
     {"name": "Reuters", "url": "https://www.reutersagency.com/feed/?taxonomy=best-topics&post_type=best", "language": "en", "category": "دولي"},
+    {"name": "CNN International", "url": "http://rss.cnn.com/rss/edition.rss", "language": "en", "category": "دولي"},
 ]
 
 # ============== Category Keywords ==============
