@@ -126,6 +126,7 @@ temp/
 /.idea/assetWizardSettings.xml
 
 # Android build
+frontend/android/
 android/app/build/
 android/app/release/
 android/.gradle/
