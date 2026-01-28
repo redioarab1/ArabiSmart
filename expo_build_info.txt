@@ -1,0 +1,9 @@
+معلومات البناء من Expo:
+
+الحالة: Build in progress (البناء قيد التنفيذ)
+رابط البناء: https://expo.dev/accounts/mohamadelsaedi/projects/arabismart/builds/211547b3-1b0f-4f6b-b06a-353abb19800a
+
+نوع البناء: Android internal distribution build
+المشروع: @mohamadelsaedi/arabismart
+
+ملاحظة: البناء لا يزال قيد التنفيذ على خوادم Expo. بمجرد اكتمال البناء، سيكون بإمكانك تحميل ملف APK من نفس الرابط.
