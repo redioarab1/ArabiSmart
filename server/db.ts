@@ -89,4 +89,96 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+import { desc, like, and, eq as eqOp, sql } from "drizzle-orm";
+import { news, rssSources, fetchLogs, News, RssSource, FetchLog } from "../drizzle/schema";
+
+/**
+ * Get paginated news with optional filters
+ */
+export async function getNews(params: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  source?: string;
+  search?: string;
+}) {
+  const db = await getDb();
+  if (!db) return { items: [], total: 0 };
+
+  const { page = 1, limit = 20, category, source, search } = params;
+  const offset = (page - 1) * limit;
+
+  let conditions = [];
+  if (category) conditions.push(eqOp(news.category, category as any));
+  if (source) conditions.push(eqOp(news.source, source));
+  if (search) conditions.push(like(news.title, `%${search}%`));
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const items = await db
+    .select()
+    .from(news)
+    .where(whereClause)
+    .orderBy(desc(news.publishedAt))
+    .limit(limit)
+    .offset(offset);
+
+  const totalResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(news)
+    .where(whereClause);
+
+  const total = Number(totalResult[0]?.count || 0);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+/**
+ * Get single news by ID
+ */
+export async function getNewsById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(news).where(eqOp(news.id, id)).limit(1);
+  return result[0];
+}
+
+/**
+ * Get all RSS sources
+ */
+export async function getAllRssSources() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(rssSources).orderBy(rssSources.name);
+}
+
+/**
+ * Get news statistics
+ */
+export async function getNewsStats() {
+  const db = await getDb();
+  if (!db) return { totalNews: 0, activeSources: 0, lastUpdate: null };
+
+  const totalNewsResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(news);
+
+  const activeSourcesResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(rssSources)
+    .where(eqOp(rssSources.isActive, 1));
+
+  const lastUpdateResult = await db
+    .select({ lastUpdate: news.createdAt })
+    .from(news)
+    .orderBy(desc(news.createdAt))
+    .limit(1);
+
+  return {
+    totalNews: Number(totalNewsResult[0]?.count || 0),
+    activeSources: Number(activeSourcesResult[0]?.count || 0),
+    lastUpdate: lastUpdateResult[0]?.lastUpdate || null,
+  };
+}
