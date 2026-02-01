@@ -36,6 +36,20 @@
       "when": 1769949829308,
       "tag": "0004_cold_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1769953118373,
+      "tag": "0005_mysterious_lightspeed",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1769953867510,
+      "tag": "0006_silky_randall",
+      "breakpoints": true
     }
   ]
 }

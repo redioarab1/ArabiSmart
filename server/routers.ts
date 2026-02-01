@@ -205,6 +205,77 @@ export const appRouter = router({
       }),
   }),
 
+  // Podcast router
+  podcast: router({
+    generate: protectedProcedure
+      .input(z.object({ newsId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { getNewsById, getPodcastByNewsId, createPodcast, updatePodcastStatus } = await import("./db");
+        const { textToSpeech, prepareTextForTTS } = await import("./tts");
+
+        // Check if podcast already exists
+        const existing = await getPodcastByNewsId(input.newsId);
+        if (existing && existing.status === "ready") {
+          return existing;
+        }
+
+        // Get news article
+        const newsArticle = await getNewsById(input.newsId);
+        if (!newsArticle) {
+          throw new Error("News article not found");
+        }
+
+        // Create podcast record with generating status
+        if (!existing) {
+          await createPodcast({
+            newsId: input.newsId,
+            audioUrl: "",
+            language: newsArticle.language,
+            status: "generating",
+          });
+        }
+
+        try {
+          // Prepare text for TTS
+          const text = prepareTextForTTS(
+            newsArticle.title,
+            newsArticle.description,
+            newsArticle.content
+          );
+
+          // Generate audio
+          const { audioUrl, duration } = await textToSpeech({
+            text,
+            language: newsArticle.language,
+            newsId: input.newsId,
+          });
+
+          // Update podcast status to ready
+          await updatePodcastStatus(input.newsId, "ready", audioUrl, duration ?? undefined);
+
+          return await getPodcastByNewsId(input.newsId);
+        } catch (error) {
+          // Update status to failed
+          await updatePodcastStatus(input.newsId, "failed");
+          throw error;
+        }
+      }),
+
+    get: publicProcedure
+      .input(z.object({ newsId: z.number() }))
+      .query(async ({ input }) => {
+        const { getPodcastByNewsId } = await import("./db");
+        return await getPodcastByNewsId(input.newsId);
+      }),
+
+    playlist: publicProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        const { getReadyPodcasts } = await import("./db");
+        return await getReadyPodcasts(input.limit || 10);
+      }),
+  }),
+
   // Archive router
   archive: router({
     toggle: protectedProcedure

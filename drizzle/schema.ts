@@ -134,3 +134,50 @@ export const archivedNews = mysqlTable("archivedNews", {
 
 export type ArchivedNews = typeof archivedNews.$inferSelect;
 export type InsertArchivedNews = typeof archivedNews.$inferInsert;
+
+/**
+ * Folders table - for organizing favorite news into custom folders
+ */
+export const folders = mysqlTable("folders", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 50 }), // emoji or icon name
+  color: varchar("color", { length: 20 }), // hex color
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Folder = typeof folders.$inferSelect;
+export type InsertFolder = typeof folders.$inferInsert;
+
+/**
+ * Folder items table - links news to folders
+ */
+export const folderItems = mysqlTable("folderItems", {
+  id: int("id").autoincrement().primaryKey(),
+  folderId: int("folderId").notNull(),
+  newsId: int("newsId").notNull(),
+  note: text("note"), // optional note for this news item
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type FolderItem = typeof folderItems.$inferSelect;
+export type InsertFolderItem = typeof folderItems.$inferInsert;
+
+/**
+ * Podcasts table - stores generated audio files for news articles
+ */
+export const podcasts = mysqlTable("podcasts", {
+  id: int("id").autoincrement().primaryKey(),
+  newsId: int("newsId").notNull().unique(), // one podcast per news article
+  audioUrl: varchar("audioUrl", { length: 1024 }).notNull(),
+  duration: int("duration"), // duration in seconds
+  language: mysqlEnum("language", ["ar", "sv", "en"]).notNull(),
+  status: mysqlEnum("status", ["generating", "ready", "failed"]).default("generating").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Podcast = typeof podcasts.$inferSelect;
+export type InsertPodcast = typeof podcasts.$inferInsert;

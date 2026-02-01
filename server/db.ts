@@ -1,6 +1,6 @@
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews } from "../drizzle/schema";
+import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews, podcasts, InsertPodcast, Podcast } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -436,4 +436,71 @@ export async function isNewsArchived(userId: number, newsId: number): Promise<bo
     .limit(1);
 
   return result.length > 0;
+}
+
+/**
+ * Create or get podcast for news article
+ */
+export async function createPodcast(data: InsertPodcast) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(podcasts).values(data);
+  return { id: Number(result[0].insertId), ...data };
+}
+
+/**
+ * Get podcast by news ID
+ */
+export async function getPodcastByNewsId(newsId: number): Promise<Podcast | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select()
+    .from(podcasts)
+    .where(eqOp(podcasts.newsId, newsId))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Update podcast status
+ */
+export async function updatePodcastStatus(
+  newsId: number,
+  status: "generating" | "ready" | "failed",
+  audioUrl?: string,
+  duration?: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = { status };
+  if (audioUrl) updateData.audioUrl = audioUrl;
+  if (duration !== undefined) updateData.duration = duration;
+
+  await db.update(podcasts).set(updateData).where(eqOp(podcasts.newsId, newsId));
+}
+
+/**
+ * Get all ready podcasts (for playlist)
+ */
+export async function getReadyPodcasts(limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      podcast: podcasts,
+      news: news,
+    })
+    .from(podcasts)
+    .innerJoin(news, eqOp(podcasts.newsId, news.id))
+    .where(eqOp(podcasts.status, "ready"))
+    .orderBy(desc(podcasts.createdAt))
+    .limit(limit);
+
+  return result;
 }

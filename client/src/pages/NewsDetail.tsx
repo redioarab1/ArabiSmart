@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import CommentsSection from "@/components/CommentsSection";
+import { WebSpeechPlayer } from "@/components/WebSpeechPlayer";
 import {
   ArrowRight,
   Calendar,
@@ -16,6 +17,7 @@ import {
   Copy,
   Languages,
   Loader2,
+  Headphones,
 } from "lucide-react";
 import { toast } from "sonner";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -33,6 +35,7 @@ export default function NewsDetail() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [translation, setTranslation] = useState<{ title: string; description: string } | null>(null);
+  const [showPodcast, setShowPodcast] = useState(false);
 
   const { data: news, isLoading } = trpc.news.getById.useQuery(
     { id: newsId! },
@@ -134,6 +137,8 @@ export default function NewsDetail() {
       setTranslating(false);
     }
   };
+
+
 
   if (isLoading) {
     return (
@@ -307,6 +312,26 @@ export default function NewsDetail() {
                   قراءة الخبر الكامل من المصدر
                 </a>
               </Button>
+
+              {/* Podcast Section */}
+              <div className="mt-4 space-y-3">
+                {showPodcast ? (
+                  <WebSpeechPlayer
+                    text={`${news.title}. ${news.description || ""}. ${news.content || ""}`}
+                    title={news.title}
+                    language={news.language}
+                  />
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="w-full arabic-text"
+                    onClick={() => setShowPodcast(true)}
+                  >
+                    <Headphones className="h-4 w-4 ml-2" />
+                    استماع للبودكاست الصوتي
+                  </Button>
+                )}
+              </div>
             </CardHeader>
           </Card>
 
