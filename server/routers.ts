@@ -70,6 +70,31 @@ export const appRouter = router({
       }),
   }),
 
+  favorites: router({
+    add: protectedProcedure
+      .input(z.object({ newsId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { addFavorite } = await import("./db");
+        return await addFavorite(ctx.user.id, input.newsId);
+      }),
+    remove: protectedProcedure
+      .input(z.object({ newsId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { removeFavorite } = await import("./db");
+        return await removeFavorite(ctx.user.id, input.newsId);
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserFavorites } = await import("./db");
+      return await getUserFavorites(ctx.user.id);
+    }),
+    check: protectedProcedure
+      .input(z.object({ newsId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { isFavorite } = await import("./db");
+        return { isFavorite: await isFavorite(ctx.user.id, input.newsId) };
+      }),
+  }),
+
   admin: router({
     addNews: protectedProcedure
       .input(

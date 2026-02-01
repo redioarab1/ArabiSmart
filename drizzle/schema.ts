@@ -77,3 +77,16 @@ export const fetchLogs = mysqlTable("fetchLogs", {
 
 export type FetchLog = typeof fetchLogs.$inferSelect;
 export type InsertFetchLog = typeof fetchLogs.$inferInsert;
+
+/**
+ * Favorites table - stores user's favorite news articles
+ */
+export const favorites = mysqlTable("favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  newsId: int("newsId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = typeof favorites.$inferInsert;

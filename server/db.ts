@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,8 +89,7 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-import { desc, like, and, eq as eqOp, sql } from "drizzle-orm";
-import { news, rssSources, fetchLogs, News, RssSource, FetchLog } from "../drizzle/schema";
+const eqOp = eq;
 
 /**
  * Get paginated news with optional filters
@@ -181,4 +180,75 @@ export async function getNewsStats() {
     activeSources: Number(activeSourcesResult[0]?.count || 0),
     lastUpdate: lastUpdateResult[0]?.lastUpdate || null,
   };
+}
+
+/**
+ * Add news to favorites
+ */
+export async function addFavorite(userId: number, newsId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if already favorited
+  const existing = await db
+    .select()
+    .from(favorites)
+    .where(and(eqOp(favorites.userId, userId), eqOp(favorites.newsId, newsId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return existing[0];
+  }
+
+  const result = await db.insert(favorites).values({ userId, newsId });
+  return { id: Number(result[0].insertId), userId, newsId };
+}
+
+/**
+ * Remove news from favorites
+ */
+export async function removeFavorite(userId: number, newsId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(favorites).where(and(eqOp(favorites.userId, userId), eqOp(favorites.newsId, newsId)));
+  return { success: true };
+}
+
+/**
+ * Get user's favorite news
+ */
+export async function getUserFavorites(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select({
+      id: favorites.id,
+      newsId: favorites.newsId,
+      createdAt: favorites.createdAt,
+      news: news,
+    })
+    .from(favorites)
+    .innerJoin(news, eqOp(favorites.newsId, news.id))
+    .where(eqOp(favorites.userId, userId))
+    .orderBy(desc(favorites.createdAt));
+
+  return result;
+}
+
+/**
+ * Check if news is favorited by user
+ */
+export async function isFavorite(userId: number, newsId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db
+    .select()
+    .from(favorites)
+    .where(and(eqOp(favorites.userId, userId), eqOp(favorites.newsId, newsId)))
+    .limit(1);
+
+  return result.length > 0;
 }

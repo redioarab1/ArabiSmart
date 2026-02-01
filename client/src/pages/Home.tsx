@@ -1,11 +1,26 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, Globe, Calendar, ExternalLink, Languages, Loader2 } from "lucide-react";
+import { 
+  Search, 
+  Filter, 
+  Globe, 
+  Calendar, 
+  ExternalLink, 
+  Languages, 
+  Loader2,
+  Heart,
+  Share2,
+  Copy,
+  Moon,
+  Sun
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -15,6 +30,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type NewsCategory = "all" | "arabic" | "swedish" | "international";
 
@@ -26,12 +47,32 @@ export default function Home() {
   const [searchInput, setSearchInput] = useState("");
   const [translatingId, setTranslatingId] = useState<number | null>(null);
   const [translations, setTranslations] = useState<Record<number, { title: string; description: string }>>({});
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+
+  const { user, isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const utils = trpc.useUtils();
 
   // Set RTL direction for Arabic content
   useEffect(() => {
     document.documentElement.setAttribute("dir", "rtl");
     document.documentElement.setAttribute("lang", "ar");
   }, []);
+
+  // Load favorites from localStorage for non-authenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const stored = localStorage.getItem("favorites");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setFavorites(new Set(parsed));
+        } catch (e) {
+          console.error("Failed to parse favorites:", e);
+        }
+      }
+    }
+  }, [isAuthenticated]);
 
   // Determine filter based on active category
   const getCategoryFilter = () => {
@@ -58,23 +99,17 @@ export default function Home() {
   const { data: sources } = trpc.rssSources.list.useQuery();
   const { data: stats } = trpc.news.stats.useQuery();
 
-  const translateMutation = trpc.translate.text.useMutation({
-    onSuccess: (data, variables) => {
-      const newsId = translatingId;
-      if (newsId) {
-        setTranslations((prev) => ({
-          ...prev,
-          [newsId]: {
-            title: data.translated,
-            description: prev[newsId]?.description || "",
-          },
-        }));
-      }
-      setTranslatingId(null);
+  const translateMutation = trpc.translate.text.useMutation();
+  const addFavoriteMutation = trpc.favorites.add.useMutation({
+    onSuccess: () => {
+      toast.success("تمت إضافة الخبر إلى المفضلة");
+      utils.favorites.list.invalidate();
     },
-    onError: (error) => {
-      toast.error(`خطأ في الترجمة: ${error.message}`);
-      setTranslatingId(null);
+  });
+  const removeFavoriteMutation = trpc.favorites.remove.useMutation({
+    onSuccess: () => {
+      toast.success("تمت إزالة الخبر من المفضلة");
+      utils.favorites.list.invalidate();
     },
   });
 
@@ -96,7 +131,6 @@ export default function Home() {
   const handleTranslate = async (newsId: number, title: string, description: string, currentLang: string) => {
     setTranslatingId(newsId);
     
-    // Translate title
     try {
       const titleResult = await translateMutation.mutateAsync({
         text: title,
@@ -104,7 +138,6 @@ export default function Home() {
         sourceLang: currentLang as "ar" | "sv" | "en",
       });
 
-      // Translate description if exists
       let descResult = { translated: "" };
       if (description) {
         descResult = await translateMutation.mutateAsync({
@@ -127,6 +160,62 @@ export default function Home() {
       toast.error("فشلت الترجمة");
     } finally {
       setTranslatingId(null);
+    }
+  };
+
+  const handleToggleFavorite = async (newsId: number) => {
+    if (!isAuthenticated) {
+      // Handle localStorage for non-authenticated users
+      const newFavorites = new Set(favorites);
+      if (newFavorites.has(newsId)) {
+        newFavorites.delete(newsId);
+        toast.success("تمت إزالة الخبر من المفضلة");
+      } else {
+        newFavorites.add(newsId);
+        toast.success("تمت إضافة الخبر إلى المفضلة");
+      }
+      setFavorites(newFavorites);
+      localStorage.setItem("favorites", JSON.stringify(Array.from(newFavorites)));
+      return;
+    }
+
+    // Handle database for authenticated users
+    if (favorites.has(newsId)) {
+      setFavorites((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(newsId);
+        return newSet;
+      });
+      await removeFavoriteMutation.mutateAsync({ newsId });
+    } else {
+      setFavorites((prev) => new Set(prev).add(newsId));
+      await addFavoriteMutation.mutateAsync({ newsId });
+    }
+  };
+
+  const handleShare = (newsItem: any, platform: string) => {
+    const title = encodeURIComponent(newsItem.title);
+    const url = encodeURIComponent(newsItem.link);
+    
+    let shareUrl = "";
+    switch (platform) {
+      case "whatsapp":
+        shareUrl = `https://wa.me/?text=${title}%20${url}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+        break;
+      case "facebook":
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case "copy":
+        navigator.clipboard.writeText(newsItem.link);
+        toast.success("تم نسخ الرابط");
+        return;
+    }
+    
+    if (shareUrl) {
+      window.open(shareUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -175,18 +264,34 @@ export default function Home() {
               </div>
             </div>
             
-            {stats && (
-              <div className="hidden md:flex items-center gap-6 text-sm">
-                <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
-                  <p className="font-bold text-xl text-primary">{stats.totalNews}</p>
-                  <p className="text-muted-foreground arabic-text">خبر</p>
+            <div className="flex items-center gap-4">
+              {stats && (
+                <div className="hidden md:flex items-center gap-6 text-sm">
+                  <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
+                    <p className="font-bold text-xl text-primary">{stats.totalNews}</p>
+                    <p className="text-muted-foreground arabic-text">خبر</p>
+                  </div>
+                  <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
+                    <p className="font-bold text-xl text-primary">{stats.activeSources}</p>
+                    <p className="text-muted-foreground arabic-text">مصدر</p>
+                  </div>
                 </div>
-                <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
-                  <p className="font-bold text-xl text-primary">{stats.activeSources}</p>
-                  <p className="text-muted-foreground arabic-text">مصدر</p>
-                </div>
-              </div>
-            )}
+              )}
+              
+              {/* Theme Toggle */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleTheme}
+                className="rounded-full"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -341,6 +446,7 @@ export default function Home() {
                   const displayTitle = translation?.title || item.title;
                   const displayDescription = translation?.description || item.description;
                   const isTranslated = !!translation;
+                  const isFav = favorites.has(item.id);
 
                   return (
                     <Card 
@@ -359,6 +465,45 @@ export default function Home() {
                           <Badge className="absolute top-3 right-3 arabic-text shadow-lg">
                             {item.category}
                           </Badge>
+                          
+                          {/* Action Buttons */}
+                          <div className="absolute top-3 left-3 flex gap-2">
+                            <Button
+                              size="sm"
+                              variant={isFav ? "default" : "secondary"}
+                              className="shadow-lg"
+                              onClick={() => handleToggleFavorite(item.id)}
+                            >
+                              <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
+                            </Button>
+                            
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size="sm" variant="secondary" className="shadow-lg">
+                                  <Share2 className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="arabic-text">
+                                <DropdownMenuItem onClick={() => handleShare(item, "whatsapp")}>
+                                  <span className="text-lg ml-2">📱</span>
+                                  واتساب
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleShare(item, "twitter")}>
+                                  <span className="text-lg ml-2">🐦</span>
+                                  تويتر
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleShare(item, "facebook")}>
+                                  <span className="text-lg ml-2">📘</span>
+                                  فيسبوك
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleShare(item, "copy")}>
+                                  <Copy className="h-4 w-4 ml-2" />
+                                  نسخ الرابط
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                          
                           {item.language !== "ar" && (
                             <Button
                               size="sm"
