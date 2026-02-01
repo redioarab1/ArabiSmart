@@ -15,6 +15,7 @@ import Archive from "./pages/Archive";
 import Settings from "./pages/Settings";
 import Folders from "./pages/Folders";
 import FolderDetail from "./pages/FolderDetail";
+import DailySummary from "./pages/DailySummary";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/folders" component={Folders} />
       <Route path="/folders/:id" component={FolderDetail} />
+      <Route path="/daily-summary" component={DailySummary} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

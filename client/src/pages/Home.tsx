@@ -24,10 +24,14 @@ import {
   User,
   Archive,
   Settings as SettingsIcon,
-  LogIn
+  LogIn,
+  Zap,
+  Sparkles,
+  FolderOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { AddToFolderButton } from "@/components/AddToFolderButton";
 import { getLoginUrl } from "@/const";
 import ScrollToTop from "@/components/ScrollToTop";
 import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
@@ -61,6 +65,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [isTabsVisible, setIsTabsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isFetchingBreakingNews, setIsFetchingBreakingNews] = useState(false);
 
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();

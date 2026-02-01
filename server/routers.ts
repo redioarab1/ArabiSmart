@@ -400,6 +400,104 @@ export const appRouter = router({
       }),
   }),
 
+  // Daily Summary router
+  dailySummary: router({
+    generate: protectedProcedure
+      .input(z.object({
+        date: z.string().optional(), // ISO date string
+        language: z.enum(["ar", "sv", "en"]).optional(),
+      }).optional())
+      .mutation(async ({ input }) => {
+        const { generateDailySummary } = await import("./dailySummary");
+        const { upsertDailySummary } = await import("./db");
+
+        const date = input?.date ? new Date(input.date) : new Date();
+        const language = input?.language || "ar";
+
+        // Generate summary
+        const summaryData = await generateDailySummary(date, language);
+
+        // Save to database
+        const summaryId = await upsertDailySummary({
+          date,
+          summary: summaryData.summary,
+          topNews: JSON.stringify(summaryData.topNews),
+          trendingTopics: JSON.stringify(summaryData.trendingTopics),
+          statistics: JSON.stringify(summaryData.statistics),
+          language,
+        });
+
+        return {
+          id: summaryId,
+          ...summaryData,
+        };
+      }),
+
+    getToday: publicProcedure
+      .input(z.object({
+        language: z.enum(["ar", "sv", "en"]).optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        const { getDailySummaryByDate } = await import("./db");
+        
+        const today = new Date();
+        const summary = await getDailySummaryByDate(today);
+
+        if (!summary) {
+          return null;
+        }
+
+        // Parse JSON fields
+        return {
+          ...summary,
+          topNews: summary.topNews ? JSON.parse(summary.topNews) : [],
+          trendingTopics: summary.trendingTopics ? JSON.parse(summary.trendingTopics) : [],
+          statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
+        };
+      }),
+
+    getLatest: publicProcedure
+      .query(async () => {
+        const { getLatestDailySummary } = await import("./db");
+        
+        const summary = await getLatestDailySummary();
+
+        if (!summary) {
+          return null;
+        }
+
+        // Parse JSON fields
+        return {
+          ...summary,
+          topNews: summary.topNews ? JSON.parse(summary.topNews) : [],
+          trendingTopics: summary.trendingTopics ? JSON.parse(summary.trendingTopics) : [],
+          statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
+        };
+      }),
+
+    list: publicProcedure
+      .input(z.object({
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        const { getDailySummaries } = await import("./db");
+        
+        const summaries = await getDailySummaries(
+          input?.limit || 10,
+          input?.offset || 0
+        );
+
+        // Parse JSON fields for each summary
+        return summaries.map(summary => ({
+          ...summary,
+          topNews: summary.topNews ? JSON.parse(summary.topNews) : [],
+          trendingTopics: summary.trendingTopics ? JSON.parse(summary.trendingTopics) : [],
+          statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
+        }));
+      }),
+  }),
+
   // Archive router
   archive: router({
     toggle: protectedProcedure
@@ -429,6 +527,30 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const { isNewsArchived } = await import("./db");
         return await isNewsArchived(ctx.user.id, input.newsId);
+      }),
+  }),
+
+  // Breaking News - Fetch RSS immediately
+  breakingNews: router({
+    fetchNow: publicProcedure
+      .mutation(async () => {
+        const { fetchAllRSS } = await import("./rssFetcher");
+        
+        try {
+          // Trigger RSS fetch immediately
+          await fetchAllRSS();
+          
+          return {
+            success: true,
+            message: "تم جلب الأخبار بنجاح",
+          };
+        } catch (error) {
+          console.error("[Breaking News] Error fetching RSS:", error);
+          return {
+            success: false,
+            message: "فشل جلب الأخبار",
+          };
+        }
       }),
   }),
 });
