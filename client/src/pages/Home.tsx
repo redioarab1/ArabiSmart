@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, Globe, Calendar, ExternalLink } from "lucide-react";
-import { Link } from "wouter";
+import { Search, Filter, Globe, Calendar, ExternalLink, Languages, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -14,13 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type NewsCategory = "all" | "arabic" | "swedish" | "international";
 
 export default function Home() {
   const [page, setPage] = useState(1);
-  const [category, setCategory] = useState<string | undefined>();
+  const [activeCategory, setActiveCategory] = useState<NewsCategory>("all");
   const [source, setSource] = useState<string | undefined>();
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [translatingId, setTranslatingId] = useState<number | null>(null);
+  const [translations, setTranslations] = useState<Record<number, { title: string; description: string }>>({});
 
   // Set RTL direction for Arabic content
   useEffect(() => {
@@ -28,10 +33,24 @@ export default function Home() {
     document.documentElement.setAttribute("lang", "ar");
   }, []);
 
+  // Determine filter based on active category
+  const getCategoryFilter = () => {
+    switch (activeCategory) {
+      case "arabic":
+        return { category: "عربية" as const };
+      case "swedish":
+        return { category: "SE" as const };
+      case "international":
+        return { language: "en" as const };
+      default:
+        return {};
+    }
+  };
+
   const { data: newsData, isLoading } = trpc.news.list.useQuery({
     page,
     limit: 12,
-    category,
+    ...getCategoryFilter(),
     source,
     search: search || undefined,
   });
@@ -39,13 +58,28 @@ export default function Home() {
   const { data: sources } = trpc.rssSources.list.useQuery();
   const { data: stats } = trpc.news.stats.useQuery();
 
+  const translateMutation = trpc.translate.text.useMutation({
+    onSuccess: (data, variables) => {
+      const newsId = translatingId;
+      if (newsId) {
+        setTranslations((prev) => ({
+          ...prev,
+          [newsId]: {
+            title: data.translated,
+            description: prev[newsId]?.description || "",
+          },
+        }));
+      }
+      setTranslatingId(null);
+    },
+    onError: (error) => {
+      toast.error(`خطأ في الترجمة: ${error.message}`);
+      setTranslatingId(null);
+    },
+  });
+
   const handleSearch = () => {
     setSearch(searchInput);
-    setPage(1);
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setCategory(value === "all" ? undefined : value);
     setPage(1);
   };
 
@@ -54,29 +88,102 @@ export default function Home() {
     setPage(1);
   };
 
+  const handleCategoryChange = (value: NewsCategory) => {
+    setActiveCategory(value);
+    setPage(1);
+  };
+
+  const handleTranslate = async (newsId: number, title: string, description: string, currentLang: string) => {
+    setTranslatingId(newsId);
+    
+    // Translate title
+    try {
+      const titleResult = await translateMutation.mutateAsync({
+        text: title,
+        targetLang: "ar",
+        sourceLang: currentLang as "ar" | "sv" | "en",
+      });
+
+      // Translate description if exists
+      let descResult = { translated: "" };
+      if (description) {
+        descResult = await translateMutation.mutateAsync({
+          text: description,
+          targetLang: "ar",
+          sourceLang: currentLang as "ar" | "sv" | "en",
+        });
+      }
+
+      setTranslations((prev) => ({
+        ...prev,
+        [newsId]: {
+          title: titleResult.translated,
+          description: descResult.translated,
+        },
+      }));
+      
+      toast.success("تمت الترجمة بنجاح");
+    } catch (error) {
+      toast.error("فشلت الترجمة");
+    } finally {
+      setTranslatingId(null);
+    }
+  };
+
+  const getCategoryLabel = (cat: NewsCategory) => {
+    switch (cat) {
+      case "arabic":
+        return "الأخبار العربية";
+      case "swedish":
+        return "الأخبار السويدية";
+      case "international":
+        return "الأخبار العالمية";
+      default:
+        return "جميع الأخبار";
+    }
+  };
+
+  const getCategoryDescription = (cat: NewsCategory) => {
+    switch (cat) {
+      case "arabic":
+        return "أخبار من العالم العربي";
+      case "swedish":
+        return "أخبار السويد بالعربية والسويدية";
+      case "international":
+        return "أخبار عالمية بلغات متعددة";
+      default:
+        return "جميع الأخبار من كل المصادر";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/10">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Globe className="h-8 w-8 text-primary" />
+              <div className="relative">
+                <Globe className="h-10 w-10 text-primary animate-pulse" />
+                <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-ping"></div>
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-primary arabic-text">ArabiSmart News</h1>
-                <p className="text-sm text-muted-foreground arabic-text">موقع الأخبار الذكي</p>
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent arabic-text">
+                  ArabiSmart News
+                </h1>
+                <p className="text-xs md:text-sm text-muted-foreground arabic-text">موقع الأخبار الذكي</p>
               </div>
             </div>
             
             {stats && (
               <div className="hidden md:flex items-center gap-6 text-sm">
-                <div className="text-center">
-                  <p className="font-bold text-lg text-primary">{stats.totalNews}</p>
+                <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
+                  <p className="font-bold text-xl text-primary">{stats.totalNews}</p>
                   <p className="text-muted-foreground arabic-text">خبر</p>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-lg text-primary">{stats.activeSources}</p>
-                  <p className="text-muted-foreground arabic-text">مصدر نشط</p>
+                <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
+                  <p className="font-bold text-xl text-primary">{stats.activeSources}</p>
+                  <p className="text-muted-foreground arabic-text">مصدر</p>
                 </div>
               </div>
             )}
@@ -84,14 +191,68 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Category Tabs - Sliding Navigation */}
+      <section className="border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 sticky top-[73px] z-40 shadow-sm">
+        <div className="container py-4">
+          <Tabs value={activeCategory} onValueChange={(v) => handleCategoryChange(v as NewsCategory)} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-background/50 backdrop-blur">
+              <TabsTrigger 
+                value="all" 
+                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
+              >
+                <Globe className="h-4 w-4 ml-2" />
+                <div className="text-right">
+                  <div className="font-bold">جميع الأخبار</div>
+                  <div className="text-xs opacity-80">All News</div>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="arabic" 
+                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
+              >
+                <span className="text-2xl ml-2">🌍</span>
+                <div className="text-right">
+                  <div className="font-bold">الأخبار العربية</div>
+                  <div className="text-xs opacity-80">Arabic News</div>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="swedish" 
+                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
+              >
+                <span className="text-2xl ml-2">🇸🇪</span>
+                <div className="text-right">
+                  <div className="font-bold">الأخبار السويدية</div>
+                  <div className="text-xs opacity-80">Swedish News</div>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="international" 
+                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
+              >
+                <span className="text-2xl ml-2">🌐</span>
+                <div className="text-right">
+                  <div className="font-bold">الأخبار العالمية</div>
+                  <div className="text-xs opacity-80">World News</div>
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <p className="text-center text-sm text-muted-foreground mt-3 arabic-text">
+            {getCategoryDescription(activeCategory)}
+          </p>
+        </div>
+      </section>
+
       {/* Hero Section */}
-      <section className="py-12 bg-gradient-to-r from-primary/10 via-primary/5 to-background">
+      <section className="py-8 md:py-12">
         <div className="container">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h2 className="text-4xl md:text-5xl font-bold arabic-text">
-              أحدث الأخبار من السويد والعالم العربي
+            <h2 className="text-3xl md:text-4xl font-bold arabic-text bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              {getCategoryLabel(activeCategory)}
             </h2>
-            <p className="text-lg text-muted-foreground arabic-text">
+            <p className="text-base md:text-lg text-muted-foreground arabic-text">
               تحديث تلقائي كل 10 دقائق من 17 مصدر إخباري موثوق
             </p>
             
@@ -102,10 +263,10 @@ export default function Home() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 arabic-text"
+                className="flex-1 arabic-text h-12 text-base"
               />
-              <Button onClick={handleSearch} size="icon">
-                <Search className="h-4 w-4" />
+              <Button onClick={handleSearch} size="lg" className="h-12 px-6">
+                <Search className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -113,25 +274,14 @@ export default function Home() {
       </section>
 
       {/* Filters */}
-      <section className="py-6 border-b bg-background/50">
+      <section className="py-4 border-y bg-muted/30">
         <div className="container">
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4 justify-center">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium arabic-text">تصفية:</span>
             </div>
             
-            <Select value={category || "all"} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-[180px] arabic-text">
-                <SelectValue placeholder="جميع الفئات" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع الفئات</SelectItem>
-                <SelectItem value="SE">أخبار السويد</SelectItem>
-                <SelectItem value="عربية">أخبار عربية</SelectItem>
-              </SelectContent>
-            </Select>
-
             <Select value={source || "all"} onValueChange={handleSourceChange}>
               <SelectTrigger className="w-[200px] arabic-text">
                 <SelectValue placeholder="جميع المصادر" />
@@ -146,12 +296,11 @@ export default function Home() {
               </SelectContent>
             </Select>
 
-            {(category || source || search) && (
+            {(source || search) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setCategory(undefined);
                   setSource(undefined);
                   setSearch("");
                   setSearchInput("");
@@ -167,13 +316,13 @@ export default function Home() {
       </section>
 
       {/* News Grid */}
-      <section className="py-12">
+      <section className="py-8 md:py-12">
         <div className="container">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <Card key={i}>
-                  <Skeleton className="h-48 w-full rounded-t-lg" />
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="h-48 w-full" />
                   <CardHeader>
                     <Skeleton className="h-6 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
@@ -187,55 +336,82 @@ export default function Home() {
           ) : newsData && newsData.items.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {newsData.items.map((item) => (
-                  <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
-                    {item.image && (
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                        <Badge className="absolute top-3 right-3 arabic-text">
-                          {item.category}
-                        </Badge>
-                      </div>
-                    )}
-                    <CardHeader>
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="outline" className="arabic-text text-xs">
-                          {item.source}
-                        </Badge>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span>{new Date(item.publishedAt).toLocaleDateString("ar-SA")}</span>
+                {newsData.items.map((item) => {
+                  const translation = translations[item.id];
+                  const displayTitle = translation?.title || item.title;
+                  const displayDescription = translation?.description || item.description;
+                  const isTranslated = !!translation;
+
+                  return (
+                    <Card 
+                      key={item.id} 
+                      className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-2 hover:border-primary/50"
+                    >
+                      {item.image && (
+                        <div className="relative h-48 overflow-hidden">
+                          <img
+                            src={item.image}
+                            alt={displayTitle}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                          <Badge className="absolute top-3 right-3 arabic-text shadow-lg">
+                            {item.category}
+                          </Badge>
+                          {item.language !== "ar" && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="absolute bottom-3 right-3 shadow-lg"
+                              onClick={() => handleTranslate(item.id, item.title, item.description || "", item.language)}
+                              disabled={translatingId === item.id}
+                            >
+                              {translatingId === item.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                              ) : (
+                                <Languages className="h-4 w-4 ml-2" />
+                              )}
+                              <span className="arabic-text">{isTranslated ? "مترجم" : "ترجمة"}</span>
+                            </Button>
+                          )}
                         </div>
-                      </div>
-                      <CardTitle className="line-clamp-2 arabic-text text-right">
-                        {item.title}
-                      </CardTitle>
-                      {item.description && (
-                        <CardDescription className="line-clamp-3 arabic-text text-right">
-                          {item.description}
-                        </CardDescription>
                       )}
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="w-full arabic-text"
-                      >
-                        <a href={item.link} target="_blank" rel="noopener noreferrer">
-                          <span>قراءة المزيد</span>
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                        </a>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <CardHeader>
+                        <div className="flex items-center justify-between mb-2 gap-2">
+                          <Badge variant="outline" className="arabic-text text-xs">
+                            {item.source}
+                          </Badge>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            <span>{new Date(item.publishedAt).toLocaleDateString("ar-SA")}</span>
+                          </div>
+                        </div>
+                        <CardTitle className="line-clamp-2 arabic-text text-right leading-relaxed group-hover:text-primary transition-colors">
+                          {displayTitle}
+                        </CardTitle>
+                        {displayDescription && (
+                          <CardDescription className="line-clamp-3 arabic-text text-right leading-relaxed">
+                            {displayDescription}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          asChild
+                          className="w-full arabic-text group-hover:bg-primary group-hover:scale-105 transition-all"
+                        >
+                          <a href={item.link} target="_blank" rel="noopener noreferrer">
+                            <span>قراءة المزيد</span>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {/* Pagination */}
@@ -249,7 +425,7 @@ export default function Home() {
                   >
                     السابق
                   </Button>
-                  <span className="text-sm text-muted-foreground arabic-text">
+                  <span className="text-sm text-muted-foreground arabic-text px-4">
                     صفحة {page} من {newsData.totalPages}
                   </span>
                   <Button
@@ -265,8 +441,9 @@ export default function Home() {
             </>
           ) : (
             <div className="text-center py-12">
+              <Globe className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
               <p className="text-lg text-muted-foreground arabic-text">
-                لا توجد أخبار متاحة حالياً
+                لا توجد أخبار متاحة حالياً في هذا القسم
               </p>
             </div>
           )}
@@ -274,16 +451,20 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8 bg-muted/30">
-        <div className="container text-center">
+      <footer className="border-t py-8 bg-muted/30 mt-12">
+        <div className="container text-center space-y-4">
+          <div className="flex items-center justify-center gap-2">
+            <Globe className="h-5 w-5 text-primary" />
+            <p className="text-sm font-medium arabic-text">ArabiSmart News - موقع الأخبار الذكي</p>
+          </div>
           <p className="text-sm text-muted-foreground arabic-text">
             © 2026 ArabiSmart News. جميع الحقوق محفوظة.
           </p>
-          <p className="text-xs text-muted-foreground mt-2 arabic-text">
-            {stats?.lastUpdate && (
-              <>آخر تحديث: {new Date(stats.lastUpdate).toLocaleString("ar-SA")}</>
-            )}
-          </p>
+          {stats?.lastUpdate && (
+            <p className="text-xs text-muted-foreground arabic-text">
+              آخر تحديث: {new Date(stats.lastUpdate).toLocaleString("ar-SA")}
+            </p>
+          )}
         </div>
       </footer>
     </div>

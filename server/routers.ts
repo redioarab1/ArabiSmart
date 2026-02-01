@@ -54,6 +54,22 @@ export const appRouter = router({
     }),
   }),
 
+  translate: router({
+    text: publicProcedure
+      .input(
+        z.object({
+          text: z.string(),
+          targetLang: z.enum(["ar", "sv", "en"]),
+          sourceLang: z.enum(["ar", "sv", "en"]).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { translateText } = await import("./translator");
+        const translated = await translateText(input.text, input.targetLang, input.sourceLang);
+        return { translated };
+      }),
+  }),
+
   admin: router({
     addNews: protectedProcedure
       .input(
