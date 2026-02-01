@@ -1,7 +1,5 @@
-import { ENV } from "./_core/env";
-
 /**
- * Translate text using Gemini API
+ * Translate text using MyMemory Translation API (free, no API key required)
  * @param text - Text to translate
  * @param targetLang - Target language code (ar, sv, en)
  * @param sourceLang - Source language code (optional, auto-detect if not provided)
@@ -13,49 +11,19 @@ export async function translateText(
   sourceLang?: string
 ): Promise<string> {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.warn("[Translator] GEMINI_API_KEY not found, returning original text");
-      return text;
-    }
+    // MyMemory API - Free translation service (1000 requests/day)
+    // Auto-detect source language if not provided
+    const sourceLanguage = sourceLang || "auto";
+    
+    // Build API URL with query parameters
+    const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLanguage}|${targetLang}`;
 
-    const languageNames: Record<string, string> = {
-      ar: "Arabic",
-      sv: "Swedish",
-      en: "English",
-    };
-
-    const targetLanguage = languageNames[targetLang] || targetLang;
-    const sourceLanguage = sourceLang ? languageNames[sourceLang] || sourceLang : "auto-detect";
-
-    const prompt = sourceLang
-      ? `Translate the following text from ${sourceLanguage} to ${targetLanguage}. Only provide the translation, no explanations:\n\n${text}`
-      : `Translate the following text to ${targetLanguage}. Only provide the translation, no explanations:\n\n${text}`;
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 1000,
-          },
-        }),
-      }
-    );
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "User-Agent": "ArabiSmart News/1.0",
+      },
+    });
 
     if (!response.ok) {
       console.error("[Translator] API error:", response.status, response.statusText);
@@ -63,7 +31,14 @@ export async function translateText(
     }
 
     const data = await response.json();
-    const translatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    // Check if translation was successful
+    if (data.responseStatus !== 200) {
+      console.warn("[Translator] Translation failed:", data.responseDetails);
+      return text;
+    }
+
+    const translatedText = data.responseData?.translatedText;
 
     if (!translatedText) {
       console.warn("[Translator] No translation returned");
