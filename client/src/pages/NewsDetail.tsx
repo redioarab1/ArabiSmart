@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import CommentsSection from "@/components/CommentsSection";
 import { WebSpeechPlayer } from "@/components/WebSpeechPlayer";
+import { ShareButtons } from "@/components/ShareButtons";
+import { StoryGenerator } from "@/components/StoryGenerator";
 import {
   ArrowRight,
   Calendar,
@@ -333,6 +335,29 @@ export default function NewsDetail() {
                 )}
               </div>
             </CardHeader>
+          </Card>
+
+          {/* نظام المشاركة الاجتماعية */}
+          <Card className="mt-8">
+            <CardContent className="pt-6">
+              <ShareButtons
+                title={news.title}
+                description={news.description || ""}
+                url={window.location.href}
+              />
+            </CardContent>
+          </Card>
+
+          {/* توليد صورة Story */}
+          <Card className="mt-8">
+            <CardContent className="pt-6">
+              <StoryGenerator
+                title={news.title}
+                description={news.description || ""}
+                source={news.source}
+                publishedAt={news.publishedAt.toISOString()}
+              />
+            </CardContent>
           </Card>
 
           {/* Comments Section */}

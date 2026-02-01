@@ -335,3 +335,18 @@
 - [x] إضافة دوال registerServiceWorker و checkInstallability
 - [ ] اختبار "Add to Home Screen"
 - [ ] اختبار العمل بدون إنترنت (offline mode)
+
+
+## نظام المشاركة الاجتماعية - المرحلة 19
+- [x] إنشاء مكون ShareButtons لأزرار المشاركة
+- [x] إضافة زر مشاركة WhatsApp
+- [x] إضافة زر مشاركة Telegram
+- [x] إضافة زر مشاركة Facebook
+- [x] إضافة زر مشاركة Twitter
+- [x] إضافة زر نسخ الرابط المختصر
+- [x] إضافة زر مشاركة أصلي (Web Share API)
+- [x] إنشاء مكون StoryGenerator لتوليد صور Story
+- [x] تصميم قالب Story احترافي بتدرج أزرق
+- [x] تثبيت html2canvas لتوليد الصور
+- [x] دمج المكونات في صفحة NewsDetail
+- [ ] اختبار جميع أزرار المشاركة
