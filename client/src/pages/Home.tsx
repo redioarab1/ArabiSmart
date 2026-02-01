@@ -23,10 +23,12 @@ import {
   Bell,
   User,
   Archive,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  LogIn
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { getLoginUrl } from "@/const";
 import {
   Select,
   SelectContent,
@@ -359,6 +361,16 @@ export default function Home() {
                     <SettingsIcon className="h-5 w-5" />
                   </Button>
                 </Link>
+              )}
+              
+              {/* Login/Signup Button */}
+              {!isAuthenticated && (
+                <a href={getLoginUrl()}>
+                  <Button className="gap-2 rounded-full">
+                    <LogIn className="h-5 w-5" />
+                    <span className="arabic-text hidden md:inline">تسجيل الدخول</span>
+                  </Button>
+                </a>
               )}
               
               {/* Theme Toggle */}
