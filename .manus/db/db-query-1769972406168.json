@@ -1,0 +1,112 @@
+{
+  "query": "SELECT id, name, url, language FROM rssSources ORDER BY name;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT id, name, url, language FROM rssSources ORDER BY name;",
+  "rows": [
+    {
+      "id": "12",
+      "name": "Aftonbladet",
+      "url": "https://www.aftonbladet.se/rss",
+      "language": "sv"
+    },
+    {
+      "id": "6",
+      "name": "Dagens Nyheter (DN)",
+      "url": "https://www.dn.se/rss",
+      "language": "sv"
+    },
+    {
+      "id": "9",
+      "name": "Expressen",
+      "url": "https://feeds.expressen.se/nyheter",
+      "language": "sv"
+    },
+    {
+      "id": "10",
+      "name": "Göteborgs-Posten (GP)",
+      "url": "https://www.gp.se/feeds/feed.xml",
+      "language": "sv"
+    },
+    {
+      "id": "7",
+      "name": "Svenska Dagbladet (SvD)",
+      "url": "https://www.svd.se/feed/articles.rss",
+      "language": "sv"
+    },
+    {
+      "id": "8",
+      "name": "SVT Nyheter",
+      "url": "https://www.svt.se/rss.xml",
+      "language": "sv"
+    },
+    {
+      "id": "4",
+      "name": "Swed24",
+      "url": "https://www.swed24.se/feed",
+      "language": "ar"
+    },
+    {
+      "id": "11",
+      "name": "Sydsvenskan",
+      "url": "https://www.sydsvenskan.se/feeds/feed.xml",
+      "language": "sv"
+    },
+    {
+      "id": "3",
+      "name": "أكتر (Aktarr)",
+      "url": "https://aktarr.se/api/news/أخبار-السويد.rss",
+      "language": "ar"
+    },
+    {
+      "id": "13",
+      "name": "الجزيرة",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779",
+      "language": "ar"
+    },
+    {
+      "id": "15",
+      "name": "العربية",
+      "url": "https://www.alarabiya.net/.mrss/ar/all.xml",
+      "language": "ar"
+    },
+    {
+      "id": "1",
+      "name": "الكومبس (Alkompis)",
+      "url": "https://alkompis.se/feed",
+      "language": "ar"
+    },
+    {
+      "id": "5",
+      "name": "المركز السويدي للمعلومات",
+      "url": "https://www.centersweden.com/feed",
+      "language": "ar"
+    },
+    {
+      "id": "2",
+      "name": "راديو السويد (Sveriges Radio - Arabic)",
+      "url": "https://api.sr.se/api/v2/episodes/index.xml?programid=2494",
+      "language": "ar"
+    },
+    {
+      "id": "16",
+      "name": "روسيا اليوم (RT Arabic)",
+      "url": "https://arabic.rt.com/rss",
+      "language": "ar"
+    },
+    {
+      "id": "14",
+      "name": "سكاي نيوز عربية",
+      "url": "https://www.skynewsarabia.com/rss.xml",
+      "language": "ar"
+    },
+    {
+      "id": "17",
+      "name": "فرانس 24 (France 24)",
+      "url": "https://www.france24.com/ar/rss",
+      "language": "ar"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\turl\tlanguage\n12\tAftonbladet\thttps://www.aftonbladet.se/rss\tsv\n6\tDagens Nyheter (DN)\thttps://www.dn.se/rss\tsv\n9\tExpressen\thttps://feeds.expressen.se/nyheter\tsv\n10\tGöteborgs-Posten (GP)\thttps://www.gp.se/feeds/feed.xml\tsv\n7\tSvenska Dagbladet (SvD)\thttps://www.svd.se/feed/articles.rss\tsv\n8\tSVT Nyheter\thttps://www.svt.se/rss.xml\tsv\n4\tSwed24\thttps://www.swed24.se/feed\tar\n11\tSydsvenskan\thttps://www.sydsvenskan.se/feeds/feed.xml\tsv\n3\tأكتر (Aktarr)\thttps://aktarr.se/api/news/أخبار-السويد.rss\tar\n13\tالجزيرة\thttps://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779\tar\n15\tالعربية\thttps://www.alarabiya.net/.mrss/ar/all.xml\tar\n1\tالكومبس (Alkompis)\thttps://alkompis.se/feed\tar\n5\tالمركز السويدي للمعلومات\thttps://www.centersweden.com/feed\tar\n2\tراديو السويد (Sveriges Radio - Arabic)\thttps://api.sr.se/api/v2/episodes/index.xml?programid=2494\tar\n16\tروسيا اليوم (RT Arabic)\thttps://arabic.rt.com/rss\tar\n14\tسكاي نيوز عربية\thttps://www.skynewsarabia.com/rss.xml\tar\n17\tفرانس 24 (France 24)\thttps://www.france24.com/ar/rss\tar\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

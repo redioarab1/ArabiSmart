@@ -1,0 +1,20 @@
+{
+  "query": "SELECT * FROM rssSources WHERE name LIKE '%جزيرة%' OR name LIKE '%Jazeera%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT * FROM rssSources WHERE name LIKE '%جزيرة%' OR name LIKE '%Jazeera%';",
+  "rows": [
+    {
+      "id": "13",
+      "name": "الجزيرة",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-02-01 19:00:31",
+      "createdAt": "2026-02-01 10:12:34"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\turl\tcategory\tlanguage\tisActive\tlastFetchedAt\tcreatedAt\n13\tالجزيرة\thttps://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779\tعربية\tar\t1\t2026-02-01 19:00:31\t2026-02-01 10:12:34\n",
+  "stderr": "",
+  "execution_time_ms": 65
+}
