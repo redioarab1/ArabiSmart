@@ -204,6 +204,38 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // Archive router
+  archive: router({
+    toggle: protectedProcedure
+      .input(z.object({ newsId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { isNewsArchived, archiveNews, unarchiveNews } = await import("./db");
+        
+        const isArchived = await isNewsArchived(ctx.user.id, input.newsId);
+        
+        if (isArchived) {
+          await unarchiveNews(ctx.user.id, input.newsId);
+          return { archived: false };
+        } else {
+          await archiveNews(ctx.user.id, input.newsId);
+          return { archived: true };
+        }
+      }),
+
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        const { getArchivedNews } = await import("./db");
+        return await getArchivedNews(ctx.user.id);
+      }),
+
+    check: protectedProcedure
+      .input(z.object({ newsId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { isNewsArchived } = await import("./db");
+        return await isNewsArchived(ctx.user.id, input.newsId);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

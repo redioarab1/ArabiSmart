@@ -11,6 +11,8 @@ import NotificationSettings from "./pages/NotificationSettings";
 import NewsDetail from "./pages/NewsDetail";
 import AdvancedSearch from "./pages/AdvancedSearch";
 import Profile from "./pages/Profile";
+import Archive from "./pages/Archive";
+import Settings from "./pages/Settings";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -23,6 +25,8 @@ function Router() {
       <Route path="/news/:id" component={NewsDetail} />
       <Route path="/search" component={AdvancedSearch} />
       <Route path="/profile" component={Profile} />
+      <Route path="/archive" component={Archive} />
+      <Route path="/settings" component={Settings} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -21,7 +21,9 @@ import {
   Moon,
   Sun,
   Bell,
-  User
+  User,
+  Archive,
+  Settings as SettingsIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -332,11 +334,29 @@ export default function Home() {
                 </Button>
               </Link>
               
+              {/* Archive Link */}
+              {isAuthenticated && (
+                <Link href="/archive">
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <Archive className="h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
+              
               {/* Profile Link */}
               {isAuthenticated && (
                 <Link href="/profile">
                   <Button variant="outline" size="icon" className="rounded-full">
                     <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
+              
+              {/* Settings Link */}
+              {isAuthenticated && (
+                <Link href="/settings">
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <SettingsIcon className="h-5 w-5" />
                   </Button>
                 </Link>
               )}

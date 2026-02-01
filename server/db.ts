@@ -1,6 +1,6 @@
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings } from "../drizzle/schema";
+import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -363,4 +363,77 @@ export async function getUserRating(userId: number, newsId: number): Promise<num
     .limit(1);
 
   return result.length > 0 ? result[0].rating : null;
+}
+
+
+/**
+ * Archive a news item for a user
+ */
+export async function archiveNews(userId: number, newsId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if already archived
+  const existing = await db
+    .select()
+    .from(archivedNews)
+    .where(and(eqOp(archivedNews.userId, userId), eqOp(archivedNews.newsId, newsId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return existing[0];
+  }
+
+  const result = await db.insert(archivedNews).values({ userId, newsId });
+  return { id: Number(result[0].insertId), userId, newsId };
+}
+
+/**
+ * Unarchive a news item for a user
+ */
+export async function unarchiveNews(userId: number, newsId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .delete(archivedNews)
+    .where(and(eqOp(archivedNews.userId, userId), eqOp(archivedNews.newsId, newsId)));
+}
+
+/**
+ * Get all archived news for a user
+ */
+export async function getArchivedNews(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      id: archivedNews.id,
+      newsId: archivedNews.newsId,
+      archivedAt: archivedNews.archivedAt,
+      news: news,
+    })
+    .from(archivedNews)
+    .leftJoin(news, eqOp(archivedNews.newsId, news.id))
+    .where(eqOp(archivedNews.userId, userId))
+    .orderBy(desc(archivedNews.archivedAt));
+
+  return result;
+}
+
+/**
+ * Check if a news item is archived by a user
+ */
+export async function isNewsArchived(userId: number, newsId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db
+    .select()
+    .from(archivedNews)
+    .where(and(eqOp(archivedNews.userId, userId), eqOp(archivedNews.newsId, newsId)))
+    .limit(1);
+
+  return result.length > 0;
 }

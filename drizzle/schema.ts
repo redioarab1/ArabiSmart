@@ -121,3 +121,16 @@ export const ratings = mysqlTable("ratings", {
 
 export type Rating = typeof ratings.$inferSelect;
 export type InsertRating = typeof ratings.$inferInsert;
+
+/**
+ * Archived news table - stores user-specific archived news items
+ */
+export const archivedNews = mysqlTable("archivedNews", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  newsId: int("newsId").notNull(),
+  archivedAt: timestamp("archivedAt").defaultNow().notNull(),
+});
+
+export type ArchivedNews = typeof archivedNews.$inferSelect;
+export type InsertArchivedNews = typeof archivedNews.$inferInsert;
