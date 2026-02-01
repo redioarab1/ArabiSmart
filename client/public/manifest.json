@@ -1,0 +1,51 @@
+{
+  "name": "ArabiSmart News - عربي سمارت أخبارك الذكية",
+  "short_name": "ArabiSmart",
+  "description": "موقع الأخبار الذكي - تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["news", "magazines"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "الصفحة الرئيسية",
+      "short_name": "الرئيسية",
+      "description": "عرض آخر الأخبار",
+      "url": "/",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "المفضلة",
+      "short_name": "المفضلة",
+      "description": "عرض الأخبار المحفوظة",
+      "url": "/favorites",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "البحث",
+      "short_name": "بحث",
+      "description": "البحث في الأخبار",
+      "url": "/search",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

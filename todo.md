@@ -324,3 +324,14 @@
 - [x] توثيق رفع APK على Firebase App Distribution
 - [x] إنشاء ملف README.md للمشروع
 - [x] تجهيز ملف tar.gz للتحميل
+
+
+## تحويل الموقع إلى Progressive Web App (PWA) - المرحلة 18
+- [x] إنشاء Web App Manifest (manifest.json)
+- [x] تجهيز أيقونات بأحجام مختلفة (192x192, 512x512)
+- [x] إنشاء Service Worker (sw.js)
+- [x] تسجيل Service Worker في main.tsx
+- [x] إضافة meta tags للـ PWA في index.html
+- [x] إضافة دوال registerServiceWorker و checkInstallability
+- [ ] اختبار "Add to Home Screen"
+- [ ] اختبار العمل بدون إنترنت (offline mode)
