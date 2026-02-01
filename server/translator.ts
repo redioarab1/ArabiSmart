@@ -13,7 +13,7 @@ export async function translateText(
   try {
     // MyMemory API - Free translation service (1000 requests/day)
     // Auto-detect source language if not provided
-    const sourceLanguage = sourceLang || "auto";
+    const sourceLanguage = sourceLang || detectLanguage(text);
     
     // Build API URL with query parameters
     const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLanguage}|${targetLang}`;
