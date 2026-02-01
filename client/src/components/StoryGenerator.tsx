@@ -75,7 +75,7 @@ export function StoryGenerator({ title, description, source, publishedAt }: Stor
             </div>
             <div>
               <div className="font-bold text-xl">ArabiSmart News</div>
-              <div className="text-sm opacity-80">موقع الأخبار الذكي</div>
+              <div className="text-sm opacity-80">تغطية بلا حدود</div>
             </div>
           </div>
 

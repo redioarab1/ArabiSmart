@@ -66,6 +66,7 @@ export default function Home() {
   const [isTabsVisible, setIsTabsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isFetchingBreakingNews, setIsFetchingBreakingNews] = useState(false);
+  const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
 
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -301,7 +302,7 @@ export default function Home() {
                 <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent arabic-text">
                   ArabiSmart News
                 </h1>
-                <p className="text-xs md:text-sm text-muted-foreground arabic-text">موقع الأخبار الذكي</p>
+                <p className="text-xs md:text-sm text-muted-foreground arabic-text">تغطية بلا حدود، اجتمعت لتكون بين يديك في مكان واحد</p>
               </div>
             </div>
             
@@ -381,6 +382,26 @@ export default function Home() {
                   </Button>
                 </a>
               )}
+              
+              {/* Font Size Controls */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <span className="text-lg font-bold">A</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setFontSize('small')} className="arabic-text">
+                    <span className={fontSize === 'small' ? 'font-bold' : ''}>خط صغير</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFontSize('medium')} className="arabic-text">
+                    <span className={fontSize === 'medium' ? 'font-bold' : ''}>خط متوسط</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFontSize('large')} className="arabic-text">
+                    <span className={fontSize === 'large' ? 'font-bold' : ''}>خط كبير</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
               {/* Theme Toggle */}
               <Button
@@ -645,11 +666,15 @@ export default function Home() {
                             </span>
                           </div>
                         </div>
-                        <CardTitle className="line-clamp-2 arabic-text text-right leading-relaxed group-hover:text-primary transition-colors">
+                        <CardTitle className={`line-clamp-2 arabic-text text-right leading-relaxed group-hover:text-primary transition-colors ${
+                          fontSize === 'small' ? 'text-base' : fontSize === 'large' ? 'text-2xl' : 'text-lg'
+                        }`}>
                           {displayTitle}
                         </CardTitle>
                         {displayDescription && (
-                          <CardDescription className="line-clamp-3 arabic-text text-right leading-relaxed">
+                          <CardDescription className={`line-clamp-3 arabic-text text-right leading-relaxed ${
+                            fontSize === 'small' ? 'text-xs' : fontSize === 'large' ? 'text-base' : 'text-sm'
+                          }`}>
                             {displayDescription}
                           </CardDescription>
                         )}
@@ -712,7 +737,7 @@ export default function Home() {
         <div className="container text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
-            <p className="text-sm font-medium arabic-text">ArabiSmart News - موقع الأخبار الذكي</p>
+            <p className="text-sm font-medium arabic-text">ArabiSmart News - تغطية بلا حدود</p>
           </div>
           <p className="text-sm text-muted-foreground arabic-text">
             © 2026 ArabiSmart News. جميع الحقوق محفوظة.
