@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `dailySummaries` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`date` timestamp NOT NULL,\n\t`summary` text NOT NULL,\n\t`topNews` text,\n\t`trendingTopics` text,\n\t`statistics` text,\n\t`language` enum('ar','sv','en') NOT NULL DEFAULT 'ar',\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `dailySummaries_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `dailySummaries_date_unique` UNIQUE(`date`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute CREATE TABLE `dailySummaries` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`date` timestamp NOT NULL,\n\t`summary` text NOT NULL,\n\t`topNews` text,\n\t`trendingTopics` text,\n\t`statistics` text,\n\t`language` enum('ar','sv','en') NOT NULL DEFAULT 'ar',\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `dailySummaries_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `dailySummaries_date_unique` UNIQUE(`date`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 265
+}

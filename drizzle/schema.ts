@@ -181,3 +181,20 @@ export const podcasts = mysqlTable("podcasts", {
 
 export type Podcast = typeof podcasts.$inferSelect;
 export type InsertPodcast = typeof podcasts.$inferInsert;
+
+/**
+ * Daily summaries table - stores AI-generated daily news summaries
+ */
+export const dailySummaries = mysqlTable("dailySummaries", {
+  id: int("id").autoincrement().primaryKey(),
+  date: timestamp("date").notNull().unique(), // Date of the summary
+  summary: text("summary").notNull(), // AI-generated summary
+  topNews: text("topNews"), // JSON array of top news IDs
+  trendingTopics: text("trendingTopics"), // JSON array of trending topics
+  statistics: text("statistics"), // JSON object with stats (total news, sources, etc.)
+  language: mysqlEnum("language", ["ar", "sv", "en"]).default("ar").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DailySummary = typeof dailySummaries.$inferSelect;
+export type InsertDailySummary = typeof dailySummaries.$inferInsert;

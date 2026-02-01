@@ -276,6 +276,130 @@ export const appRouter = router({
       }),
   }),
 
+  // Folders router
+  folders: router({
+    // Create a new folder
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(100),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+          color: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { createFolder } = await import("./db");
+        return await createFolder(ctx.user.id, input);
+      }),
+
+    // Get all folders for current user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserFolders } = await import("./db");
+      return await getUserFolders(ctx.user.id);
+    }),
+
+    // Get folder by ID
+    getById: protectedProcedure
+      .input(z.object({ folderId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getFolderById } = await import("./db");
+        return await getFolderById(input.folderId, ctx.user.id);
+      }),
+
+    // Update folder
+    update: protectedProcedure
+      .input(
+        z.object({
+          folderId: z.number(),
+          name: z.string().min(1).max(100).optional(),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+          color: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { folderId, ...updates } = input;
+        const { updateFolder } = await import("./db");
+        await updateFolder(folderId, ctx.user.id, updates);
+        return { success: true };
+      }),
+
+    // Delete folder
+    delete: protectedProcedure
+      .input(z.object({ folderId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteFolder } = await import("./db");
+        await deleteFolder(input.folderId, ctx.user.id);
+        return { success: true };
+      }),
+
+    // Add news to folder
+    addNews: protectedProcedure
+      .input(
+        z.object({
+          folderId: z.number(),
+          newsId: z.number(),
+          note: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { addNewsToFolder } = await import("./db");
+        return await addNewsToFolder(input.folderId, input.newsId, input.note);
+      }),
+
+    // Remove news from folder
+    removeNews: protectedProcedure
+      .input(
+        z.object({
+          folderId: z.number(),
+          newsId: z.number(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { removeNewsFromFolder } = await import("./db");
+        await removeNewsFromFolder(input.folderId, input.newsId);
+        return { success: true };
+      }),
+
+    // Get all news in a folder
+    getNews: protectedProcedure
+      .input(z.object({ folderId: z.number() }))
+      .query(async ({ input }) => {
+        const { getFolderNews } = await import("./db");
+        return await getFolderNews(input.folderId);
+      }),
+
+    // Move news between folders
+    moveNews: protectedProcedure
+      .input(
+        z.object({
+          newsId: z.number(),
+          fromFolderId: z.number(),
+          toFolderId: z.number(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { moveNewsBetweenFolders } = await import("./db");
+        await moveNewsBetweenFolders(input.newsId, input.fromFolderId, input.toFolderId);
+        return { success: true };
+      }),
+
+    // Get folder count
+    count: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserFolderCount } = await import("./db");
+      return await getUserFolderCount(ctx.user.id);
+    }),
+
+    // Get news count in folder
+    newsCount: protectedProcedure
+      .input(z.object({ folderId: z.number() }))
+      .query(async ({ input }) => {
+        const { getFolderNewsCount } = await import("./db");
+        return await getFolderNewsCount(input.folderId);
+      }),
+  }),
+
   // Archive router
   archive: router({
     toggle: protectedProcedure

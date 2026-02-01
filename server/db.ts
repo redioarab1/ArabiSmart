@@ -1,6 +1,6 @@
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews, podcasts, InsertPodcast, Podcast } from "../drizzle/schema";
+import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews, podcasts, InsertPodcast, Podcast, folders, folderItems, Folder, InsertFolder, FolderItem, InsertFolderItem, dailySummaries, DailySummary, InsertDailySummary } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -503,4 +503,316 @@ export async function getReadyPodcasts(limit: number = 10) {
     .limit(limit);
 
   return result;
+}
+
+
+// ==================== Folders Management ====================
+
+/**
+ * Create a new folder for a user
+ */
+export async function createFolder(userId: number, folderData: Omit<InsertFolder, "userId">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(folders).values({
+    userId,
+    ...folderData,
+  });
+
+  return result;
+}
+
+/**
+ * Get all folders for a user
+ */
+export async function getUserFolders(userId: number): Promise<Folder[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select()
+    .from(folders)
+    .where(eq(folders.userId, userId))
+    .orderBy(desc(folders.createdAt));
+
+  return result;
+}
+
+/**
+ * Get folder by ID
+ */
+export async function getFolderById(folderId: number, userId: number): Promise<Folder | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select()
+    .from(folders)
+    .where(and(eq(folders.id, folderId), eq(folders.userId, userId)))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Update folder
+ */
+export async function updateFolder(
+  folderId: number,
+  userId: number,
+  updates: Partial<Omit<InsertFolder, "userId">>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(folders)
+    .set(updates)
+    .where(and(eq(folders.id, folderId), eq(folders.userId, userId)));
+}
+
+/**
+ * Delete folder and all its items
+ */
+export async function deleteFolder(folderId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // First delete all folder items
+  await db.delete(folderItems).where(eq(folderItems.folderId, folderId));
+
+  // Then delete the folder
+  await db
+    .delete(folders)
+    .where(and(eq(folders.id, folderId), eq(folders.userId, userId)));
+}
+
+/**
+ * Add news to folder
+ */
+export async function addNewsToFolder(folderId: number, newsId: number, note?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if already exists
+  const existing = await db
+    .select()
+    .from(folderItems)
+    .where(and(eq(folderItems.folderId, folderId), eq(folderItems.newsId, newsId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update note if provided
+    if (note !== undefined) {
+      await db
+        .update(folderItems)
+        .set({ note })
+        .where(eq(folderItems.id, existing[0].id));
+    }
+    return existing[0];
+  }
+
+  // Insert new
+  const result = await db.insert(folderItems).values({
+    folderId,
+    newsId,
+    note: note || null,
+  });
+
+  return result;
+}
+
+/**
+ * Remove news from folder
+ */
+export async function removeNewsFromFolder(folderId: number, newsId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .delete(folderItems)
+    .where(and(eq(folderItems.folderId, folderId), eq(folderItems.newsId, newsId)));
+}
+
+/**
+ * Get all news in a folder
+ */
+export async function getFolderNews(folderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      folderItem: folderItems,
+      news: news,
+    })
+    .from(folderItems)
+    .innerJoin(news, eq(folderItems.newsId, news.id))
+    .where(eq(folderItems.folderId, folderId))
+    .orderBy(desc(folderItems.createdAt));
+
+  return result;
+}
+
+/**
+ * Move news between folders
+ */
+export async function moveNewsBetweenFolders(
+  newsId: number,
+  fromFolderId: number,
+  toFolderId: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get the note from the old folder
+  const oldItem = await db
+    .select()
+    .from(folderItems)
+    .where(and(eq(folderItems.folderId, fromFolderId), eq(folderItems.newsId, newsId)))
+    .limit(1);
+
+  const note = oldItem.length > 0 ? oldItem[0].note : null;
+
+  // Remove from old folder
+  await removeNewsFromFolder(fromFolderId, newsId);
+
+  // Add to new folder
+  await addNewsToFolder(toFolderId, newsId, note || undefined);
+}
+
+/**
+ * Get folder count for a user
+ */
+export async function getUserFolderCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(folders)
+    .where(eq(folders.userId, userId));
+
+  return result[0]?.count || 0;
+}
+
+/**
+ * Get news count in a folder
+ */
+export async function getFolderNewsCount(folderId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(folderItems)
+    .where(eq(folderItems.folderId, folderId));
+
+  return result[0]?.count || 0;
+}
+
+
+// ==================== Daily Summaries ====================
+
+/**
+ * Create or update daily summary
+ */
+export async function upsertDailySummary(summaryData: InsertDailySummary) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if summary exists for this date
+  const existing = await db
+    .select()
+    .from(dailySummaries)
+    .where(eq(dailySummaries.date, summaryData.date))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing
+    await db
+      .update(dailySummaries)
+      .set(summaryData)
+      .where(eq(dailySummaries.id, existing[0].id));
+    return existing[0].id;
+  } else {
+    // Insert new
+    const result = await db.insert(dailySummaries).values(summaryData);
+    return result[0].insertId;
+  }
+}
+
+/**
+ * Get daily summary by date
+ */
+export async function getDailySummaryByDate(date: Date): Promise<DailySummary | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const result = await db
+    .select()
+    .from(dailySummaries)
+    .where(
+      and(
+        sql`${dailySummaries.date} >= ${startOfDay}`,
+        sql`${dailySummaries.date} <= ${endOfDay}`
+      )
+    )
+    .orderBy(desc(dailySummaries.createdAt))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Get latest daily summary
+ */
+export async function getLatestDailySummary(): Promise<DailySummary | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select()
+    .from(dailySummaries)
+    .orderBy(desc(dailySummaries.date))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Get all daily summaries (paginated)
+ */
+export async function getDailySummaries(limit: number = 10, offset: number = 0) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select()
+    .from(dailySummaries)
+    .orderBy(desc(dailySummaries.date))
+    .limit(limit)
+    .offset(offset);
+
+  return result;
+}
+
+/**
+ * Delete old summaries (older than specified days)
+ */
+export async function deleteOldSummaries(daysToKeep: number = 30) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+  await db.delete(dailySummaries).where(sql`${dailySummaries.date} < ${cutoffDate}`);
 }
