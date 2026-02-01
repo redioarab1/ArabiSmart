@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, Download } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image-more";
 
 interface StoryGeneratorProps {
   title: string;
@@ -20,30 +20,32 @@ export function StoryGenerator({ title, description, source, publishedAt }: Stor
     try {
       toast.info("جاري إنشاء الصورة...");
       
-      // توليد الصورة باستخدام html2canvas
-      const canvas = await html2canvas(storyRef.current, {
-        scale: 2,
-        backgroundColor: "#1e293b",
-        logging: false,
+      // توليد الصورة باستخدام dom-to-image-more
+      const dataUrl = await domtoimage.toPng(storyRef.current, {
+        quality: 1.0,
+        width: storyRef.current.offsetWidth * 2,
+        height: storyRef.current.offsetHeight * 2,
+        style: {
+          transform: "scale(2)",
+          transformOrigin: "top left",
+        },
       });
 
-      // تحويل Canvas إلى Blob
-      canvas.toBlob((blob: Blob | null) => {
-        if (!blob) {
-          toast.error("فشل إنشاء الصورة");
-          return;
-        }
+      // تحويل Data URL إلى Blob
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
 
-        // تحميل الصورة
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `arabismart-story-${Date.now()}.png`;
-        link.click();
-        URL.revokeObjectURL(url);
+      // تحميل الصورة
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `arabismart-story-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-        toast.success("تم إنشاء الصورة بنجاح!");
-      });
+      toast.success("تم إنشاء الصورة بنجاح!");
     } catch (error) {
       console.error("Error generating story:", error);
       toast.error("فشل إنشاء الصورة");
@@ -57,8 +59,11 @@ export function StoryGenerator({ title, description, source, publishedAt }: Stor
       {/* معاينة Story */}
       <div 
         ref={storyRef}
-        className="relative w-full aspect-[9/16] max-w-[360px] mx-auto bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl overflow-hidden shadow-2xl"
-        style={{ maxHeight: "640px" }}
+        className="relative w-full aspect-[9/16] max-w-[360px] mx-auto rounded-2xl overflow-hidden shadow-2xl"
+        style={{ 
+          maxHeight: "640px",
+          background: "linear-gradient(135deg, rgb(37, 99, 235) 0%, rgb(29, 78, 216) 50%, rgb(30, 58, 138) 100%)"
+        }}
       >
         {/* خلفية زخرفية */}
         <div className="absolute inset-0 opacity-10">
