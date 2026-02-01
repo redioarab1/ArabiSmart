@@ -293,3 +293,34 @@
 - [ ] حفظ subscription في قاعدة البيانات
 - [ ] إرسال إشعارات عند نشر أخبار عاجلة
 - [ ] صفحة إعدادات الإشعارات
+
+
+## تحويل الموقع إلى تطبيق موبايل - Apache Cordova (المرحلة 17)
+
+### تثبيت وإعداد Cordova
+- [x] تثبيت Apache Cordova عبر npm
+- [x] إنشاء مشروع Cordova جديد
+- [x] إضافة منصة Android
+- [x] تكوين config.xml للتطبيق
+
+### تكوين WebView
+- [x] تعيين URL الموقع في WebView
+- [x] إضافة أيقونة التطبيق (icon)
+- [x] إضافة شاشة البداية (splash screen)
+- [x] تكوين الأذونات المطلوبة
+
+### إضافة Plugins
+- [x] cordova-plugin-whitelist (للسماح بالوصول للموقع)
+- [x] cordova-plugin-inappbrowser (لفتح الروابط الخارجية)
+- [x] cordova-plugin-statusbar (لتخصيص شريط الحالة)
+- [ ] cordova-plugin-splashscreen (لشاشة البداية)
+- [ ] cordova-plugin-firebase-messaging (للإشعارات Push)
+
+### بناء التطبيق
+- [x] إنشاء دليل شامل لبناء APK محلياً (BUILD_APK_GUIDE.md)
+- [x] توثيق خطوات تثبيت Android SDK و Java
+- [x] توثيق بناء APK للاختبار (debug)
+- [x] توثيق بناء APK للنشر (release) مع التوقيع
+- [x] توثيق رفع APK على Firebase App Distribution
+- [x] إنشاء ملف README.md للمشروع
+- [x] تجهيز ملف tar.gz للتحميل
