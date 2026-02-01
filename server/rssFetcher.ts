@@ -2,6 +2,7 @@ import Parser from "rss-parser";
 import { getDb } from "./db";
 import { news, rssSources, fetchLogs } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { scrapeAlkompis } from "./alkompis-scraper";
 
 const parser = new Parser({
   customFields: {
@@ -68,6 +69,61 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
 
   try {
     console.log(`[RSS Fetcher] Fetching from: ${sourceName} (${sourceUrl})`);
+    
+    // Special handling for Alkompis (web scraper instead of RSS)
+    if (sourceName.includes('الكومبس') || sourceName.toLowerCase().includes('alkompis')) {
+      const articles = await scrapeAlkompis();
+      let itemsFetched = 0;
+
+      for (const article of articles) {
+        try {
+          // Check if news already exists
+          const existingNews = await db
+            .select()
+            .from(news)
+            .where(eq(news.link, article.url))
+            .limit(1);
+
+          if (existingNews.length > 0) {
+            continue; // Skip duplicate
+          }
+
+          await db.insert(news).values({
+            title: article.title,
+            description: article.description,
+            content: null,
+            link: article.url,
+            image: null,
+            source: sourceName,
+            category: category as "SE" | "عربية",
+            language: language as "ar" | "sv" | "en",
+            publishedAt: article.pubDate,
+            isManual: 0,
+          });
+
+          itemsFetched++;
+        } catch (error: any) {
+          console.error(`[RSS Fetcher] Error inserting news item: ${error.message}`);
+        }
+      }
+
+      // Update last fetched time
+      await db
+        .update(rssSources)
+        .set({ lastFetchedAt: new Date() })
+        .where(eq(rssSources.id, sourceId));
+
+      // Log success
+      await db.insert(fetchLogs).values({
+        sourceId,
+        status: "success",
+        itemsFetched,
+        errorMessage: null,
+      });
+
+      console.log(`[RSS Fetcher] ✅ ${sourceName}: ${itemsFetched} new items (scraped)`);
+      return { success: true, itemsFetched, error: null };
+    }
     
     const feed = await parser.parseURL(sourceUrl);
     let itemsFetched = 0;
