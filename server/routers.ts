@@ -52,6 +52,72 @@ export const appRouter = router({
       const { getAllRssSources } = await import("./db");
       return await getAllRssSources();
     }),
+
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1),
+          url: z.string().url(),
+          category: z.enum(["SE", "عربية"]),
+          language: z.enum(["ar", "sv", "en"]),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { createRssSource } = await import("./db");
+        return await createRssSource(input);
+      }),
+
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          name: z.string().min(1).optional(),
+          url: z.string().url().optional(),
+          category: z.enum(["SE", "عربية"]).optional(),
+          language: z.enum(["ar", "sv", "en"]).optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { updateRssSource } = await import("./db");
+        return await updateRssSource(input.id, input);
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteRssSource } = await import("./db");
+        return await deleteRssSource(input.id);
+      }),
+
+    toggleActive: protectedProcedure
+      .input(z.object({ id: z.number(), isActive: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const { updateRssSource } = await import("./db");
+        return await updateRssSource(input.id, { isActive: input.isActive });
+      }),
+
+    testFeed: publicProcedure
+      .input(z.object({ url: z.string().url() }))
+      .mutation(async ({ input }) => {
+        const Parser = (await import("rss-parser")).default;
+        const parser = new Parser();
+        try {
+          const feed = await parser.parseURL(input.url);
+          return {
+            success: true,
+            title: feed.title,
+            itemCount: feed.items?.length || 0,
+            latestItem: feed.items?.[0]?.title || null,
+          };
+        } catch (error: any) {
+          return {
+            success: false,
+            error: error.message,
+          };
+        }
+      }),
   }),
 
   translate: router({

@@ -816,3 +816,68 @@ export async function deleteOldSummaries(daysToKeep: number = 30) {
 
   await db.delete(dailySummaries).where(sql`${dailySummaries.date} < ${cutoffDate}`);
 }
+
+
+/**
+ * Create a new RSS source
+ */
+export async function createRssSource(data: {
+  name: string;
+  url: string;
+  category: string;
+  language: string;
+  isActive?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(rssSources).values({
+    name: data.name,
+    url: data.url,
+    category: data.category as any,
+    language: data.language as any,
+    isActive: (data.isActive ?? true) ? 1 : 0,
+  });
+
+  return { success: true, ...data };
+}
+
+/**
+ * Update an existing RSS source
+ */
+export async function updateRssSource(
+  id: number,
+  data: Partial<{
+    name: string;
+    url: string;
+    category: string;
+    language: string;
+    isActive: boolean;
+  }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.url !== undefined) updateData.url = data.url;
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.language !== undefined) updateData.language = data.language;
+  if (data.isActive !== undefined) updateData.isActive = data.isActive ? 1 : 0;
+
+  await db.update(rssSources).set(updateData).where(eq(rssSources.id, id));
+
+  return { id, ...data };
+}
+
+/**
+ * Delete an RSS source
+ */
+export async function deleteRssSource(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(rssSources).where(eq(rssSources.id, id));
+
+  return { success: true };
+}
