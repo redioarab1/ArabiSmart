@@ -465,9 +465,6 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold arabic-text bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
               {getCategoryLabel(activeCategory)}
             </h2>
-            <p className="text-base md:text-lg text-muted-foreground arabic-text">
-              تحديث تلقائي كل 10 دقائق من 17 مصدر إخباري موثوق
-            </p>
             
             {/* Search Bar */}
             <div className="flex gap-2 max-w-xl mx-auto">
