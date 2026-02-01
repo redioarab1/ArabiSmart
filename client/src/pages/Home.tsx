@@ -29,6 +29,10 @@ import {
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
+import ScrollToTop from "@/components/ScrollToTop";
+import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 import {
   Select,
   SelectContent,
@@ -634,6 +638,9 @@ export default function Home() {
                             <span className="text-[10px] opacity-70">
                               {new Date(item.createdAt).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
                             </span>
+                            <span className="text-[10px] opacity-70 arabic-text">
+                              ⏱ {calculateReadingTime(displayDescription || item.description || "", detectLanguage(displayTitle))}
+                            </span>
                           </div>
                         </div>
                         <CardTitle className="line-clamp-2 arabic-text text-right leading-relaxed group-hover:text-primary transition-colors">
@@ -715,6 +722,9 @@ export default function Home() {
           )}
         </div>
       </footer>
+      
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
     </div>
   );
 }

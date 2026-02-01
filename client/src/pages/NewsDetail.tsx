@@ -18,6 +18,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -229,6 +231,13 @@ export default function NewsDetail() {
           </div>
         </div>
       </header>
+
+      {/* Breadcrumbs */}
+      <div className="container max-w-4xl mt-6">
+        <Breadcrumbs items={[
+          { label: news?.title || "تفاصيل الخبر" }
+        ]} />
+      </div>
 
       {/* Content */}
       <section className="py-8">
