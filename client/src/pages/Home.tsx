@@ -20,7 +20,8 @@ import {
   Copy,
   Moon,
   Sun,
-  Bell
+  Bell,
+  User
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -50,6 +51,8 @@ export default function Home() {
   const [translatingId, setTranslatingId] = useState<number | null>(null);
   const [translations, setTranslations] = useState<Record<number, { title: string; description: string }>>({});
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const [isTabsVisible, setIsTabsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -60,6 +63,29 @@ export default function Home() {
     document.documentElement.setAttribute("dir", "rtl");
     document.documentElement.setAttribute("lang", "ar");
   }, []);
+
+  // Handle scroll to hide/show tabs
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < 100) {
+        // Always show tabs at the top
+        setIsTabsVisible(true);
+      } else if (currentScrollY > lastScrollY) {
+        // Scrolling down - hide tabs
+        setIsTabsVisible(false);
+      } else {
+        // Scrolling up - show tabs
+        setIsTabsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // Load favorites from localStorage for non-authenticated users
   useEffect(() => {
@@ -280,6 +306,13 @@ export default function Home() {
                 </div>
               )}
               
+              {/* Advanced Search Link */}
+              <Link href="/search">
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <Search className="h-5 w-5" />
+                </Button>
+              </Link>
+              
               {/* Notifications Link */}
               <Link href="/notifications">
                 <Button variant="outline" size="icon" className="rounded-full">
@@ -298,6 +331,15 @@ export default function Home() {
                   )}
                 </Button>
               </Link>
+              
+              {/* Profile Link */}
+              {isAuthenticated && (
+                <Link href="/profile">
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
               
               {/* Theme Toggle */}
               <Button
@@ -318,7 +360,11 @@ export default function Home() {
       </header>
 
       {/* Category Tabs - Sliding Navigation */}
-      <section className="border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 sticky top-[73px] z-40 shadow-sm">
+      <section 
+        className={`border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 sticky top-[73px] z-40 shadow-sm transition-transform duration-300 ${
+          isTabsVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         <div className="container py-4">
           <Tabs value={activeCategory} onValueChange={(v) => handleCategoryChange(v as NewsCategory)} className="w-full">
             <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-background/50 backdrop-blur">
@@ -548,9 +594,14 @@ export default function Home() {
                           <Badge variant="outline" className="arabic-text text-xs">
                             {item.source}
                           </Badge>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            <span>{new Date(item.publishedAt).toLocaleDateString("ar-SA")}</span>
+                          <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{new Date(item.publishedAt).toLocaleDateString("en-GB")}</span>
+                            </div>
+                            <span className="text-[10px] opacity-70">
+                              {new Date(item.createdAt).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
                           </div>
                         </div>
                         <CardTitle className="line-clamp-2 arabic-text text-right leading-relaxed group-hover:text-primary transition-colors">
@@ -563,17 +614,16 @@ export default function Home() {
                         )}
                       </CardHeader>
                       <CardContent>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          asChild
-                          className="w-full arabic-text group-hover:bg-primary group-hover:scale-105 transition-all"
-                        >
-                          <a href={item.link} target="_blank" rel="noopener noreferrer">
+                        <Link href={`/news/${item.id}`}>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="w-full arabic-text group-hover:bg-primary group-hover:scale-105 transition-all"
+                          >
                             <span>قراءة المزيد</span>
                             <ExternalLink className="h-4 w-4 mr-2" />
-                          </a>
-                        </Button>
+                          </Button>
+                        </Link>
                       </CardContent>
                     </Card>
                   );
