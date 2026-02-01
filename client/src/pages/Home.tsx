@@ -19,9 +19,11 @@ import {
   Share2,
   Copy,
   Moon,
-  Sun
+  Sun,
+  Bell
 } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "wouter";
 import {
   Select,
   SelectContent,
@@ -277,6 +279,25 @@ export default function Home() {
                   </div>
                 </div>
               )}
+              
+              {/* Notifications Link */}
+              <Link href="/notifications">
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <Bell className="h-5 w-5" />
+                </Button>
+              </Link>
+              
+              {/* Favorites Link */}
+              <Link href="/favorites">
+                <Button variant="outline" size="icon" className="rounded-full relative">
+                  <Heart className="h-5 w-5" />
+                  {favorites.size > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {favorites.size}
+                    </span>
+                  )}
+                </Button>
+              </Link>
               
               {/* Theme Toggle */}
               <Button

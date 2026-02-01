@@ -1,6 +1,6 @@
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog } from "../drizzle/schema";
+import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -251,4 +251,116 @@ export async function isFavorite(userId: number, newsId: number): Promise<boolea
     .limit(1);
 
   return result.length > 0;
+}
+
+/**
+ * Add comment to news
+ */
+export async function addComment(userId: number, newsId: number, content: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(comments).values({ userId, newsId, content });
+  return { id: Number(result[0].insertId), userId, newsId, content };
+}
+
+/**
+ * Get comments for news
+ */
+export async function getNewsComments(newsId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select({
+      id: comments.id,
+      userId: comments.userId,
+      newsId: comments.newsId,
+      content: comments.content,
+      isApproved: comments.isApproved,
+      createdAt: comments.createdAt,
+      user: users,
+    })
+    .from(comments)
+    .innerJoin(users, eqOp(comments.userId, users.id))
+    .where(and(eqOp(comments.newsId, newsId), eqOp(comments.isApproved, 1)))
+    .orderBy(desc(comments.createdAt));
+
+  return result;
+}
+
+/**
+ * Delete comment
+ */
+export async function deleteComment(commentId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(comments).where(and(eqOp(comments.id, commentId), eqOp(comments.userId, userId)));
+  return { success: true };
+}
+
+/**
+ * Add or update rating
+ */
+export async function addRating(userId: number, newsId: number, rating: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if rating exists
+  const existing = await db
+    .select()
+    .from(ratings)
+    .where(and(eqOp(ratings.userId, userId), eqOp(ratings.newsId, newsId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing rating
+    await db
+      .update(ratings)
+      .set({ rating, updatedAt: new Date() })
+      .where(and(eqOp(ratings.userId, userId), eqOp(ratings.newsId, newsId)));
+    return { id: existing[0].id, userId, newsId, rating };
+  }
+
+  // Insert new rating
+  const result = await db.insert(ratings).values({ userId, newsId, rating });
+  return { id: Number(result[0].insertId), userId, newsId, rating };
+}
+
+/**
+ * Get average rating for news
+ */
+export async function getNewsRating(newsId: number) {
+  const db = await getDb();
+  if (!db) return { average: 0, count: 0 };
+
+  const result = await db
+    .select({
+      average: sql<number>`AVG(${ratings.rating})`,
+      count: sql<number>`COUNT(*)`,
+    })
+    .from(ratings)
+    .where(eqOp(ratings.newsId, newsId));
+
+  return {
+    average: Number(result[0]?.average || 0),
+    count: Number(result[0]?.count || 0),
+  };
+}
+
+/**
+ * Get user's rating for news
+ */
+export async function getUserRating(userId: number, newsId: number): Promise<number | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select()
+    .from(ratings)
+    .where(and(eqOp(ratings.userId, userId), eqOp(ratings.newsId, newsId)))
+    .limit(1);
+
+  return result.length > 0 ? result[0].rating : null;
 }

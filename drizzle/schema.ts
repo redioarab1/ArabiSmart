@@ -90,3 +90,34 @@ export const favorites = mysqlTable("favorites", {
 
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
+
+/**
+ * Comments table - stores user comments on news articles
+ */
+export const comments = mysqlTable("comments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  newsId: int("newsId").notNull(),
+  content: text("content").notNull(),
+  isApproved: int("isApproved").default(1).notNull(), // 0 = pending, 1 = approved
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Comment = typeof comments.$inferSelect;
+export type InsertComment = typeof comments.$inferInsert;
+
+/**
+ * Ratings table - stores user ratings for news articles
+ */
+export const ratings = mysqlTable("ratings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  newsId: int("newsId").notNull(),
+  rating: int("rating").notNull(), // 1-5 stars
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Rating = typeof ratings.$inferSelect;
+export type InsertRating = typeof ratings.$inferInsert;

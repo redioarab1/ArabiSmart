@@ -70,6 +70,48 @@ export const appRouter = router({
       }),
   }),
 
+  comments: router({
+    add: protectedProcedure
+      .input(z.object({ newsId: z.number(), content: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        const { addComment } = await import("./db");
+        return await addComment(ctx.user.id, input.newsId, input.content);
+      }),
+    list: publicProcedure
+      .input(z.object({ newsId: z.number() }))
+      .query(async ({ input }) => {
+        const { getNewsComments } = await import("./db");
+        return await getNewsComments(input.newsId);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ commentId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteComment } = await import("./db");
+        return await deleteComment(input.commentId, ctx.user.id);
+      }),
+  }),
+
+  ratings: router({
+    add: protectedProcedure
+      .input(z.object({ newsId: z.number(), rating: z.number().min(1).max(5) }))
+      .mutation(async ({ ctx, input }) => {
+        const { addRating } = await import("./db");
+        return await addRating(ctx.user.id, input.newsId, input.rating);
+      }),
+    get: publicProcedure
+      .input(z.object({ newsId: z.number() }))
+      .query(async ({ input }) => {
+        const { getNewsRating } = await import("./db");
+        return await getNewsRating(input.newsId);
+      }),
+    getUserRating: protectedProcedure
+      .input(z.object({ newsId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getUserRating } = await import("./db");
+        return { rating: await getUserRating(ctx.user.id, input.newsId) };
+      }),
+  }),
+
   favorites: router({
     add: protectedProcedure
       .input(z.object({ newsId: z.number() }))
