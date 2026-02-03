@@ -306,6 +306,17 @@ export default function Home() {
               </div>
             </div>
             
+            {/* SEO Content Section */}
+            <div className="hidden">
+              <h2>أخبار عربية وسويدية وعالمية في مكان واحد</h2>
+              <p>
+                موقع ArabiSmart News يجمع آخر الأخبار العربية والسويدية والعالمية من أكثر من 25 مصدر موثوق.
+                تابع أخبار الجزيرة نت، بي بي سي عربي، سكاي نيوز عربية، الشرق الأوسط، روسيا اليوم، الحرة،
+                الكومبس، أخبار السويد، أخبار العرب في السويد، Expressen، Svenska Dagbladet، Sydsvenskan.
+                أخبار عاجلة، أخبار اليوم، breaking news، Swedish news، Arabic news.
+              </p>
+            </div>
+            
             <div className="flex items-center gap-4">
               {stats && (
                 <div className="hidden md:flex items-center gap-6 text-sm">
