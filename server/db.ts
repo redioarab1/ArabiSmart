@@ -881,3 +881,20 @@ export async function deleteRssSource(id: number) {
 
   return { success: true };
 }
+
+
+/**
+ * Get all news for sitemap generation
+ */
+export async function getAllNewsForSitemap() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select({
+      id: news.id,
+      publishedAt: news.publishedAt,
+    })
+    .from(news)
+    .orderBy(desc(news.publishedAt));
+}

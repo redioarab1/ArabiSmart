@@ -441,3 +441,10 @@
 - [x] إضافة Twitter Cards للمشاركة على تويتر
 - [x] إضافة structured data (JSON-LD) للأخبار
 - [x] اختبار SEO والتحقق من الكلمات الرئيسية
+
+
+## إنشاء Sitemap.xml ديناميكي - المرحلة 29
+- [x] إنشاء endpoint لـ /sitemap.xml في الخادم
+- [x] إضافة دالة لتوليد sitemap من قاعدة البيانات
+- [x] إضافة ملف robots.txt للإشارة إلى sitemap
+- [x] اختبار sitemap والتحقق من صحته (3403 رابط)

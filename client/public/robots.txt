@@ -1,0 +1,13 @@
+# robots.txt for ArabiSmart News
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://arabismart-news.manus.space/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin/
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 10
