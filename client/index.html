@@ -9,7 +9,30 @@
     <title>ArabiSmart News - موقع الأخبار الذكي</title>
     
     <!-- PWA Meta Tags -->
-    <meta name="description" content="موقع الأخبار الذكي - تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد" />
+    <meta name="description" content="موقع الأخبار الذكي - تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من الجزيرة، بي بي سي، سكاي نيوز، الشرق الأوسط، Expressen، Svenska Dagbladet وأكثر من 25 مصدر موثوق." />
+    <meta name="keywords" content="أخبار عربية, أخبار سويدية, أخبار عالمية, أخبار عاجلة, الجزيرة, بي بي سي عربي, سكاي نيوز عربية, الشرق الأوسط, روسيا اليوم, الحرة, الكومبس, أخبار السويد, أخبار العرب في السويد, Expressen, Svenska Dagbladet, Sydsvenskan, Swedish news, Arabic news, breaking news, ArabiSmart, موقع أخبار, أخبار اليوم" />
+    <meta name="author" content="ArabiSmart News" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="Arabic, Swedish, English" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://arabismart-news.manus.space/" />
+    <meta property="og:title" content="ArabiSmart News - موقع الأخبار الذكي" />
+    <meta property="og:description" content="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 25 مصدر موثوق." />
+    <meta property="og:image" content="https://arabismart-news.manus.space/icon-192x192.png" />
+    <meta property="og:locale" content="ar_AR" />
+    <meta property="og:locale:alternate" content="sv_SE" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:site_name" content="ArabiSmart News" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://arabismart-news.manus.space/" />
+    <meta property="twitter:title" content="ArabiSmart News - موقع الأخبار الذكي" />
+    <meta property="twitter:description" content="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 25 مصدر موثوق." />
+    <meta property="twitter:image" content="https://arabismart-news.manus.space/icon-192x192.png" />
+    
     <meta name="theme-color" content="#3b82f6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -17,6 +40,45 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
     <link rel="apple-touch-icon" href="/icon-192x192.png" />
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "ArabiSmart News",
+      "alternateName": "موقع الأخبار الذكي",
+      "url": "https://arabismart-news.manus.space/",
+      "description": "تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد",
+      "inLanguage": ["ar", "sv", "en"],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://arabismart-news.manus.space/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "ArabiSmart News",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://arabismart-news.manus.space/icon-192x192.png"
+        }
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsMediaOrganization",
+      "name": "ArabiSmart News",
+      "url": "https://arabismart-news.manus.space/",
+      "logo": "https://arabismart-news.manus.space/icon-192x192.png",
+      "description": "موقع أخبار يجمع أكثر من 25 مصدر إخباري عربي وسويدي في مكان واحد",
+      "sameAs": [
+        "https://arabismart-news.manus.space/"
+      ]
+    }
+    </script>
     
     <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
     <link rel="preconnect" href="https://fonts.googleapis.com" />
