@@ -67,6 +67,7 @@ export default function Home() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isFetchingBreakingNews, setIsFetchingBreakingNews] = useState(false);
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
 
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -130,6 +131,28 @@ export default function Home() {
     }
   };
 
+  // Filter news by time
+  const filterNewsByTime = (news: any[]) => {
+    if (timeFilter === 'all') return news;
+    
+    const now = new Date();
+    const filterDate = new Date();
+    
+    switch (timeFilter) {
+      case 'today':
+        filterDate.setHours(0, 0, 0, 0);
+        break;
+      case 'week':
+        filterDate.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        filterDate.setMonth(now.getMonth() - 1);
+        break;
+    }
+    
+    return news.filter(item => new Date(item.publishedAt) >= filterDate);
+  };
+
   const { data: newsData, isLoading } = trpc.news.list.useQuery({
     page,
     limit: 12,
@@ -137,6 +160,10 @@ export default function Home() {
     source,
     search: search || undefined,
   });
+
+  // Apply time filter to news
+  const filteredNews = newsData?.items ? filterNewsByTime(newsData.items) : [];
+  const displayNewsData = newsData ? { ...newsData, items: filteredNews } : undefined;
 
   const { data: sources } = trpc.rssSources.list.useQuery();
   const { data: stats } = trpc.news.stats.useQuery();
@@ -538,6 +565,18 @@ export default function Home() {
               </SelectContent>
             </Select>
 
+            <Select value={timeFilter} onValueChange={(value: any) => { setTimeFilter(value); setPage(1); }}>
+              <SelectTrigger className="w-[180px] arabic-text">
+                <SelectValue placeholder="كل الأوقات" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأوقات</SelectItem>
+                <SelectItem value="today">اليوم</SelectItem>
+                <SelectItem value="week">هذا الأسبوع</SelectItem>
+                <SelectItem value="month">هذا الشهر</SelectItem>
+              </SelectContent>
+            </Select>
+
             {(source || search) && (
               <Button
                 variant="ghost"
@@ -575,10 +614,10 @@ export default function Home() {
                 </Card>
               ))}
             </div>
-          ) : newsData && newsData.items.length > 0 ? (
+          ) : displayNewsData && displayNewsData.items.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {newsData.items.map((item) => {
+                {displayNewsData.items.map((item) => {
                   const translation = translations[item.id];
                   const displayTitle = translation?.title || item.title;
                   const displayDescription = translation?.description || item.description;
@@ -708,7 +747,7 @@ export default function Home() {
               </div>
 
               {/* Pagination */}
-              {newsData.totalPages && newsData.totalPages > 1 && (
+              {displayNewsData?.totalPages && displayNewsData.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-12">
                   <Button
                     variant="outline"
@@ -719,12 +758,12 @@ export default function Home() {
                     السابق
                   </Button>
                   <span className="text-sm text-muted-foreground arabic-text px-4">
-                    صفحة {page} من {newsData.totalPages}
+                    صفحة {page} من {displayNewsData.totalPages}
                   </span>
                   <Button
                     variant="outline"
-                    onClick={() => setPage((p) => Math.min(newsData.totalPages || 1, p + 1))}
-                    disabled={page === newsData.totalPages}
+                    onClick={() => setPage((p) => Math.min(displayNewsData?.totalPages || 1, p + 1))}
+                    disabled={page === displayNewsData.totalPages}
                     className="arabic-text"
                   >
                     التالي
