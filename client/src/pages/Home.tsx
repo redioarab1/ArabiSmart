@@ -565,17 +565,20 @@ export default function Home() {
               </SelectContent>
             </Select>
 
-            <Select value={timeFilter} onValueChange={(value: any) => { setTimeFilter(value); setPage(1); }}>
-              <SelectTrigger className="w-[180px] arabic-text">
-                <SelectValue placeholder="كل الأوقات" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل الأوقات</SelectItem>
-                <SelectItem value="today">اليوم</SelectItem>
-                <SelectItem value="week">هذا الأسبوع</SelectItem>
-                <SelectItem value="month">هذا الشهر</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Select value={timeFilter} onValueChange={(value: any) => { setTimeFilter(value); setPage(1); }}>
+                <SelectTrigger className="w-[200px] arabic-text">
+                  <SelectValue placeholder="الفترة الزمنية" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">📅 كل الأوقات</SelectItem>
+                  <SelectItem value="today">🔥 أخبار اليوم</SelectItem>
+                  <SelectItem value="week">📆 هذا الأسبوع</SelectItem>
+                  <SelectItem value="month">📊 هذا الشهر</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {(source || search) && (
               <Button
