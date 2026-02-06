@@ -198,3 +198,33 @@ export const dailySummaries = mysqlTable("dailySummaries", {
 
 export type DailySummary = typeof dailySummaries.$inferSelect;
 export type InsertDailySummary = typeof dailySummaries.$inferInsert;
+
+/**
+ * Categories table - stores news categories (عاجلة، محلية، رياضة، سياسة، اقتصاد، عالمية)
+ */
+export const categories = mysqlTable("categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  nameAr: varchar("nameAr", { length: 100 }).notNull(), // Arabic name
+  icon: varchar("icon", { length: 50 }), // emoji or icon name
+  color: varchar("color", { length: 20 }), // hex color for UI
+  order: int("order").default(0).notNull(), // display order
+  isActive: int("isActive").default(1).notNull(), // 0 = inactive, 1 = active
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = typeof categories.$inferInsert;
+
+/**
+ * News categories junction table - links news articles to categories (many-to-many)
+ */
+export const newsCategories = mysqlTable("newsCategories", {
+  id: int("id").autoincrement().primaryKey(),
+  newsId: int("newsId").notNull(),
+  categoryId: int("categoryId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type NewsCategory = typeof newsCategories.$inferSelect;
+export type InsertNewsCategory = typeof newsCategories.$inferInsert;

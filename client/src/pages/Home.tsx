@@ -68,6 +68,7 @@ export default function Home() {
   const [isFetchingBreakingNews, setIsFetchingBreakingNews] = useState(false);
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -167,6 +168,7 @@ export default function Home() {
 
   const { data: sources } = trpc.rssSources.list.useQuery();
   const { data: stats } = trpc.news.stats.useQuery();
+  const { data: categories } = (trpc as any).categories?.list?.useQuery() || { data: undefined };
 
   const translateMutation = trpc.translate.text.useMutation();
   const addFavoriteMutation = trpc.favorites.add.useMutation({
@@ -598,6 +600,40 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Categories Slider */}
+      {categories && categories.length > 0 && (
+        <section className="py-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-[120px] z-40">
+          <div className="container">
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              <Button
+                variant={selectedCategoryId === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategoryId(null)}
+                className="arabic-text whitespace-nowrap flex-shrink-0"
+              >
+                الكل
+              </Button>
+              {categories.map((category: any) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategoryId === category.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategoryId(category.id)}
+                  className="arabic-text whitespace-nowrap flex-shrink-0"
+                  style={{
+                    backgroundColor: selectedCategoryId === category.id ? category.color || undefined : undefined,
+                    borderColor: category.color || undefined,
+                  }}
+                >
+                  {category.icon && <span className="ml-1">{category.icon}</span>}
+                  {category.nameAr}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* News Grid */}
       <section className="py-8 md:py-12">

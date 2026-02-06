@@ -1,6 +1,6 @@
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews, podcasts, InsertPodcast, Podcast, folders, folderItems, Folder, InsertFolder, FolderItem, InsertFolderItem, dailySummaries, DailySummary, InsertDailySummary } from "../drizzle/schema";
+import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews, podcasts, InsertPodcast, Podcast, folders, folderItems, Folder, InsertFolder, FolderItem, InsertFolderItem, dailySummaries, DailySummary, InsertDailySummary, categories, Category, newsCategories } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -897,4 +897,61 @@ export async function getAllNewsForSitemap() {
     })
     .from(news)
     .orderBy(desc(news.publishedAt));
+}
+
+/**
+ * Get all active categories ordered by display order
+ */
+export async function getAllCategories(): Promise<Category[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.isActive, 1))
+    .orderBy(categories.order);
+
+  return result;
+}
+
+/**
+ * Get category by ID
+ */
+export async function getCategoryById(id: number): Promise<Category | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.id, id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Get categories for a specific news article
+ */
+export async function getNewsCategoriesByNewsId(newsId: number): Promise<Category[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const result = await db
+    .select({
+      id: categories.id,
+      name: categories.name,
+      nameAr: categories.nameAr,
+      icon: categories.icon,
+      color: categories.color,
+      order: categories.order,
+      isActive: categories.isActive,
+      createdAt: categories.createdAt,
+    })
+    .from(newsCategories)
+    .innerJoin(categories, eq(newsCategories.categoryId, categories.id))
+    .where(eq(newsCategories.newsId, newsId));
+
+  return result;
 }

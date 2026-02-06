@@ -596,6 +596,21 @@ export const appRouter = router({
       }),
   }),
 
+  // Categories router
+  categories: router({
+    list: publicProcedure.query(async () => {
+      const { getAllCategories } = await import("./db");
+      return await getAllCategories();
+    }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const { getCategoryById } = await import("./db");
+        return await getCategoryById(input.id);
+      }),
+  }),
+
   // Breaking News - Fetch RSS immediately
   breakingNews: router({
     fetchNow: publicProcedure
