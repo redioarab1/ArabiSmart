@@ -1,0 +1,166 @@
+{
+  "query": "SELECT id, name, url, isActive FROM rssSources ORDER BY name;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT id, name, url, isActive FROM rssSources ORDER BY name;",
+  "rows": [
+    {
+      "id": "12",
+      "name": "Aftonbladet",
+      "url": "https://www.aftonbladet.se/rss",
+      "isActive": "1"
+    },
+    {
+      "id": "6",
+      "name": "Dagens Nyheter (DN)",
+      "url": "https://www.dn.se/rss",
+      "isActive": "1"
+    },
+    {
+      "id": "9",
+      "name": "Expressen",
+      "url": "https://feeds.expressen.se/nyheter",
+      "isActive": "1"
+    },
+    {
+      "id": "10",
+      "name": "Göteborgs-Posten (GP)",
+      "url": "https://www.gp.se/feeds/feed.xml",
+      "isActive": "0"
+    },
+    {
+      "id": "7",
+      "name": "Svenska Dagbladet (SvD)",
+      "url": "https://www.svd.se/feed/articles.rss",
+      "isActive": "1"
+    },
+    {
+      "id": "8",
+      "name": "SVT Nyheter",
+      "url": "https://www.svt.se/rss.xml",
+      "isActive": "1"
+    },
+    {
+      "id": "4",
+      "name": "Swed24",
+      "url": "https://www.swed24.se/feed",
+      "isActive": "1"
+    },
+    {
+      "id": "11",
+      "name": "Sydsvenskan",
+      "url": "https://www.sydsvenskan.se/feeds/feed.xml",
+      "isActive": "1"
+    },
+    {
+      "id": "3",
+      "name": "أكتر (Aktarr)",
+      "url": "https://aktarr.se/api/news/أخبار-السويد.rss",
+      "isActive": "1"
+    },
+    {
+      "id": "13",
+      "name": "الجزيرة",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779",
+      "isActive": "1"
+    },
+    {
+      "id": "25",
+      "name": "الجزيرة نت (Al Jazeera)",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c",
+      "isActive": "1"
+    },
+    {
+      "id": "30",
+      "name": "الحرة (Alhurra)",
+      "url": "https://www.alhurra.com/rss",
+      "isActive": "1"
+    },
+    {
+      "id": "26",
+      "name": "الشرق الأوسط - العالم العربي (Asharq Al-Awsat)",
+      "url": "https://aawsat.com/feed/arab-world",
+      "isActive": "1"
+    },
+    {
+      "id": "23",
+      "name": "الشرق الأوسط (Asharq Al-Awsat)",
+      "url": "https://aawsat.com/feed",
+      "isActive": "1"
+    },
+    {
+      "id": "28",
+      "name": "العربي الجديد (The New Arab)",
+      "url": "https://www.alaraby.co.uk/rss",
+      "isActive": "1"
+    },
+    {
+      "id": "15",
+      "name": "العربية",
+      "url": "https://www.alarabiya.net/.mrss/ar/all.xml",
+      "isActive": "1"
+    },
+    {
+      "id": "1",
+      "name": "الكومبس (Alkompis)",
+      "url": "https://alkompis.se/feed",
+      "isActive": "1"
+    },
+    {
+      "id": "5",
+      "name": "المركز السويدي للمعلومات",
+      "url": "https://www.centersweden.com/feed",
+      "isActive": "1"
+    },
+    {
+      "id": "27",
+      "name": "بي بي سي عربي (BBC Arabic)",
+      "url": "https://feeds.bbci.co.uk/arabic/rss.xml",
+      "isActive": "1"
+    },
+    {
+      "id": "19",
+      "name": "دويتشه فيله (DW Arabic)",
+      "url": "https://rss.dw.com/rdf/rss-ar-all",
+      "isActive": "1"
+    },
+    {
+      "id": "2",
+      "name": "راديو السويد (Sveriges Radio - Arabic)",
+      "url": "https://api.sr.se/api/v2/episodes/index.xml?programid=2494",
+      "isActive": "1"
+    },
+    {
+      "id": "16",
+      "name": "روسيا اليوم (RT Arabic)",
+      "url": "https://arabic.rt.com/rss",
+      "isActive": "1"
+    },
+    {
+      "id": "14",
+      "name": "سكاي نيوز عربية",
+      "url": "https://www.skynewsarabia.com/rss.xml",
+      "isActive": "1"
+    },
+    {
+      "id": "29",
+      "name": "صحيفة الوطن (Al Watan)",
+      "url": "https://alwatannews.net/rssFeed/0",
+      "isActive": "1"
+    },
+    {
+      "id": "24",
+      "name": "عربي21 (Arabi21)",
+      "url": "https://arabi21.com/feed",
+      "isActive": "1"
+    },
+    {
+      "id": "17",
+      "name": "فرانس 24 (France 24)",
+      "url": "https://www.france24.com/ar/rss",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\turl\tisActive\n12\tAftonbladet\thttps://www.aftonbladet.se/rss\t1\n6\tDagens Nyheter (DN)\thttps://www.dn.se/rss\t1\n9\tExpressen\thttps://feeds.expressen.se/nyheter\t1\n10\tGöteborgs-Posten (GP)\thttps://www.gp.se/feeds/feed.xml\t0\n7\tSvenska Dagbladet (SvD)\thttps://www.svd.se/feed/articles.rss\t1\n8\tSVT Nyheter\thttps://www.svt.se/rss.xml\t1\n4\tSwed24\thttps://www.swed24.se/feed\t1\n11\tSydsvenskan\thttps://www.sydsvenskan.se/feeds/feed.xml\t1\n3\tأكتر (Aktarr)\thttps://aktarr.se/api/news/أخبار-السويد.rss\t1\n13\tالجزيرة\thttps://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779\t1\n25\tالجزيرة نت (Al Jazeera)\thttps://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c\t1\n30\tالحرة (Alhurra)\thttps://www.alhurra.com/rss\t1\n26\tالشرق الأوسط - العالم العربي (Asharq Al-Awsat)\thttps://aawsat.com/feed/arab-world\t1\n23\tالشرق الأوسط (Asharq Al-Awsat)\thttps://aawsat.com/feed\t1\n28\tالعربي الجديد (The New Arab)\thttps://www.alaraby.co.uk/rss\t1\n15\tالعربية\thttps://www.alarabiya.net/.mrss/ar/all.xml\t1\n1\tالكومبس (Alkompis)\thttps://alkompis.se/feed\t1\n5\tالمركز السويدي للمعلومات\thttps://www.centersweden.com/feed\t1\n27\tبي بي سي عربي (BBC Arabic)\thttps://feeds.bbci.co.uk/arabic/rss.xml\t1\n19\tدويتشه فيله (DW Arabic)\thttps://rss.dw.com/rdf/rss-ar-all\t1\n2\tراديو السويد (Sveriges Radio - Arabic)\thttps://api.sr.se/api/v2/episodes/index.xml?programid=2494\t1\n16\tروسيا اليوم (RT Arabic)\thttps://arabic.rt.com/rss\t1\n14\tسكاي نيوز عربية\thttps://www.skynewsarabia.com/rss.xml\t1\n29\tصحيفة الوطن (Al Watan)\thttps://alwatannews.net/rssFeed/0\t1\n24\tعربي21 (Arabi21)\thttps://arabi21.com/feed\t1\n17\tفرانس 24 (France 24)\thttps://www.france24.com/ar/rss\t1\n",
+  "stderr": "",
+  "execution_time_ms": 83
+}
