@@ -3,6 +3,7 @@ import { getDb } from "./db";
 import { news, rssSources, fetchLogs } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { scrapeAlkompis } from "./alkompis-scraper";
+import { classifyAndLinkNews } from "./newsClassifier";
 
 const parser = new Parser({
   customFields: {
@@ -88,7 +89,7 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
             continue; // Skip duplicate
           }
 
-          await db.insert(news).values({
+          const insertResult = await db.insert(news).values({
             title: article.title,
             description: article.description,
             content: null,
@@ -100,6 +101,18 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
             publishedAt: article.pubDate,
             isManual: 0,
           });
+
+          // Get the inserted news ID
+          const newsId = Number(insertResult[0].insertId);
+
+          // Classify and link news to categories using AI
+          if (newsId && article.title) {
+            await classifyAndLinkNews(
+              newsId,
+              article.title,
+              article.description || ""
+            );
+          }
 
           itemsFetched++;
         } catch (error: any) {
@@ -148,7 +161,7 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
         const imageUrl = extractImageUrl(item);
         const publishedAt = item.isoDate || item.pubDate || new Date().toISOString();
 
-        await db.insert(news).values({
+        const insertResult = await db.insert(news).values({
           title: item.title,
           description: item.contentSnippet || item.content?.substring(0, 500) || null,
           content: item.content || null,
@@ -160,6 +173,18 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
           publishedAt: new Date(publishedAt),
           isManual: 0,
         });
+
+        // Get the inserted news ID
+        const newsId = Number(insertResult[0].insertId);
+
+        // Classify and link news to categories using AI
+        if (newsId && item.title) {
+          await classifyAndLinkNews(
+            newsId,
+            item.title,
+            item.contentSnippet || item.content?.substring(0, 500) || ""
+          );
+        }
 
         itemsFetched++;
       } catch (error: any) {

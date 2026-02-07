@@ -1,0 +1,40 @@
+{
+  "query": "SELECT nc.newsId, nc.categoryId, c.nameAr, n.title \nFROM newsCategories nc \nJOIN categories c ON nc.categoryId = c.id \nJOIN news n ON nc.newsId = n.id \nORDER BY nc.newsId DESC \nLIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT nc.newsId, nc.categoryId, c.nameAr, n.title \nFROM newsCategories nc \nJOIN categories c ON nc.categoryId = c.id \nJOIN news n ON nc.newsId = n.id \nORDER BY nc.newsId DESC \nLIMIT 10;",
+  "rows": [
+    {
+      "newsId": "1350318",
+      "categoryId": "6",
+      "nameAr": "عالمية",
+      "title": "الأحزاب الجزائرية تتنافس على استقطاب النواب المستقلين قبل الانتخابات"
+    },
+    {
+      "newsId": "1350318",
+      "categoryId": "4",
+      "nameAr": "سياسة",
+      "title": "الأحزاب الجزائرية تتنافس على استقطاب النواب المستقلين قبل الانتخابات"
+    },
+    {
+      "newsId": "1350317",
+      "categoryId": "6",
+      "nameAr": "عالمية",
+      "title": "سوريون يستعيدون مواجع زلزال 2023"
+    },
+    {
+      "newsId": "1350316",
+      "categoryId": "6",
+      "nameAr": "عالمية",
+      "title": "انتحاري يفجر نفسه بحزام ناسف خلال محاصرة مطلوبين غرب العراق"
+    },
+    {
+      "newsId": "1350316",
+      "categoryId": "1",
+      "nameAr": "عاجلة",
+      "title": "انتحاري يفجر نفسه بحزام ناسف خلال محاصرة مطلوبين غرب العراق"
+    }
+  ],
+  "messages": [],
+  "stdout": "newsId\tcategoryId\tnameAr\ttitle\n1350318\t6\tعالمية\tالأحزاب الجزائرية تتنافس على استقطاب النواب المستقلين قبل الانتخابات\n1350318\t4\tسياسة\tالأحزاب الجزائرية تتنافس على استقطاب النواب المستقلين قبل الانتخابات\n1350317\t6\tعالمية\tسوريون يستعيدون مواجع زلزال 2023\n1350316\t6\tعالمية\tانتحاري يفجر نفسه بحزام ناسف خلال محاصرة مطلوبين غرب العراق\n1350316\t1\tعاجلة\tانتحاري يفجر نفسه بحزام ناسف خلال محاصرة مطلوبين غرب العراق\n",
+  "stderr": "",
+  "execution_time_ms": 96
+}
