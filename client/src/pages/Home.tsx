@@ -481,35 +481,14 @@ export default function Home() {
                   <div className="text-xs opacity-80">All News</div>
                 </div>
               </TabsTrigger>
-              <TabsTrigger 
-                value="arabic" 
-                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
-              >
-                <span className="text-2xl ml-2">🌍</span>
-                <div className="text-right">
-                  <div className="font-bold">الأخبار العربية</div>
-                  <div className="text-xs opacity-80">Arabic News</div>
-                </div>
+              <TabsTrigger value="arabic" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <span className="text-4xl">🇸🇦</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="swedish" 
-                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
-              >
-                <span className="text-2xl ml-2">🇸🇪</span>
-                <div className="text-right">
-                  <div className="font-bold">الأخبار السويدية</div>
-                  <div className="text-xs opacity-80">Swedish News</div>
-                </div>
+              <TabsTrigger value="swedish" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <span className="text-4xl">🇸🇪</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="international" 
-                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
-              >
-                <span className="text-2xl ml-2">🌐</span>
-                <div className="text-right">
-                  <div className="font-bold">الأخبار العالمية</div>
-                  <div className="text-xs opacity-80">World News</div>
-                </div>
+              <TabsTrigger value="international" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <span className="text-4xl">🌍</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
