@@ -27,6 +27,7 @@ export const appRouter = router({
           category: z.string().optional(),
           source: z.string().optional(),
           search: z.string().optional(),
+          categoryId: z.number().optional(),
         }).optional()
       )
       .query(async ({ input }) => {

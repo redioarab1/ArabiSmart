@@ -100,13 +100,48 @@ export async function getNews(params: {
   category?: string;
   source?: string;
   search?: string;
+  categoryId?: number;
 }) {
   const db = await getDb();
   if (!db) return { items: [], total: 0 };
 
-  const { page = 1, limit = 20, category, source, search } = params;
+  const { page = 1, limit = 20, category, source, search, categoryId } = params;
   const offset = (page - 1) * limit;
 
+  // If categoryId is provided, use JOIN with newsCategories
+  if (categoryId) {
+    const items = await db
+      .select({
+        id: news.id,
+        title: news.title,
+        description: news.description,
+        link: news.link,
+        source: news.source,
+        category: news.category,
+        image: news.image,
+        language: news.language,
+        publishedAt: news.publishedAt,
+        createdAt: news.createdAt,
+      })
+      .from(news)
+      .innerJoin(newsCategories, eqOp(newsCategories.newsId, news.id))
+      .where(eqOp(newsCategories.categoryId, categoryId))
+      .orderBy(desc(news.publishedAt))
+      .limit(limit)
+      .offset(offset);
+
+    const totalResult = await db
+      .select({ count: sql<number>`count(DISTINCT ${news.id})` })
+      .from(news)
+      .innerJoin(newsCategories, eqOp(newsCategories.newsId, news.id))
+      .where(eqOp(newsCategories.categoryId, categoryId));
+
+    const total = Number(totalResult[0]?.count || 0);
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  // Original logic for non-categoryId filters
   let conditions = [];
   if (category) conditions.push(eqOp(news.category, category as any));
   if (source) conditions.push(eqOp(news.source, source));

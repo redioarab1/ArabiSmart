@@ -160,6 +160,7 @@ export default function Home() {
     ...getCategoryFilter(),
     source,
     search: search || undefined,
+    categoryId: selectedCategoryId || undefined,
   });
 
   // Apply time filter to news
@@ -582,7 +583,7 @@ export default function Home() {
               </Select>
             </div>
 
-            {(source || search) && (
+            {(source || search || selectedCategoryId) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -590,6 +591,7 @@ export default function Home() {
                   setSource(undefined);
                   setSearch("");
                   setSearchInput("");
+                  setSelectedCategoryId(null);
                   setPage(1);
                 }}
                 className="arabic-text"
@@ -609,7 +611,7 @@ export default function Home() {
               <Button
                 variant={selectedCategoryId === null ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategoryId(null)}
+                onClick={() => { setSelectedCategoryId(null); setPage(1); }}
                 className="arabic-text whitespace-nowrap flex-shrink-0"
               >
                 الكل
@@ -619,7 +621,7 @@ export default function Home() {
                   key={category.id}
                   variant={selectedCategoryId === category.id ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedCategoryId(category.id)}
+                  onClick={() => { setSelectedCategoryId(category.id); setPage(1); }}
                   className="arabic-text whitespace-nowrap flex-shrink-0"
                   style={{
                     backgroundColor: selectedCategoryId === category.id ? category.color || undefined : undefined,
