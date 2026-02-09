@@ -493,9 +493,7 @@ export default function Home() {
             </TabsList>
           </Tabs>
           
-          <p className="text-center text-sm text-muted-foreground mt-3 arabic-text">
-            {getCategoryDescription(activeCategory)}
-          </p>
+
         </div>
       </section>
 
