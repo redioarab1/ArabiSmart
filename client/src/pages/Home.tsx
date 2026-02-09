@@ -473,13 +473,13 @@ export default function Home() {
             <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-background/50 backdrop-blur">
               <TabsTrigger 
                 value="all" 
-                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3 px-4"
+                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-3"
               >
-                <Globe className="h-4 w-4 ml-2" />
-                <div className="text-right">
-                  <div className="font-bold">جميع الأخبار</div>
-                  <div className="text-xs opacity-80">All News</div>
-                </div>
+                <img 
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028696863/NIagWKoGxequAPcb.png" 
+                  alt="ArabiSmart News" 
+                  className="h-16 w-auto object-contain"
+                />
               </TabsTrigger>
               <TabsTrigger value="arabic" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                 <span className="text-4xl">🇸🇦</span>
