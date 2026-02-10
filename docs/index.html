@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArabiSmart - عالم الأخبار بين يديك</title>
+    <meta name="description" content="تطبيق ArabiSmart - 24 مصدر أخبار موثوق، ترجمة وتلخيص ذكي بالـ AI">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .features {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .features li {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+        }
+
+        .features li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .features li:last-child {
+            border-bottom: none;
+        }
+
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .expo-link {
+            background: #4630EB;
+            margin-top: 10px;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .instructions ol {
+            margin-right: 20px;
+        }
+
+        .instructions li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="../frontend/assets/icon.png" alt="ArabiSmart" class="app-icon">
+            <h1>ArabiSmart</h1>
+            <p class="tagline">عالم الأخبار بين يديك في مكان واحد 🌍</p>
+            <div>
+                <span class="badge">24 مصدر أخبار</span>
+                <span class="badge">ترجمة AI</span>
+                <span class="badge">تحديث كل 10 دقائق</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2 style="text-align: center; color: #333; margin-bottom: 20px;">مميزات التطبيق</h2>
+            
+            <ul class="features">
+                <li>24 مصدر أخبار موثوق (عربي + سويدي + دولي)</li>
+                <li>تحديث تلقائي كل 10 دقائق</li>
+                <li>ترجمة وتلخيص ذكي بالـ AI</li>
+                <li>واجهة عربية كاملة مع دعم RTL</li>
+                <li>الوضع الليلي</li>
+                <li>حفظ المقالات المفضلة</li>
+            </ul>
+
+            <a href="exp://u.expo.dev/448507fa-43b3-4572-b3d4-33b0cb52aa97/group/d2788dca-33af-4716-b0cb-47a6ff7af9cf" class="download-btn expo-link">
+                🚀 افتح التطبيق الآن
+            </a>
+
+            <a href="https://play.google.com/store/apps/details?id=host.exp.exponent" target="_blank" class="download-btn">
+                📥 حمّل Expo Go (مطلوب)
+            </a>
+
+            <div class="instructions">
+                <h3>كيفية الاستخدام:</h3>
+                <ol>
+                    <li>حمّل تطبيق <strong>Expo Go</strong> من Google Play</li>
+                    <li>افتح Expo Go</li>
+                    <li>اضغط على زر "افتح التطبيق الآن" أعلاه</li>
+                    <li>استمتع بالأخبار! 🎉</li>
+                </ol>
+            </div>
+
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <strong style="color: #1976d2;">💡 ملاحظة:</strong>
+                <p style="margin-top: 10px; color: #555;">
+                    التطبيق يعمل عبر Expo Go حالياً. نسخة APK المستقلة قيد التطوير.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 ArabiSmart. جميع الحقوق محفوظة.</p>
+            <p style="margin-top: 10px;">
+                <a href="https://github.com/redioarab1/ArabiSmart" style="color: #667eea; text-decoration: none;">
+                    GitHub
+                </a> | 
+                <a href="mailto:redio.arab@gmail.com" style="color: #667eea; text-decoration: none;">
+                    تواصل معنا
+                </a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
