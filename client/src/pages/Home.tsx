@@ -501,10 +501,7 @@ export default function Home() {
       <section className="py-8 md:py-12">
         <div className="container">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold arabic-text bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              {getCategoryLabel(activeCategory)}
-            </h2>
-            
+
             {/* Search Bar */}
             <div className="flex gap-2 max-w-xl mx-auto">
               <Input
