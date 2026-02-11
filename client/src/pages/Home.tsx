@@ -476,8 +476,9 @@ export default function Home() {
                 className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-3"
               >
                 <img 
-                  src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028696863/NIagWKoGxequAPcb.png" 
-                  alt="ArabiSmart News" 
+                  src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028696863/TREiIprHXGJofwwf.png" 
+                  alt="ArabiSmart News"
+                  loading="eager" 
                   className="h-16 w-auto object-contain"
                 />
               </TabsTrigger>
@@ -649,8 +650,8 @@ export default function Home() {
                           <img
                             src={item.image}
                             alt={displayTitle}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                           <Badge className="absolute top-3 right-3 arabic-text shadow-lg">
