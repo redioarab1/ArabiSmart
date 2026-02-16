@@ -270,6 +270,69 @@ export const appRouter = router({
         
         return { success: true };
       }),
+
+    addManualNews: protectedProcedure
+      .input(
+        z.object({
+          title: z.string(),
+          description: z.string(),
+          link: z.string(),
+          source: z.string(),
+          category: z.enum(["SE", "عربية"]),
+          language: z.enum(["ar", "sv", "en"]),
+          image: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { news } = await import("../drizzle/schema");
+        
+        await db.insert(news).values({
+          ...input,
+          publishedAt: new Date(),
+          isManual: 1,
+        });
+        
+        return { success: true };
+      }),
+
+    listSources: protectedProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) throw new Error("Database not available");
+      const { rssSources } = await import("../drizzle/schema");
+      
+      return await db.select().from(rssSources);
+    }),
+
+    newsGrowth: protectedProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) throw new Error("Database not available");
+      const { news } = await import("../drizzle/schema");
+      const { sql, gte } = await import("drizzle-orm");
+      
+      // Get news from last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const results = await db
+        .select({
+          date: sql<string>`DATE(${news.createdAt})`,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(news)
+        .where(gte(news.createdAt, sevenDaysAgo))
+        .groupBy(sql`DATE(${news.createdAt})`)
+        .orderBy(sql`DATE(${news.createdAt})`);
+      
+      return results;
+    }),
+
+    fetchNews: protectedProcedure.mutation(async () => {
+      const { fetchAllRSS } = await import("./rssFetcher");
+      await fetchAllRSS();
+      return { success: true, newItemsCount: 0 };
+    }),
   }),
 
   // Podcast router

@@ -23,72 +23,120 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, BarChart3, Globe, RefreshCw } from "lucide-react";
+import { 
+  Plus, Edit, Trash2, BarChart3, Globe, RefreshCw, 
+  Newspaper, TrendingUp, Users, Activity,
+  Calendar, Eye, FileText
+} from "lucide-react";
 import { getLoginUrl } from "@/const";
+import { 
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+} from 'recharts';
 
 export default function AdminDashboard() {
   const { user, loading, isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
   const [page, setPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddManualNewsOpen, setIsAddManualNewsOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<any>(null);
 
-  const { data: newsData, refetch } = trpc.news.list.useQuery({ page, limit: 20 });
-  const { data: stats } = trpc.news.stats.useQuery();
+  // Form states for manual news
+  const [manualNewsForm, setManualNewsForm] = useState({
+    title: "",
+    description: "",
+    link: "",
+    source: "",
+    category: "عربية" as "عربية" | "SE",
+    language: "ar" as "ar" | "sv" | "en",
+    image: "",
+  });
 
-  const addNewsMutation = trpc.admin.addNews.useMutation({
+  const { data: newsData, refetch: refetchNews } = trpc.news.list.useQuery({ page, limit: 20 });
+  const { data: stats } = trpc.news.stats.useQuery();
+  const { data: sources } = trpc.admin.listSources.useQuery();
+  const { data: growthData } = trpc.admin.newsGrowth.useQuery();
+
+  const addManualNewsMutation = trpc.admin.addManualNews.useMutation({
     onSuccess: () => {
-      toast.success("تم إضافة الخبر بنجاح");
-      setIsAddDialogOpen(false);
-      refetch();
+      toast.success("✅ تم إضافة الخبر بنجاح");
+      setIsAddManualNewsOpen(false);
+      setManualNewsForm({
+        title: "",
+        description: "",
+        link: "",
+        source: "",
+        category: "عربية",
+        language: "ar",
+        image: "",
+      });
+      refetchNews();
     },
     onError: (error) => {
-      toast.error(`خطأ: ${error.message}`);
+      toast.error(`❌ خطأ: ${error.message}`);
     },
   });
 
   const updateNewsMutation = trpc.admin.updateNews.useMutation({
     onSuccess: () => {
-      toast.success("تم تحديث الخبر بنجاح");
+      toast.success("✅ تم تحديث الخبر بنجاح");
       setEditingNews(null);
-      refetch();
+      refetchNews();
     },
     onError: (error) => {
-      toast.error(`خطأ: ${error.message}`);
+      toast.error(`❌ خطأ: ${error.message}`);
     },
   });
 
   const deleteNewsMutation = trpc.admin.deleteNews.useMutation({
     onSuccess: () => {
-      toast.success("تم حذف الخبر بنجاح");
-      refetch();
+      toast.success("✅ تم حذف الخبر بنجاح");
+      refetchNews();
     },
     onError: (error) => {
-      toast.error(`خطأ: ${error.message}`);
+      toast.error(`❌ خطأ: ${error.message}`);
+    },
+  });
+
+  const fetchNewsMutation = trpc.admin.fetchNews.useMutation({
+    onSuccess: (data) => {
+      toast.success(`✅ تم جلب ${data.newItemsCount} خبر جديد`);
+      refetchNews();
+    },
+    onError: (error) => {
+      toast.error(`❌ خطأ: ${error.message}`);
     },
   });
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="text-center space-y-4">
+          <RefreshCw className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground arabic-text">جاري التحميل...</p>
+        </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
-            <CardTitle className="text-2xl arabic-text">لوحة التحكم الإدارية</CardTitle>
-            <CardDescription className="arabic-text">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <Card className="w-full max-w-md shadow-2xl border-2">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Globe className="h-8 w-8 text-primary" />
+            </div>
+            <CardTitle className="text-3xl arabic-text font-bold">لوحة التحكم الإدارية</CardTitle>
+            <CardDescription className="arabic-text text-base">
               يجب تسجيل الدخول للوصول إلى لوحة التحكم
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild className="w-full arabic-text">
+            <Button asChild className="w-full arabic-text text-lg py-6">
               <a href={getLoginUrl()}>تسجيل الدخول</a>
             </Button>
           </CardContent>
@@ -97,35 +145,17 @@ export default function AdminDashboard() {
     );
   }
 
-  const handleAddNews = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddManualNews = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
-    addNewsMutation.mutate({
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      content: formData.get("content") as string,
-      link: formData.get("link") as string,
-      image: formData.get("image") as string,
-      source: formData.get("source") as string,
-      category: formData.get("category") as "SE" | "عربية",
-      language: formData.get("language") as "ar" | "sv" | "en",
-    });
+    addManualNewsMutation.mutate(manualNewsForm);
   };
 
   const handleUpdateNews = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
     updateNewsMutation.mutate({
       id: editingNews.id,
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      content: formData.get("content") as string,
-      image: formData.get("image") as string,
-      source: formData.get("source") as string,
-      category: formData.get("category") as "SE" | "عربية",
-      language: formData.get("language") as "ar" | "sv" | "en",
+      category: formData.get("category") as "عربية" | "SE",
     });
   };
 
@@ -135,309 +165,617 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleFetchNews = () => {
+    if (confirm("هل تريد جلب أخبار جديدة من جميع المصادر؟")) {
+      fetchNewsMutation.mutate();
+    }
+  };
+
+  // Prepare chart data
+  const categoryData: any[] = [];
+  const languageData: any[] = [];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20" dir="rtl">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Globe className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-2xl font-bold text-primary arabic-text">لوحة التحكم</h1>
-                <p className="text-sm text-muted-foreground arabic-text">إدارة الأخبار</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm arabic-text">مرحباً، {user?.name}</span>
-              <Button variant="outline" size="sm" asChild>
-                <a href="/">الصفحة الرئيسية</a>
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="container py-8 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-bold arabic-text bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              لوحة التحكم الإدارية
+            </h1>
+            <p className="text-muted-foreground arabic-text">
+              إدارة شاملة لموقع ArabiSmart News
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleFetchNews}
+              disabled={fetchNewsMutation.isPending}
+              className="arabic-text gap-2"
+              variant="outline"
+            >
+              {fetchNewsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              جلب أخبار جديدة
+            </Button>
+            <Button
+              onClick={() => setIsAddManualNewsOpen(true)}
+              className="arabic-text gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              إضافة خبر يدوياً
+            </Button>
           </div>
         </div>
-      </header>
 
-      {/* Stats */}
-      <section className="py-8 bg-gradient-to-r from-primary/10 via-primary/5 to-background">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium arabic-text">إجمالي الأخبار</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.totalNews || 0}</div>
-              </CardContent>
-            </Card>
+        {/* Stats Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium arabic-text">إجمالي الأخبار</CardTitle>
+              <Newspaper className="h-5 w-5 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.totalNews.toLocaleString('ar-EG') || 0}</div>
+              <p className="text-xs text-muted-foreground arabic-text mt-1">
+                جميع الأخبار في النظام
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium arabic-text">المصادر النشطة</CardTitle>
-                <Globe className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.activeSources || 0}</div>
-              </CardContent>
-            </Card>
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium arabic-text">المصادر النشطة</CardTitle>
+              <Globe className="h-5 w-5 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{sources?.filter(s => s.isActive).length || 0}</div>
+              <p className="text-xs text-muted-foreground arabic-text mt-1">
+                من أصل {sources?.length || 0} مصدر
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium arabic-text">آخر تحديث</CardTitle>
-                <RefreshCw className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm">
-                  {stats?.lastUpdate
-                    ? new Date(stats.lastUpdate).toLocaleString("ar-SA")
-                    : "لا يوجد"}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium arabic-text">أخبار عربية</CardTitle>
+              <TrendingUp className="h-5 w-5 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground arabic-text mt-1">
+                0% من الإجمالي
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium arabic-text">أخبار سويدية</CardTitle>
+              <Activity className="h-5 w-5 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground arabic-text mt-1">
+                0% من الإجمالي
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </section>
 
-      {/* News Management */}
-      <section className="py-8">
-        <div className="container">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold arabic-text">إدارة الأخبار</h2>
-            
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="arabic-text">
-                  <Plus className="h-4 w-4 ml-2" />
-                  إضافة خبر جديد
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
-                <DialogHeader>
-                  <DialogTitle className="arabic-text">إضافة خبر جديد</DialogTitle>
-                  <DialogDescription className="arabic-text">
-                    أدخل تفاصيل الخبر الجديد
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleAddNews} className="space-y-4">
-                  <div>
-                    <Label htmlFor="title" className="arabic-text">العنوان *</Label>
-                    <Input id="title" name="title" required className="arabic-text" />
-                  </div>
-                  <div>
-                    <Label htmlFor="description" className="arabic-text">الوصف</Label>
-                    <Textarea id="description" name="description" className="arabic-text" />
-                  </div>
-                  <div>
-                    <Label htmlFor="content" className="arabic-text">المحتوى</Label>
-                    <Textarea id="content" name="content" rows={5} className="arabic-text" />
-                  </div>
-                  <div>
-                    <Label htmlFor="link" className="arabic-text">الرابط *</Label>
-                    <Input id="link" name="link" type="url" required />
-                  </div>
-                  <div>
-                    <Label htmlFor="image" className="arabic-text">رابط الصورة</Label>
-                    <Input id="image" name="image" type="url" />
-                  </div>
-                  <div>
-                    <Label htmlFor="source" className="arabic-text">المصدر *</Label>
-                    <Input id="source" name="source" required className="arabic-text" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="category" className="arabic-text">الفئة *</Label>
-                      <Select name="category" required>
-                        <SelectTrigger className="arabic-text">
-                          <SelectValue placeholder="اختر الفئة" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="SE">أخبار السويد</SelectItem>
-                          <SelectItem value="عربية">أخبار عربية</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="language" className="arabic-text">اللغة *</Label>
-                      <Select name="language" required>
-                        <SelectTrigger className="arabic-text">
-                          <SelectValue placeholder="اختر اللغة" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ar">عربي</SelectItem>
-                          <SelectItem value="sv">سويدي</SelectItem>
-                          <SelectItem value="en">إنجليزي</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" disabled={addNewsMutation.isPending} className="arabic-text">
-                      {addNewsMutation.isPending ? "جاري الإضافة..." : "إضافة"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+            <TabsTrigger value="overview" className="arabic-text gap-2">
+              <BarChart3 className="h-4 w-4" />
+              نظرة عامة
+            </TabsTrigger>
+            <TabsTrigger value="news" className="arabic-text gap-2">
+              <Newspaper className="h-4 w-4" />
+              الأخبار
+            </TabsTrigger>
+            <TabsTrigger value="sources" className="arabic-text gap-2">
+              <Globe className="h-4 w-4" />
+              المصادر
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="arabic-text gap-2">
+              <TrendingUp className="h-4 w-4" />
+              التحليلات
+            </TabsTrigger>
+          </TabsList>
 
-          {/* News List */}
-          <div className="space-y-4">
-            {newsData?.items.map((item) => (
-              <Card key={item.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge>{item.category}</Badge>
-                        <Badge variant="outline">{item.source}</Badge>
-                        {item.isManual === 1 && (
-                          <Badge variant="secondary" className="arabic-text">يدوي</Badge>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-lg mb-2 arabic-text">{item.title}</h3>
-                      {item.description && (
-                        <p className="text-sm text-muted-foreground mb-2 arabic-text">
-                          {item.description}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(item.publishedAt).toLocaleString("ar-SA")}
-                      </p>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* News Growth Chart */}
+              <Card className="border-2">
+                <CardHeader>
+                  <CardTitle className="arabic-text flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    نمو الأخبار (آخر 7 أيام)
+                  </CardTitle>
+                  <CardDescription className="arabic-text">
+                    عدد الأخبار المضافة يومياً
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {growthData && growthData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={growthData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line 
+                          type="monotone" 
+                          dataKey="count" 
+                          stroke="#3b82f6" 
+                          strokeWidth={3}
+                          dot={{ fill: '#3b82f6', r: 5 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-muted-foreground arabic-text">
+                      لا توجد بيانات كافية
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setEditingNews(item)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleDeleteNews(item.id)}
-                        disabled={deleteNewsMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
-            ))}
-          </div>
 
-          {/* Pagination */}
-          {newsData && newsData.totalPages && newsData.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <Button
-                variant="outline"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="arabic-text"
-              >
-                السابق
-              </Button>
-              <span className="text-sm text-muted-foreground arabic-text">
-                صفحة {page} من {newsData.totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => setPage((p) => Math.min(newsData.totalPages || 1, p + 1))}
-                disabled={page === newsData.totalPages}
-                className="arabic-text"
-              >
-                التالي
-              </Button>
+              {/* Category Distribution */}
+              <Card className="border-2">
+                <CardHeader>
+                  <CardTitle className="arabic-text flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    توزيع التصنيفات
+                  </CardTitle>
+                  <CardDescription className="arabic-text">
+                    نسبة الأخبار حسب التصنيف
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {categoryData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={categoryData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={(entry) => `${entry.name}: ${entry.value}`}
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {categoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-muted-foreground arabic-text">
+                      لا توجد بيانات
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          )}
-        </div>
-      </section>
 
-      {/* Edit Dialog */}
+            {/* Language Distribution */}
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="arabic-text flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-primary" />
+                  توزيع اللغات
+                </CardTitle>
+                <CardDescription className="arabic-text">
+                  عدد الأخبار حسب اللغة
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {languageData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={languageData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                        {languageData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-muted-foreground arabic-text">
+                    لا توجد بيانات
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* News Tab */}
+          <TabsContent value="news" className="space-y-4">
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="arabic-text">إدارة الأخبار</CardTitle>
+                <CardDescription className="arabic-text">
+                  عرض وتعديل جميع الأخبار في النظام
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {newsData?.items.map((news: any) => (
+                    <div
+                      key={news.id}
+                      className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold arabic-text">{news.title}</h3>
+                          <Badge variant={news.category === "عربية" ? "default" : "secondary"}>
+                            {news.category}
+                          </Badge>
+                          <Badge variant="outline">{news.language}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground arabic-text line-clamp-2">
+                          {news.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="arabic-text">المصدر: {news.source}</span>
+                          <span>{new Date(news.publishedAt).toLocaleDateString('ar-EG')}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingNews(news)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteNews(news.id)}
+                          disabled={deleteNewsMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {newsData && (newsData.totalPages ?? 0) > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="arabic-text"
+                    >
+                      السابق
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      صفحة {page} من {newsData.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage(p => Math.min(newsData.totalPages ?? 1, p + 1))}
+                      disabled={page === newsData.totalPages}
+                      className="arabic-text"
+                    >
+                      التالي
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Sources Tab */}
+          <TabsContent value="sources" className="space-y-4">
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="arabic-text">مصادر RSS</CardTitle>
+                <CardDescription className="arabic-text">
+                  إدارة مصادر الأخبار
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {sources?.map((source) => (
+                    <div
+                      key={source.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold arabic-text">{source.name}</h3>
+                          <Badge variant={source.isActive ? "default" : "secondary"}>
+                            {source.isActive ? "نشط" : "معطل"}
+                          </Badge>
+                          <Badge variant="outline">{source.category}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate max-w-md">
+                          {source.url}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="border-2">
+                <CardHeader>
+                  <CardTitle className="arabic-text text-lg">أخبار اليوم</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-primary">
+                    {growthData && growthData.length > 0 ? growthData[growthData.length - 1].count : 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground arabic-text mt-1">
+                    خبر جديد اليوم
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2">
+                <CardHeader>
+                  <CardTitle className="arabic-text text-lg">متوسط يومي</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-500">
+                    {growthData && growthData.length > 0
+                      ? Math.round(growthData.reduce((sum, d) => sum + d.count, 0) / growthData.length)
+                      : 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground arabic-text mt-1">
+                    خبر في اليوم
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2">
+                <CardHeader>
+                  <CardTitle className="arabic-text text-lg">أكثر تصنيف</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-500">
+                    {categoryData.length > 0
+                      ? categoryData.reduce((max, cat) => cat.value > max.value ? cat : max, categoryData[0]).name
+                      : "لا يوجد"}
+                  </div>
+                  <p className="text-xs text-muted-foreground arabic-text mt-1">
+                    التصنيف الأكثر نشاطاً
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="arabic-text">إحصائيات مفصلة</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold arabic-text">حسب التصنيف:</h4>
+                      {categoryData.map((cat) => (
+                        <div key={cat.name} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                          <span className="arabic-text">{cat.name}</span>
+                          <Badge style={{ backgroundColor: cat.color }}>
+                            {cat.value.toLocaleString('ar-EG')}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold arabic-text">حسب اللغة:</h4>
+                      {languageData.map((lang) => (
+                        <div key={lang.name} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                          <span className="arabic-text">{lang.name}</span>
+                          <Badge style={{ backgroundColor: lang.color }}>
+                            {lang.value.toLocaleString('ar-EG')}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Add Manual News Dialog */}
+      <Dialog open={isAddManualNewsOpen} onOpenChange={setIsAddManualNewsOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="arabic-text text-2xl">إضافة خبر يدوياً</DialogTitle>
+            <DialogDescription className="arabic-text">
+              أضف خبراً جديداً إلى النظام يدوياً
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddManualNews} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="arabic-text">عنوان الخبر *</Label>
+              <Input
+                id="title"
+                value={manualNewsForm.title}
+                onChange={(e) => setManualNewsForm({ ...manualNewsForm, title: e.target.value })}
+                required
+                className="arabic-text"
+                placeholder="أدخل عنوان الخبر"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description" className="arabic-text">الوصف *</Label>
+              <Textarea
+                id="description"
+                value={manualNewsForm.description}
+                onChange={(e) => setManualNewsForm({ ...manualNewsForm, description: e.target.value })}
+                required
+                className="arabic-text min-h-[100px]"
+                placeholder="أدخل وصف الخبر"
+              />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="source" className="arabic-text">المصدر *</Label>
+                <Input
+                  id="source"
+                  value={manualNewsForm.source}
+                  onChange={(e) => setManualNewsForm({ ...manualNewsForm, source: e.target.value })}
+                  required
+                  className="arabic-text"
+                  placeholder="مثال: الجزيرة"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="link" className="arabic-text">رابط الخبر *</Label>
+                <Input
+                  id="link"
+                  type="url"
+                  value={manualNewsForm.link}
+                  onChange={(e) => setManualNewsForm({ ...manualNewsForm, link: e.target.value })}
+                  required
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="category" className="arabic-text">التصنيف *</Label>
+                <Select
+                  value={manualNewsForm.category}
+                  onValueChange={(value: "عربية" | "SE") => setManualNewsForm({ ...manualNewsForm, category: value })}
+                >
+                  <SelectTrigger className="arabic-text">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="عربية" className="arabic-text">عربية</SelectItem>
+                    <SelectItem value="SE" className="arabic-text">SE</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="language" className="arabic-text">اللغة *</Label>
+                <Select
+                  value={manualNewsForm.language}
+                  onValueChange={(value: "ar" | "sv" | "en") => setManualNewsForm({ ...manualNewsForm, language: value })}
+                >
+                  <SelectTrigger className="arabic-text">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ar" className="arabic-text">عربي</SelectItem>
+                    <SelectItem value="sv" className="arabic-text">سويدي</SelectItem>
+                    <SelectItem value="en" className="arabic-text">إنجليزي</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image" className="arabic-text">رابط الصورة (اختياري)</Label>
+              <Input
+                id="image"
+                type="url"
+                value={manualNewsForm.image}
+                onChange={(e) => setManualNewsForm({ ...manualNewsForm, image: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddManualNewsOpen(false)}
+                className="arabic-text"
+              >
+                إلغاء
+              </Button>
+              <Button
+                type="submit"
+                disabled={addManualNewsMutation.isPending}
+                className="arabic-text"
+              >
+                {addManualNewsMutation.isPending ? "جاري الإضافة..." : "إضافة الخبر"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit News Dialog */}
       {editingNews && (
         <Dialog open={!!editingNews} onOpenChange={() => setEditingNews(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle className="arabic-text">تعديل الخبر</DialogTitle>
+              <DialogDescription className="arabic-text">
+                تعديل تصنيف الخبر
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdateNews} className="space-y-4">
-              <div>
-                <Label htmlFor="edit-title" className="arabic-text">العنوان</Label>
-                <Input
-                  id="edit-title"
-                  name="title"
-                  defaultValue={editingNews.title}
-                  className="arabic-text"
-                />
+              <div className="space-y-2">
+                <Label className="arabic-text">العنوان</Label>
+                <p className="text-sm text-muted-foreground arabic-text">{editingNews.title}</p>
               </div>
-              <div>
-                <Label htmlFor="edit-description" className="arabic-text">الوصف</Label>
-                <Textarea
-                  id="edit-description"
-                  name="description"
-                  defaultValue={editingNews.description || ""}
-                  className="arabic-text"
-                />
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-category" className="arabic-text">التصنيف</Label>
+                <Select name="category" defaultValue={editingNews.category}>
+                  <SelectTrigger className="arabic-text">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="عربية" className="arabic-text">عربية</SelectItem>
+                    <SelectItem value="SE" className="arabic-text">SE</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div>
-                <Label htmlFor="edit-content" className="arabic-text">المحتوى</Label>
-                <Textarea
-                  id="edit-content"
-                  name="content"
-                  defaultValue={editingNews.content || ""}
-                  rows={5}
-                  className="arabic-text"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-image" className="arabic-text">رابط الصورة</Label>
-                <Input
-                  id="edit-image"
-                  name="image"
-                  type="url"
-                  defaultValue={editingNews.image || ""}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-source" className="arabic-text">المصدر</Label>
-                <Input
-                  id="edit-source"
-                  name="source"
-                  defaultValue={editingNews.source}
-                  className="arabic-text"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-category" className="arabic-text">الفئة</Label>
-                  <Select name="category" defaultValue={editingNews.category}>
-                    <SelectTrigger className="arabic-text">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SE">أخبار السويد</SelectItem>
-                      <SelectItem value="عربية">أخبار عربية</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="edit-language" className="arabic-text">اللغة</Label>
-                  <Select name="language" defaultValue={editingNews.language}>
-                    <SelectTrigger className="arabic-text">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ar">عربي</SelectItem>
-                      <SelectItem value="sv">سويدي</SelectItem>
-                      <SelectItem value="en">إنجليزي</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+
               <DialogFooter>
-                <Button type="submit" disabled={updateNewsMutation.isPending} className="arabic-text">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingNews(null)}
+                  className="arabic-text"
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateNewsMutation.isPending}
+                  className="arabic-text"
+                >
                   {updateNewsMutation.isPending ? "جاري التحديث..." : "تحديث"}
                 </Button>
               </DialogFooter>
