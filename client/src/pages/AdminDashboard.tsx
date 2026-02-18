@@ -111,6 +111,15 @@ export default function AdminDashboard() {
     },
   });
 
+  const fetchVideosMutation = trpc.admin.fetchYouTubeVideos.useMutation({
+    onSuccess: (data) => {
+      toast.success(`✅ تم جلب ${data.newVideosCount} فيديو جديد`);
+    },
+    onError: (error) => {
+      toast.error(`❌ خطأ: ${error.message}`);
+    },
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
@@ -171,6 +180,12 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleFetchVideos = () => {
+    if (confirm("هل تريد جلب فيديوهات جديدة من YouTube؟")) {
+      fetchVideosMutation.mutate();
+    }
+  };
+
   // Prepare chart data
   const categoryData: any[] = [];
   const languageData: any[] = [];
@@ -200,7 +215,22 @@ export default function AdminDashboard() {
               ) : (
                 <RefreshCw className="h-4 w-4" />
               )}
-              جلب أخبار جديدة
+              جلب أخبار
+            </Button>
+            <Button
+              onClick={handleFetchVideos}
+              disabled={fetchVideosMutation.isPending}
+              className="arabic-text gap-2"
+              variant="outline"
+            >
+              {fetchVideosMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              )}
+              جلب فيديوهات
             </Button>
             <Button
               onClick={() => setIsAddManualNewsOpen(true)}

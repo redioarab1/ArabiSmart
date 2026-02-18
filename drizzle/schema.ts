@@ -228,3 +228,44 @@ export const newsCategories = mysqlTable("newsCategories", {
 
 export type NewsCategory = typeof newsCategories.$inferSelect;
 export type InsertNewsCategory = typeof newsCategories.$inferInsert;
+
+/**
+ * YouTube videos table - stores news videos from YouTube channels
+ */
+export const videos = mysqlTable("videos", {
+  id: int("id").autoincrement().primaryKey(),
+  videoId: varchar("videoId", { length: 50 }).notNull().unique(), // YouTube video ID
+  title: text("title").notNull(),
+  description: text("description"),
+  thumbnail: varchar("thumbnail", { length: 1024 }),
+  channelId: varchar("channelId", { length: 50 }).notNull(),
+  channelTitle: varchar("channelTitle", { length: 255 }).notNull(),
+  publishedAt: timestamp("publishedAt").notNull(),
+  duration: varchar("duration", { length: 20 }), // ISO 8601 duration format
+  viewCount: int("viewCount").default(0),
+  language: mysqlEnum("language", ["ar", "sv", "en"]).notNull(),
+  category: mysqlEnum("category", ["SE", "عربية"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Video = typeof videos.$inferSelect;
+export type InsertVideo = typeof videos.$inferInsert;
+
+/**
+ * YouTube channels table - stores subscribed YouTube channels
+ */
+export const youtubeChannels = mysqlTable("youtubeChannels", {
+  id: int("id").autoincrement().primaryKey(),
+  channelId: varchar("channelId", { length: 50 }).notNull().unique(),
+  channelTitle: varchar("channelTitle", { length: 255 }).notNull(),
+  channelUrl: varchar("channelUrl", { length: 1024 }).notNull(),
+  thumbnail: varchar("thumbnail", { length: 1024 }),
+  language: mysqlEnum("language", ["ar", "sv", "en"]).notNull(),
+  category: mysqlEnum("category", ["SE", "عربية"]).notNull(),
+  isActive: int("isActive").default(1).notNull(), // 0 = inactive, 1 = active
+  lastFetchedAt: timestamp("lastFetchedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type YoutubeChannel = typeof youtubeChannels.$inferSelect;
+export type InsertYoutubeChannel = typeof youtubeChannels.$inferInsert;

@@ -333,6 +333,71 @@ export const appRouter = router({
       await fetchAllRSS();
       return { success: true, newItemsCount: 0 };
     }),
+
+    fetchYouTubeVideos: protectedProcedure.mutation(async () => {
+      const { fetchAllYouTubeVideos } = await import("./youtubeRssFetcher");
+      const newVideosCount = await fetchAllYouTubeVideos();
+      return { success: true, newVideosCount };
+    }),
+  }),
+
+  videos: router({
+    list: publicProcedure
+      .input(
+        z.object({
+          page: z.number().optional(),
+          limit: z.number().optional(),
+          channelId: z.string().optional(),
+          language: z.enum(["ar", "sv", "en"]).optional(),
+          category: z.enum(["SE", "عربية"]).optional(),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { videos: [], total: 0 };
+        const { videos } = await import("../drizzle/schema");
+        const { desc, eq, and } = await import("drizzle-orm");
+
+        const page = input?.page || 1;
+        const limit = input?.limit || 20;
+        const offset = (page - 1) * limit;
+
+        const conditions = [];
+        if (input?.channelId) conditions.push(eq(videos.channelId, input.channelId));
+        if (input?.language) conditions.push(eq(videos.language, input.language));
+        if (input?.category) conditions.push(eq(videos.category, input.category));
+
+        const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+        const [videosList, totalCount] = await Promise.all([
+          db
+            .select()
+            .from(videos)
+            .where(whereClause)
+            .orderBy(desc(videos.publishedAt))
+            .limit(limit)
+            .offset(offset),
+          db
+            .select({ count: videos.id })
+            .from(videos)
+            .where(whereClause)
+            .then((rows) => rows.length),
+        ]);
+
+        return { videos: videosList, total: totalCount };
+      }),
+
+    channels: publicProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return [];
+      const { youtubeChannels } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+
+      return await db
+        .select()
+        .from(youtubeChannels)
+        .where(eq(youtubeChannels.isActive, 1));
+    }),
   }),
 
   // Podcast router
