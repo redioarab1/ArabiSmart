@@ -587,3 +587,13 @@
 - [ ] إضافة جدولة تلقائية للملخصات (Cron Job)
 - [x] ربط صفحة الفيديوهات بالقائمة الرئيسية
 - [ ] اختبار جميع المميزات الجديدة
+
+
+## إضافة Lazy Loading للصور - المرحلة 48
+- [x] إضافة loading="lazy" لجميع الصور في Home.tsx (موجود مسبقاً)
+- [x] إضافة loading="lazy" في صفحة Videos.tsx (موجود مسبقاً)
+- [x] إضافة loading="lazy" في صفحة NewsDetail.tsx
+- [x] إضافة loading="lazy" في صفحة Favorites.tsx (موجود مسبقاً)
+- [x] إضافة loading="lazy" في صفحة Archive.tsx
+- [x] FolderDetail.tsx يستخدم LazyLoadImage مع blur effect
+- [x] جميع الصور الآن تستخدم lazy loading

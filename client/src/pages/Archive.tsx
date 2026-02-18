@@ -104,6 +104,7 @@ export default function ArchivePage() {
                           <img
                             src={newsItem.image}
                             alt={newsItem.title}
+                            loading="lazy"
                             className="w-full h-48 md:h-full object-cover"
                           />
                         </div>
