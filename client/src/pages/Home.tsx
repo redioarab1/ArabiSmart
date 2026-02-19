@@ -27,7 +27,8 @@ import {
   LogIn,
   Zap,
   Sparkles,
-  FolderOpen
+  FolderOpen,
+  Video
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -377,10 +378,8 @@ export default function Home() {
               
               {/* Videos Link */}
               <Link href="/videos">
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                  </svg>
+                <Button variant="outline" size="icon" className="rounded-full hover:bg-red-50 dark:hover:bg-red-950 transition-colors">
+                  <Video className="h-5 w-5 text-red-600 dark:text-red-400" />
                 </Button>
               </Link>
               
