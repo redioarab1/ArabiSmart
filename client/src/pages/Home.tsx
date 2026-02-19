@@ -599,6 +599,19 @@ export default function Home() {
               >
                 الكل
               </Button>
+              
+              {/* Videos Button */}
+              <Link href="/videos">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="arabic-text whitespace-nowrap flex-shrink-0 bg-red-50 dark:bg-red-950 hover:bg-red-100 dark:hover:bg-red-900 border-red-200 dark:border-red-800"
+                >
+                  <Video className="ml-1 h-4 w-4 text-red-600 dark:text-red-400" />
+                  فيديوهات
+                </Button>
+              </Link>
+              
               {categories.map((category: any) => (
                 <Button
                   key={category.id}
