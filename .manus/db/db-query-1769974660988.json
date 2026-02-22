@@ -1,9 +1,0 @@
-{
-  "query": "INSERT INTO rssSources (name, url, category, language, isActive) VALUES \n('الشرق الأوسط (Asharq Al-Awsat)', 'https://aawsat.com/feed', 'عربية', 'ar', 1),\n('عربي21 (Arabi21)', 'https://arabi21.com/feed', 'عربية', 'ar', 1);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute INSERT INTO rssSources (name, url, category, language, isActive) VALUES \n('الشرق الأوسط (Asharq Al-Awsat)', 'https://aawsat.com/feed', 'عربية', 'ar', 1),\n('عربي21 (Arabi21)', 'https://arabi21.com/feed', 'عربية', 'ar', 1);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 72
-}

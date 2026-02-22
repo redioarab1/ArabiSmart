@@ -5,38 +5,12 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import AdminDashboard from "./pages/AdminDashboard";
-import Favorites from "./pages/Favorites";
-import NotificationSettings from "./pages/NotificationSettings";
-import NewsDetail from "./pages/NewsDetail";
-import AdvancedSearch from "./pages/AdvancedSearch";
-import Profile from "./pages/Profile";
-import Archive from "./pages/Archive";
-import Settings from "./pages/Settings";
-import Folders from "./pages/Folders";
-import FolderDetail from "./pages/FolderDetail";
-import DailySummary from "./pages/DailySummary";
-import AdminSources from "./pages/AdminSources";
-import Videos from "./pages/Videos";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/favorites" component={Favorites} />
-      <Route path="/notifications" component={NotificationSettings} />
-      <Route path="/news/:id" component={NewsDetail} />
-      <Route path="/search" component={AdvancedSearch} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/archive" component={Archive} />
-      <Route path="/settings" component={Settings} />
-      <Route path="/folders" component={Folders} />
-      <Route path="/folders/:id" component={FolderDetail} />
-      <Route path="/daily-summary" component={DailySummary} />
-      <Route path="/admin/sources" component={AdminSources} />
-      <Route path="/videos" component={Videos} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -53,8 +27,8 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="dark"
-        switchable
+        defaultTheme="light"
+        // switchable
       >
         <TooltipProvider>
           <Toaster />

@@ -1,9 +1,0 @@
-{
-  "query": "INSERT INTO rssSources (name, url, category, language, isActive) VALUES \n('الجزيرة نت (Al Jazeera)', 'https://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c', 'عربية', 'ar', 1),\n('الشرق الأوسط - العالم العربي (Asharq Al-Awsat)', 'https://aawsat.com/feed/arab-world', 'عربية', 'ar', 1),\n('بي بي سي عربي (BBC Arabic)', 'https://feeds.bbci.co.uk/arabic/rss.xml', 'عربية', 'ar', 1),\n('العربي الجديد (The New Arab)', 'https://www.alaraby.co.uk/rss', 'عربية', 'ar', 1),\n('صحيفة الوطن (Al Watan)', 'https://alwatannews.net/rssFeed/0', 'عربية', 'ar', 1),\n('الحرة (Alhurra)', 'https://www.alhurra.com/rss', 'عربية', 'ar', 1);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute INSERT INTO rssSources (name, url, category, language, isActive) VALUES \n('الجزيرة نت (Al Jazeera)', 'https://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c', 'عربية', 'ar', 1),\n('الشرق الأوسط - العالم العربي (Asharq Al-Awsat)', 'https://aawsat.com/feed/arab-world', 'عربية', 'ar', 1),\n('بي بي سي عربي (BBC Arabic)', 'https://feeds.bbci.co.uk/arabic/rss.xml', 'عربية', 'ar', 1),\n('العربي الجديد (The New Arab)', 'https://www.alaraby.co.uk/rss', 'عربية', 'ar', 1),\n('صحيفة الوطن (Al Watan)', 'https://alwatannews.net/rssFeed/0', 'عربية', 'ar', 1),\n('الحرة (Alhurra)', 'https://www.alhurra.com/rss', 'عربية', 'ar', 1);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 102
-}

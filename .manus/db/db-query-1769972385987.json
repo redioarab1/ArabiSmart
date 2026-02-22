@@ -1,9 +1,0 @@
-{
-  "query": "UPDATE rssSources SET url = 'https://alkompis.se/feed' WHERE name LIKE '%كومبس%' OR name LIKE '%Alkompis%';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute UPDATE rssSources SET url = 'https://alkompis.se/feed' WHERE name LIKE '%كومبس%' OR name LIKE '%Alkompis%';",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 60
-}

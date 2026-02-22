@@ -1,9 +1,0 @@
-{
-  "query": "INSERT INTO youtubeChannels (channelId, channelTitle, channelUrl, language, category, isActive) VALUES\n('UCfiwzLy-8yKzIbsmZTzxDgw', 'قناة الجزيرة مباشر', 'https://www.youtube.com/@aljazeerachannel', 'ar', 'عربية', 1),\n('UC0I-mWW5ZF-93wVhmT5s-OA', 'العربية', 'https://www.youtube.com/@AlArabiya', 'ar', 'عربية', 1),\n('UCNye-wNBqNL5ZzHSJj3l8Bg', 'BBC News عربي', 'https://www.youtube.com/@BBCArabic', 'ar', 'عربية', 1),\n('UCdKuE7a2QZeHPhDntXVZ91w', 'سكاي نيوز عربية', 'https://www.youtube.com/@skynewsarabia', 'ar', 'عربية', 1),\n('UCJwOG1MQd_4YWOBJGhPLKNw', 'الكومبس', 'https://www.youtube.com/@alkompis', 'ar', 'SE', 1)\nON DUPLICATE KEY UPDATE channelTitle=VALUES(channelTitle);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute INSERT INTO youtubeChannels (channelId, channelTitle, channelUrl, language, category, isActive) VALUES\n('UCfiwzLy-8yKzIbsmZTzxDgw', 'قناة الجزيرة مباشر', 'https://www.youtube.com/@aljazeerachannel', 'ar', 'عربية', 1),\n('UC0I-mWW5ZF-93wVhmT5s-OA', 'العربية', 'https://www.youtube.com/@AlArabiya', 'ar', 'عربية', 1),\n('UCNye-wNBqNL5ZzHSJj3l8Bg', 'BBC News عربي', 'https://www.youtube.com/@BBCArabic', 'ar', 'عربية', 1),\n('UCdKuE7a2QZeHPhDntXVZ91w', 'سكاي نيوز عربية', 'https://www.youtube.com/@skynewsarabia', 'ar', 'عربية', 1),\n('UCJwOG1MQd_4YWOBJGhPLKNw', 'الكومبس', 'https://www.youtube.com/@alkompis', 'ar', 'SE', 1)\nON DUPLICATE KEY UPDATE channelTitle=VALUES(channelTitle);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 430
-}
