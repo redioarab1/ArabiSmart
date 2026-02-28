@@ -27,7 +27,8 @@ import {
   LogIn,
   Zap,
   Sparkles,
-  FolderOpen
+  FolderOpen,
+  Tv2
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -607,6 +608,19 @@ export default function Home() {
                   {category.nameAr}
                 </Button>
               ))}
+
+              {/* Video Link */}
+              <div className="h-6 w-px bg-border flex-shrink-0 mx-1" />
+              <Link href="/videos">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="arabic-text whitespace-nowrap flex-shrink-0 gap-1.5 border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+                >
+                  <Tv2 className="w-4 h-4" />
+                  <span>فيديو</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
