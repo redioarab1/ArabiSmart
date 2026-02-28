@@ -675,6 +675,82 @@ export const appRouter = router({
       }),
   }),
 
+  // Videos router
+  videos: router({
+    list: publicProcedure
+      .input(
+        z.object({
+          page: z.number().optional(),
+          limit: z.number().optional(),
+          channelName: z.string().nullable().optional(),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { videos: [], total: 0 };
+        const { videos } = await import("../drizzle/schema");
+        const { desc, like, and, isNotNull } = await import("drizzle-orm");
+        
+        const page = input?.page || 1;
+        const limit = input?.limit || 20;
+        const offset = (page - 1) * limit;
+        
+        const conditions = [];
+        if (input?.channelName) {
+          conditions.push(like(videos.channelName, `%${input.channelName}%`));
+        }
+        
+        const where = conditions.length > 0 ? and(...conditions) : undefined;
+        
+        const items = await db.select().from(videos)
+            .where(where)
+            .orderBy(desc(videos.publishedAt))
+            .limit(limit)
+            .offset(offset);
+        
+        return { videos: items, total: items.length };
+      }),
+
+    channels: publicProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return [];
+      const { youtubeChannels } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      return await db.select().from(youtubeChannels).where(eq(youtubeChannels.isActive, 1));
+    }),
+
+    fetchYouTube: protectedProcedure.mutation(async () => {
+      const { fetchYouTubeVideos } = await import("./youtubeFetcher");
+      const count = await fetchYouTubeVideos();
+      return { success: true, count };
+    }),
+
+    addManual: protectedProcedure
+      .input(
+        z.object({
+          title: z.string(),
+          description: z.string().optional(),
+          videoId: z.string(),
+          channelName: z.string().optional(),
+          thumbnail: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { videos } = await import("../drizzle/schema");
+        
+        await db.insert(videos).values({
+          ...input,
+          language: "ar",
+          publishedAt: new Date(),
+          isManual: 1,
+        });
+        
+        return { success: true };
+      }),
+  }),
+
   // Breaking News - Fetch RSS immediately
   breakingNews: router({
     fetchNow: publicProcedure

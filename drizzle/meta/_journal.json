@@ -57,6 +57,41 @@
       "when": 1769957985119,
       "tag": "0007_rare_kid_colt",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1771320124699,
+      "tag": "0008_confused_stephen_strange",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1771560341091,
+      "tag": "0009_ordinary_mongoose",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1771746433411,
+      "tag": "0010_empty_moondragon",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1772294781379,
+      "tag": "0011_cloudy_lightspeed",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1772295379895,
+      "tag": "0012_curly_vargas",
+      "breakpoints": true
     }
   ]
 }

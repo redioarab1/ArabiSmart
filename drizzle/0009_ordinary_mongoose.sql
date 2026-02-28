@@ -1,0 +1,1 @@
+ALTER TABLE `videos` ADD `isManual` int DEFAULT 0 NOT NULL;

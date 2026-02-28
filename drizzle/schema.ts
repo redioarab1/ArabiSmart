@@ -228,3 +228,36 @@ export const newsCategories = mysqlTable("newsCategories", {
 
 export type NewsCategory = typeof newsCategories.$inferSelect;
 export type InsertNewsCategory = typeof newsCategories.$inferInsert;
+
+/**
+ * YouTube channels table - stores Arabic YouTube news channels
+ */
+export const youtubeChannels = mysqlTable("youtubeChannels", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  channelId: varchar("channelId", { length: 255 }).notNull().unique(),
+  language: mysqlEnum("language", ["ar", "sv", "en"]).default("ar").notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type YoutubeChannel = typeof youtubeChannels.$inferSelect;
+export type InsertYoutubeChannel = typeof youtubeChannels.$inferInsert;
+
+/**
+ * Videos table - stores YouTube videos from Arabic news channels
+ */
+export const videos = mysqlTable("videos", {
+  id: int("id").autoincrement().primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  videoId: varchar("videoId", { length: 255 }).notNull().unique(),
+  thumbnail: varchar("thumbnail", { length: 1024 }),
+  channelId: int("channelId"),
+  channelName: varchar("channelName", { length: 255 }),
+  language: mysqlEnum("language", ["ar", "sv", "en"]).default("ar").notNull(),
+  publishedAt: timestamp("publishedAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  isManual: int("isManual").default(0).notNull(),
+});
+export type Video = typeof videos.$inferSelect;
+export type InsertVideo = typeof videos.$inferInsert;
