@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COUNT(*) as total, \n  SUM(CASE WHEN category = 'عربية' THEN 1 ELSE 0 END) as arabic_count,\n  SUM(CASE WHEN category = 'SE' THEN 1 ELSE 0 END) as swedish_count\nFROM rssSources WHERE isActive = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT COUNT(*) as total, \n  SUM(CASE WHEN category = 'عربية' THEN 1 ELSE 0 END) as arabic_count,\n  SUM(CASE WHEN category = 'SE' THEN 1 ELSE 0 END) as swedish_count\nFROM rssSources WHERE isActive = 1;",
+  "rows": [
+    {
+      "total": "25",
+      "arabic_count": "14",
+      "swedish_count": "11"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\tarabic_count\tswedish_count\n25\t14\t11\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

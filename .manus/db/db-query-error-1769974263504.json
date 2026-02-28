@@ -1,0 +1,17 @@
+{
+  "query": "-- إضافة مصادر RSS عربية جديدة\n\n-- DW Arabic (دويتشه فيله)\nINSERT INTO \"rssSources\" (name, url, language, category, \"isActive\", \"createdAt\", \"updatedAt\")\nVALUES (\n  'دويتشه فيله (DW Arabic)',\n  'https://rss.dw.com/rdf/rss-ar-all',\n  'ar',\n  'عربية',\n  true,\n  NOW(),\n  NOW()\n) ON CONFLICT (url) DO NOTHING;\n\n-- Asharq Al-Awsat (الشرق الأوسط)\nINSERT INTO \"rssSources\" (name, url, language, category, \"isActive\", \"createdAt\", \"updatedAt\")\nVALUES (\n  'الشرق الأوسط (Asharq Al-Awsat)',\n  'https://aawsat.com/feed',\n  'ar',\n  'عربية',\n  true,\n  NOW(),\n  NOW()\n) ON CONFLICT (url) DO NOTHING;\n\n-- Arabi21 (عربي21)\nINSERT INTO \"rssSources\" (name, url, language, category, \"isActive\", \"createdAt\", \"updatedAt\")\nVALUES (\n  'عربي21 (Arabi21)',\n  'https://arabi21.com/feed',\n  'ar',\n  'عربية',\n  true,\n  NOW(),\n  NOW()\n) ON CONFLICT (url) DO NOTHING;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute -- إضافة مصادر RSS عربية جديدة\n\n-- DW Arabic (دويتشه فيله)\nINSERT INTO \"rssSources\" (name, url, language, category, \"isActive\", \"createdAt\", \"updatedAt\")\nVALUES (\n  'دويتشه فيله (DW Arabic)',\n  'https://rss.dw.com/rdf/rss-ar-all',\n  'ar',\n  'عربية',\n  true,\n  NOW(),\n  NOW()\n) ON CONFLICT (url) DO NOTHING;\n\n-- Asharq Al-Awsat (الشرق الأوسط)\nINSERT INTO \"rssSources\" (name, url, language, category, \"isActive\", \"createdAt\", \"updatedAt\")\nVALUES (\n  'الشرق الأوسط (Asharq Al-Awsat)',\n  'https://aawsat.com/feed',\n  'ar',\n  'عربية',\n  true,\n  NOW(),\n  NOW()\n) ON CONFLICT (url) DO NOTHING;\n\n-- Arabi21 (عربي21)\nINSERT INTO \"rssSources\" (name, url, language, category, \"isActive\", \"createdAt\", \"updatedAt\")\nVALUES (\n  'عربي21 (Arabi21)',\n  'https://arabi21.com/feed',\n  'ar',\n  'عربية',\n  true,\n  NOW(),\n  NOW()\n) ON CONFLICT (url) DO NOTHING;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 4: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 24 near \"\"rssSources\" (name, url, language, category, \"isActive\", \"createdAt\", \"updatedAt\")",
+    "VALUES (",
+    "  'دويتشه فيله (DW Arabic)',",
+    "  'https://rss.dw.com/rdf/rss-ar-all',",
+    "  'ar',",
+    "  'عربية',",
+    "  true,",
+    "  NOW(),",
+    "  NOW()",
+    ") ON CONFLICT (url) DO NOTHING\""
+  ]
+}

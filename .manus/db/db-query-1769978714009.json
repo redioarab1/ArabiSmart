@@ -1,0 +1,55 @@
+{
+  "query": "SELECT fl.*, rs.name \nFROM fetchLogs fl \nJOIN rssSources rs ON fl.sourceId = rs.id \nWHERE rs.name LIKE '%كومبس%' \nORDER BY fl.createdAt DESC \nLIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT fl.*, rs.name \nFROM fetchLogs fl \nJOIN rssSources rs ON fl.sourceId = rs.id \nWHERE rs.name LIKE '%كومبس%' \nORDER BY fl.createdAt DESC \nLIMIT 5;",
+  "rows": [
+    {
+      "id": "3838",
+      "sourceId": "1",
+      "status": "error",
+      "itemsFetched": "0",
+      "errorMessage": "fetch failed",
+      "createdAt": "2026-02-01 20:45:02",
+      "name": "الكومبس (Alkompis)"
+    },
+    {
+      "id": "3815",
+      "sourceId": "1",
+      "status": "error",
+      "itemsFetched": "0",
+      "errorMessage": "fetch failed",
+      "createdAt": "2026-02-01 20:44:27",
+      "name": "الكومبس (Alkompis)"
+    },
+    {
+      "id": "3775",
+      "sourceId": "1",
+      "status": "error",
+      "itemsFetched": "0",
+      "errorMessage": "Parse Error: Missing expected CR after header value",
+      "createdAt": "2026-02-01 20:40:18",
+      "name": "الكومبس (Alkompis)"
+    },
+    {
+      "id": "3766",
+      "sourceId": "1",
+      "status": "error",
+      "itemsFetched": "0",
+      "errorMessage": "Parse Error: Missing expected CR after header value",
+      "createdAt": "2026-02-01 20:40:09",
+      "name": "الكومبس (Alkompis)"
+    },
+    {
+      "id": "3761",
+      "sourceId": "1",
+      "status": "error",
+      "itemsFetched": "0",
+      "errorMessage": "Parse Error: Missing expected CR after header value",
+      "createdAt": "2026-02-01 20:40:03",
+      "name": "الكومبس (Alkompis)"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tsourceId\tstatus\titemsFetched\terrorMessage\tcreatedAt\tname\n3838\t1\terror\t0\tfetch failed\t2026-02-01 20:45:02\tالكومبس (Alkompis)\n3815\t1\terror\t0\tfetch failed\t2026-02-01 20:44:27\tالكومبس (Alkompis)\n3775\t1\terror\t0\tParse Error: Missing expected CR after header value\t2026-02-01 20:40:18\tالكومبس (Alkompis)\n3766\t1\terror\t0\tParse Error: Missing expected CR after header value\t2026-02-01 20:40:09\tالكومبس (Alkompis)\n3761\t1\terror\t0\tParse Error: Missing expected CR after header value\t2026-02-01 20:40:03\tالكومبس (Alkompis)\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

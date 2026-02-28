@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
+import { registerServiceWorker, checkInstallability } from "./registerSW";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,10 @@ const trpcClient = trpc.createClient({
     }),
   ],
 });
+
+// تسجيل Service Worker لـ PWA
+registerServiceWorker();
+checkInstallability();
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>

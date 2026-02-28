@@ -6,7 +6,9 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { generateSitemap } from "../sitemap";
 import { serveStatic, setupVite } from "./vite";
+import { initializeCronJobs } from "../cronJobs";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -35,6 +37,8 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Sitemap
+  app.get("/sitemap.xml", generateSitemap);
   // tRPC API
   app.use(
     "/api/trpc",
@@ -59,6 +63,9 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    
+    // Initialize cron jobs for RSS fetching
+    initializeCronJobs();
   });
 }
 

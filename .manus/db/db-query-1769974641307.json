@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, name, url, category FROM rssSources WHERE name LIKE '%DW%' OR name LIKE '%Asharq%' OR name LIKE '%Arabi21%' OR name LIKE '%دويتشه%' OR name LIKE '%الشرق%' OR name LIKE '%عربي21%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT id, name, url, category FROM rssSources WHERE name LIKE '%DW%' OR name LIKE '%Asharq%' OR name LIKE '%Arabi21%' OR name LIKE '%دويتشه%' OR name LIKE '%الشرق%' OR name LIKE '%عربي21%';",
+  "rows": [
+    {
+      "id": "19",
+      "name": "دويتشه فيله (DW Arabic)",
+      "url": "https://rss.dw.com/rdf/rss-ar-all",
+      "category": "عربية"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\turl\tcategory\n19\tدويتشه فيله (DW Arabic)\thttps://rss.dw.com/rdf/rss-ar-all\tعربية\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}
