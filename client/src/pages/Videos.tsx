@@ -17,10 +17,13 @@ import {
   ArrowRight,
   Clock,
   X,
+  LogIn,
+  User,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import ScrollToTop from "@/components/ScrollToTop";
 
 export default function Videos() {
@@ -77,18 +80,38 @@ export default function Videos() {
               <h1 className="text-lg font-bold">الأخبار المصوّرة</h1>
             </div>
           </div>
-          {user && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => fetchMutation.mutate()}
-              disabled={fetchMutation.isPending}
-              className="gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${fetchMutation.isPending ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">تحديث</span>
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => fetchMutation.mutate()}
+                  disabled={fetchMutation.isPending}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${fetchMutation.isPending ? "animate-spin" : ""}`} />
+                  <span className="hidden sm:inline">تحديث</span>
+                </Button>
+                <div className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1.5 border border-border">
+                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-primary-foreground" />
+                  </div>
+                  <span className="text-xs font-medium hidden sm:inline">{user.name || "مستخدم"}</span>
+                </div>
+              </>
+            ) : (
+              <a href={getLoginUrl()}>
+                <Button
+                  size="sm"
+                  className="gap-2 bg-red-600 hover:bg-red-700 text-white rounded-full px-4"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>تسجيل الدخول</span>
+                </Button>
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
