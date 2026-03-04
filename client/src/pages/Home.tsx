@@ -64,6 +64,7 @@ export default function Home() {
   const [translatingId, setTranslatingId] = useState<number | null>(null);
   const [translations, setTranslations] = useState<Record<number, { title: string; description: string }>>({});
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const [archived, setArchived] = useState<Set<number>>(new Set());
   const [isTabsVisible, setIsTabsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isFetchingBreakingNews, setIsFetchingBreakingNews] = useState(false);
@@ -185,6 +186,38 @@ export default function Home() {
       utils.favorites.list.invalidate();
     },
   });
+
+  // ── Archive mutations ──
+  const archiveMutation = trpc.archive.toggle.useMutation({
+    onSuccess: (data, variables) => {
+      if (data.archived) {
+        setArchived((prev) => new Set(prev).add(variables.newsId));
+        toast.success("تمت أرشفة الخبر بنجاح ✔️");
+      } else {
+        setArchived((prev) => { const s = new Set(prev); s.delete(variables.newsId); return s; });
+        toast.info("تمت إزالة الخبر من الأرشيف");
+      }
+      utils.archive.list.invalidate();
+    },
+    onError: () => toast.error("يجب تسجيل الدخول لأرشفة الأخبار"),
+  });
+
+  // Load archived news IDs for authenticated users
+  const { data: archivedList } = trpc.archive.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    onSuccess: (data: any[]) => {
+      const ids = new Set(data.map((a: any) => a.news?.id).filter(Boolean) as number[]);
+      setArchived(ids);
+    },
+  } as any);
+
+  const handleToggleArchive = (newsId: number) => {
+    if (!isAuthenticated) {
+      toast.error("يجب تسجيل الدخول لأرشفة الأخبار");
+      return;
+    }
+    archiveMutation.mutate({ newsId });
+  };
 
   const handleSearch = () => {
     setSearch(searchInput);
@@ -414,8 +447,18 @@ export default function Home() {
               {/* Archive Link */}
               {isAuthenticated && (
                 <Link href="/archive">
-                  <Button variant="outline" size="icon" className="rounded-full">
-                    <Archive className="h-5 w-5" />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="relative rounded-full border-2 border-amber-400/60 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-800/30 hover:border-amber-500 transition-all shadow-sm"
+                    title="أرشيف الأخبار المحفوظة"
+                  >
+                    <Archive className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    {archived.size > 0 && (
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow">
+                        {archived.size > 9 ? "9+" : archived.size}
+                      </span>
+                    )}
                   </Button>
                 </Link>
               )}
@@ -674,8 +717,8 @@ export default function Home() {
                   const displayTitle = translation?.title || item.title;
                   const displayDescription = translation?.description || item.description;
                   const isTranslated = !!translation;
-                  const isFav = favorites.has(item.id);
-
+                   const isFav = favorites.has(item.id);
+                  const isArchived = archived.has(item.id);
                   return (
                     <Card 
                       key={item.id} 
@@ -701,8 +744,19 @@ export default function Home() {
                               variant={isFav ? "default" : "secondary"}
                               className="shadow-lg"
                               onClick={() => handleToggleFavorite(item.id)}
+                              title="إضافة للمفضلة"
                             >
                               <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={isArchived ? "default" : "secondary"}
+                              className={`shadow-lg transition-all ${isArchived ? "bg-amber-500 hover:bg-amber-600 border-amber-500" : ""}`}
+                              onClick={() => handleToggleArchive(item.id)}
+                              title={isArchived ? "إزالة من الأرشيف" : "حفظ في الأرشيف"}
+                              disabled={archiveMutation.isPending}
+                            >
+                              <Archive className={`h-4 w-4 ${isArchived ? "fill-current" : ""}`} />
                             </Button>
                             
                             <DropdownMenu>

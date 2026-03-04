@@ -39,6 +39,66 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Sitemap
   app.get("/sitemap.xml", generateSitemap);
+
+  // ── Newspaper PDF Generator ──
+  app.get("/api/daily-summary/pdf", async (req, res) => {
+    try {
+      const { getLatestDailySummary, getDailySummaryByDate } = await import("../db");
+      const { generateNewspaperPDF } = await import("../pdfService");
+
+      const dateParam = req.query.date as string | undefined;
+      let summaryRaw: any = null;
+
+      if (dateParam) {
+        summaryRaw = await getDailySummaryByDate(new Date(dateParam));
+      } else {
+        summaryRaw = await getLatestDailySummary();
+      }
+
+      if (!summaryRaw) {
+        res.status(404).json({ error: "No summary found" });
+        return;
+      }
+
+      const summary = {
+        ...summaryRaw,
+        topNews: summaryRaw.topNews ? JSON.parse(summaryRaw.topNews) : [],
+        trendingTopics: summaryRaw.trendingTopics ? JSON.parse(summaryRaw.trendingTopics) : [],
+        statistics: summaryRaw.statistics ? JSON.parse(summaryRaw.statistics) : {},
+        topNewsItems: [] as any[],
+      };
+
+      // Fetch top news titles if IDs are available
+      if (summary.topNews && summary.topNews.length > 0) {
+        try {
+          const { getDb } = await import("../db");
+          const db = await getDb();
+          if (!db) throw new Error("DB not available");
+          const { news } = await import("../../drizzle/schema");
+          const { inArray } = await import("drizzle-orm");
+          const ids = summary.topNews.slice(0, 6);
+          const newsItems = await db.select({ id: news.id, title: news.title, source: news.source })
+            .from(news)
+            .where(inArray(news.id, ids));
+          summary.topNewsItems = newsItems;
+        } catch {
+          summary.topNewsItems = [];
+        }
+      }
+
+      const pdfBuffer = await generateNewspaperPDF(summary);
+      const dateStr = new Date(summary.date).toISOString().split("T")[0];
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="arabismart-${dateStr}.pdf"`);
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (err: any) {
+      console.error("[PDF] Error generating PDF:", err?.message);
+      res.status(500).json({ error: "Failed to generate PDF", details: err?.message });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",

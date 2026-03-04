@@ -30,7 +30,7 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import jsPDF from "jspdf";
+// jsPDF removed - using server-side PDF generation
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SummaryStats = {
@@ -50,137 +50,6 @@ type Summary = {
   language: string;
   createdAt: Date | string;
 };
-
-// ─── PDF Generator ────────────────────────────────────────────────────────────
-function generatePDF(summary: Summary) {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const margin = 18;
-  const contentW = pageW - margin * 2;
-  let y = margin;
-
-  // Header background
-  doc.setFillColor(10, 20, 50);
-  doc.rect(0, 0, pageW, 52, "F");
-  // Blue accent line
-  doc.setFillColor(59, 130, 246);
-  doc.rect(0, 49, pageW, 3, "F");
-
-  // Site name
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.text("ArabiSmart News", pageW / 2, 20, { align: "center" });
-  // Subtitle
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(147, 197, 253);
-  doc.text("Daily AI News Summary", pageW / 2, 30, { align: "center" });
-  // Date
-  const dateStr = new Date(summary.date).toLocaleDateString("ar-SA", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
-  doc.setFontSize(9);
-  doc.setTextColor(203, 213, 225);
-  doc.text(dateStr, pageW / 2, 42, { align: "center" });
-
-  y = 64;
-
-  // Stats boxes
-  const stats = summary.statistics || {};
-  const statItems = [
-    { label: "Total News", value: String(stats.totalNews || 0) },
-    { label: "Sources", value: String(stats.activeSources || 0) },
-    { label: "Arabic", value: String(stats.arabicNews || 0) },
-    { label: "Swedish", value: String(stats.swedishNews || 0) },
-  ];
-  const boxW = contentW / 4;
-  statItems.forEach((s, i) => {
-    const x = margin + i * boxW;
-    doc.setFillColor(239, 246, 255);
-    doc.roundedRect(x + 1, y, boxW - 2, 20, 3, 3, "F");
-    doc.setDrawColor(191, 219, 254);
-    doc.roundedRect(x + 1, y, boxW - 2, 20, 3, 3, "S");
-    doc.setTextColor(30, 64, 175);
-    doc.setFontSize(15);
-    doc.setFont("helvetica", "bold");
-    doc.text(s.value, x + boxW / 2, y + 10, { align: "center" });
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(71, 85, 105);
-    doc.text(s.label, x + boxW / 2, y + 17, { align: "center" });
-  });
-  y += 30;
-
-  // Summary section header
-  doc.setFillColor(248, 250, 252);
-  doc.roundedRect(margin, y, contentW, 9, 2, 2, "F");
-  doc.setFillColor(59, 130, 246);
-  doc.roundedRect(margin, y, 4, 9, 1, 1, "F");
-  doc.setTextColor(15, 23, 42);
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("Daily Summary", margin + 8, y + 6);
-  y += 15;
-
-  // Summary text
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(51, 65, 85);
-  const summaryLines = doc.splitTextToSize(summary.summary || "", contentW);
-  for (let i = 0; i < Math.min(summaryLines.length, 40); i++) {
-    if (y > pageH - 30) { doc.addPage(); y = margin; }
-    doc.text(summaryLines[i], margin, y);
-    y += 5.5;
-  }
-  y += 8;
-
-  // Trending topics
-  if (summary.trendingTopics && summary.trendingTopics.length > 0) {
-    if (y > pageH - 45) { doc.addPage(); y = margin; }
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(margin, y, contentW, 9, 2, 2, "F");
-    doc.setFillColor(16, 185, 129);
-    doc.roundedRect(margin, y, 4, 9, 1, 1, "F");
-    doc.setTextColor(15, 23, 42);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("Trending Topics", margin + 8, y + 6);
-    y += 15;
-    let tagX = margin;
-    summary.trendingTopics.slice(0, 10).forEach((topic) => {
-      const tagW = doc.getTextWidth(topic) + 8;
-      if (tagX + tagW > pageW - margin) { tagX = margin; y += 10; }
-      doc.setFillColor(209, 250, 229);
-      doc.roundedRect(tagX, y - 5, tagW, 8, 2, 2, "F");
-      doc.setTextColor(6, 95, 70);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.text(topic, tagX + 4, y + 0.5);
-      tagX += tagW + 3;
-    });
-    y += 16;
-  }
-
-  // Footer on all pages
-  const totalPages = (doc.internal as any).getNumberOfPages();
-  for (let p = 1; p <= totalPages; p++) {
-    doc.setPage(p);
-    doc.setFillColor(248, 250, 252);
-    doc.rect(0, pageH - 14, pageW, 14, "F");
-    doc.setDrawColor(226, 232, 240);
-    doc.line(0, pageH - 14, pageW, pageH - 14);
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text("www.arabismart.vip", margin, pageH - 5);
-    doc.text(`Page ${p} / ${totalPages}`, pageW - margin, pageH - 5, { align: "right" });
-  }
-
-  const fileName = `arabismart-${new Date(summary.date).toISOString().split("T")[0]}.pdf`;
-  doc.save(fileName);
-  return fileName;
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(date: Date | string) {
@@ -261,13 +130,23 @@ export default function DailySummary() {
   const isLoading = isToday ? isLoadingLatest : isLoadingByDate;
 
   // ── Handlers ──
-  const handleDownloadPDF = useCallback(() => {
+  const handleDownloadPDF = useCallback(async () => {
     if (!activeSummary) return;
     try {
-      const fileName = generatePDF(activeSummary);
-      toast.success(`تم تحميل: ${fileName}`);
+      toast.info("جاري تحضير ملف PDF...");
+      const dateStr = new Date(activeSummary.date).toISOString().split("T")[0];
+      const url = `/api/daily-summary/pdf?date=${dateStr}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Server error");
+      const blob = await response.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `arabismart-${dateStr}.pdf`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      toast.success("تم تحميل ملف PDF بنجاح!");
     } catch {
-      toast.error("فشل تحميل PDF");
+      toast.error("فشل تحميل PDF. حاول مرة أخرى.");
     }
   }, [activeSummary]);
 
