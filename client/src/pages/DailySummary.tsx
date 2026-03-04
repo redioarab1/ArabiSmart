@@ -53,14 +53,16 @@ type Summary = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(date: Date | string) {
-  return new Date(date).toLocaleDateString("ar-SA", {
+  return new Intl.DateTimeFormat("ar-EG", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
+    calendar: "gregory",
+  }).format(new Date(date));
 }
 function formatDateShort(date: Date | string) {
-  return new Date(date).toLocaleDateString("ar-SA", {
+  return new Intl.DateTimeFormat("ar-EG", {
     year: "numeric", month: "short", day: "numeric",
-  });
+    calendar: "gregory",
+  }).format(new Date(date));
 }
 function toISODate(date: Date | string) {
   return new Date(date).toISOString().split("T")[0];
