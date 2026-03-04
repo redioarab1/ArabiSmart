@@ -35,6 +35,7 @@ import {
   Tag,
   FileText,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +67,11 @@ const navItems = [
     label: "البث المباشر",
     icon: Radio,
     href: "/admin/live",
+  },
+  {
+    label: "الملخص اليومي",
+    icon: Sparkles,
+    href: "/admin/daily-summary",
   },
   {
     label: "المستخدمون",

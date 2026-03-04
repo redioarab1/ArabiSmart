@@ -1,0 +1,13 @@
+{
+  "query": "SHOW TABLES LIKE 'dailySummaries';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SHOW TABLES LIKE 'dailySummaries';",
+  "rows": [
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (dailySummaries)": "dailySummaries"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (dailySummaries)\ndailySummaries\n",
+  "stderr": "",
+  "execution_time_ms": 484
+}

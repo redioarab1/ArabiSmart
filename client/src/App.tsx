@@ -26,6 +26,7 @@ import AdminSources from "./pages/admin/AdminSources";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLiveTV from "./pages/admin/AdminLiveTV";
+import AdminDailySummary from "./pages/admin/AdminDailySummary";
 
 function Router() {
   return (
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/admin/users" component={AdminUsers} />
       <Route path="/admin/settings" component={AdminSettings} />
       <Route path="/admin/live" component={AdminLiveTV} />
+      <Route path="/admin/daily-summary" component={AdminDailySummary} />
 
       {/* Fallback */}
       <Route path={"/404"} component={NotFound} />

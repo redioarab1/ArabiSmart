@@ -1,38 +1,296 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Sparkles, 
-  TrendingUp, 
-  Newspaper, 
-  BarChart3, 
+import {
+  Sparkles,
+  TrendingUp,
+  Newspaper,
+  BarChart3,
   Calendar,
   Loader2,
   RefreshCw,
   Globe,
-  Languages
+  Download,
+  Share2,
+  Mail,
+  MessageCircle,
+  Copy,
+  Check,
+  ChevronRight,
+  Clock,
+  BookOpen,
+  Zap,
+  ArrowRight,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
+import jsPDF from "jspdf";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+type SummaryStats = {
+  totalNews?: number;
+  activeSources?: number;
+  arabicNews?: number;
+  swedishNews?: number;
+  englishNews?: number;
+};
+
+type Summary = {
+  id: number;
+  date: Date | string;
+  summary: string;
+  topNews: number[];
+  trendingTopics: string[];
+  statistics: SummaryStats;
+  language: string;
+  createdAt: Date | string;
+};
+
+// ─── PDF Generator ────────────────────────────────────────────────────────────
+function generatePDF(summary: Summary, siteUrl: string) {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const contentW = pageW - margin * 2;
+  let y = margin;
+
+  // Header background
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 0, pageW, 45, "F");
+
+  // Site name
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.text("ArabiSmart News", pageW / 2, 18, { align: "center" });
+
+  // Subtitle
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(148, 163, 184);
+  doc.text("Daily AI Summary", pageW / 2, 27, { align: "center" });
+
+  // Date
+  const dateStr = new Date(summary.date).toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  doc.setFontSize(10);
+  doc.setTextColor(203, 213, 225);
+  doc.text(dateStr, pageW / 2, 36, { align: "center" });
+
+  y = 58;
+
+  // Stats row
+  const stats = summary.statistics || {};
+  const statItems = [
+    { label: "Total News", value: stats.totalNews || 0 },
+    { label: "Sources", value: stats.activeSources || 0 },
+    { label: "Arabic", value: stats.arabicNews || 0 },
+    { label: "Swedish", value: stats.swedishNews || 0 },
+  ];
+  const boxW = contentW / 4;
+  statItems.forEach((s, i) => {
+    const x = margin + i * boxW;
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(x + 1, y, boxW - 2, 18, 2, 2, "F");
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(String(s.value), x + boxW / 2, y + 8, { align: "center" });
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.text(s.label, x + boxW / 2, y + 14, { align: "center" });
+  });
+  y += 26;
+
+  // Divider
+  doc.setDrawColor(226, 232, 240);
+  doc.line(margin, y, pageW - margin, y);
+  y += 8;
+
+  // Summary title
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(15, 23, 42);
+  doc.text("Daily Summary", margin, y);
+  y += 8;
+
+  // Summary text (wrapped)
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(51, 65, 85);
+  const summaryLines = doc.splitTextToSize(summary.summary, contentW);
+  summaryLines.forEach((line: string) => {
+    if (y > pageH - 30) {
+      doc.addPage();
+      y = margin;
+    }
+    doc.text(line, margin, y);
+    y += 5.5;
+  });
+  y += 6;
+
+  // Trending Topics
+  if (summary.trendingTopics?.length > 0) {
+    if (y > pageH - 40) { doc.addPage(); y = margin; }
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text("Trending Topics", margin, y);
+    y += 7;
+    let topicX = margin;
+    summary.trendingTopics.forEach((topic) => {
+      const tw = doc.getTextWidth(topic) + 8;
+      if (topicX + tw > pageW - margin) { topicX = margin; y += 9; }
+      doc.setFillColor(219, 234, 254);
+      doc.roundedRect(topicX, y - 5, tw, 7, 1.5, 1.5, "F");
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 64, 175);
+      doc.text(topic, topicX + 4, y);
+      topicX += tw + 3;
+    });
+    y += 14;
+  }
+
+  // Footer
+  doc.setFillColor(248, 250, 252);
+  doc.rect(0, pageH - 14, pageW, 14, "F");
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text(`Generated by ArabiSmart News | ${siteUrl}`, pageW / 2, pageH - 5, { align: "center" });
+
+  return doc;
+}
+
+// ─── Share Buttons ────────────────────────────────────────────────────────────
+function ShareButtons({ summary, onDownloadPDF }: { summary: Summary; onDownloadPDF: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const pageUrl = window.location.href;
+  const shareText = `📰 ملخص أخبار اليوم من ArabiSmart News\n\n${summary.summary.slice(0, 300)}...\n\n🔗 ${pageUrl}`;
+
+  const handleWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank");
+  };
+
+  const handleEmail = () => {
+    const subject = encodeURIComponent(`ملخص أخبار ${new Date(summary.date).toLocaleDateString("ar-SA")}`);
+    const body = encodeURIComponent(shareText);
+    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(shareText);
+    setCopied(true);
+    toast.success("تم نسخ الملخص!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleTelegram = () => {
+    window.open(
+      `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(summary.summary.slice(0, 200))}`,
+      "_blank"
+    );
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        onClick={onDownloadPDF}
+        className="gap-2 bg-red-600 hover:bg-red-700 text-white rounded-full px-5 shadow-lg shadow-red-600/20"
+        size="sm"
+      >
+        <Download className="w-4 h-4" />
+        تحميل PDF
+      </Button>
+      <Button
+        onClick={handleWhatsApp}
+        className="gap-2 bg-green-600 hover:bg-green-700 text-white rounded-full px-5 shadow-lg shadow-green-600/20"
+        size="sm"
+      >
+        <MessageCircle className="w-4 h-4" />
+        واتساب
+      </Button>
+      <Button
+        onClick={handleTelegram}
+        className="gap-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full px-5 shadow-lg shadow-blue-500/20"
+        size="sm"
+      >
+        <Share2 className="w-4 h-4" />
+        تيليجرام
+      </Button>
+      <Button
+        onClick={handleEmail}
+        variant="outline"
+        className="gap-2 rounded-full px-5"
+        size="sm"
+      >
+        <Mail className="w-4 h-4" />
+        إيميل
+      </Button>
+      <Button
+        onClick={handleCopy}
+        variant="outline"
+        className="gap-2 rounded-full px-5"
+        size="sm"
+      >
+        {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+        {copied ? "تم النسخ!" : "نسخ"}
+      </Button>
+    </div>
+  );
+}
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  colorBg,
+  colorText,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number | string;
+  colorBg: string;
+  colorText: string;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className={`absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 -translate-y-8 translate-x-8 ${colorBg}`} />
+      <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl mb-3 ${colorBg} bg-opacity-15`}>
+        <Icon className={`w-5 h-5 ${colorText}`} />
+      </div>
+      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-sm text-muted-foreground mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function DailySummary() {
+  const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  // Fetch latest summary
+
   const { data: summary, isLoading, refetch } = trpc.dailySummary.getLatest.useQuery();
-  
-  // Generate summary mutation
+
   const generateMutation = trpc.dailySummary.generate.useMutation({
     onSuccess: () => {
-      toast.success("تم توليد الملخص اليومي بنجاح!", { className: "arabic-text" });
+      toast.success("تم توليد الملخص اليومي بنجاح!");
       refetch();
       setIsGenerating(false);
     },
     onError: (error) => {
-      toast.error(`فشل توليد الملخص: ${error.message}`, { className: "arabic-text" });
+      toast.error(`فشل توليد الملخص: ${error.message}`);
       setIsGenerating(false);
     },
   });
@@ -42,250 +300,317 @@ export default function DailySummary() {
     generateMutation.mutate({ language: "ar" });
   };
 
+  const handleDownloadPDF = useCallback(() => {
+    if (!summary) return;
+    try {
+      const doc = generatePDF(summary as Summary, window.location.origin);
+      const dateStr = new Date(summary.date).toISOString().split("T")[0];
+      doc.save(`arabismart-daily-summary-${dateStr}.pdf`);
+      toast.success("تم تحميل ملف PDF بنجاح!");
+    } catch {
+      toast.error("فشل تحميل PDF. حاول مرة أخرى.");
+    }
+  }, [summary]);
+
+  // ── Loading ──
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background">
-        <div className="container py-12">
-          <Skeleton className="h-12 w-64 mb-8" />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
+      <div className="min-h-screen bg-background" dir="rtl">
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <Skeleton className="h-10 w-64 mb-2" />
+          <Skeleton className="h-5 w-48 mb-10" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-2xl" />
+            ))}
           </div>
-          <Skeleton className="h-96" />
+          <Skeleton className="h-64 rounded-2xl mb-6" />
+          <Skeleton className="h-32 rounded-2xl" />
         </div>
       </div>
     );
   }
 
+  const stats = (summary?.statistics as SummaryStats) || {};
+  const dateLabel = summary?.date
+    ? new Date(summary.date).toLocaleDateString("ar-SA", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container flex items-center justify-between h-16">
-          <Link href="/">
-            <Button variant="ghost" className="gap-2 arabic-text">
-              <Globe className="h-5 w-5" />
-              العودة للرئيسية
-            </Button>
-          </Link>
-          
-          <h1 className="text-2xl font-bold arabic-text flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            الملخص اليومي الذكي
-          </h1>
+    <div className="min-h-screen bg-background" dir="rtl">
+      {/* ── Hero Header ── */}
+      <div className="relative overflow-hidden bg-gradient-to-bl from-slate-900 via-blue-950 to-slate-900 text-white">
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 50%, #3b82f6 0%, transparent 50%), radial-gradient(circle at 80% 20%, #6366f1 0%, transparent 50%)",
+          }}
+        />
+        <div className="relative max-w-4xl mx-auto px-4 py-14">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm text-white/60 mb-8">
+            <Link href="/" className="hover:text-white transition-colors">
+              الرئيسية
+            </Link>
+            <ChevronRight className="w-4 h-4" />
+            <span className="text-white">الملخص اليومي</span>
+          </div>
 
-          <Button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="gap-2 arabic-text"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                جاري التوليد...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4" />
-                توليد ملخص جديد
-              </>
-            )}
-          </Button>
-        </div>
-      </header>
-
-      <div className="container py-12">
-        {summary ? (
-          <>
-            {/* Statistics Cards */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-              <Card className="border-primary/20 hover:border-primary/40 transition-colors">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground arabic-text flex items-center gap-2">
-                    <Newspaper className="h-4 w-4" />
-                    إجمالي الأخبار
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-primary">
-                    {summary.statistics.totalNews || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground arabic-text mt-1">
-                    خبر منشور اليوم
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-primary/20 hover:border-primary/40 transition-colors">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground arabic-text flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    المصادر النشطة
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-primary">
-                    {summary.statistics.activeSources || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground arabic-text mt-1">
-                    مصدر إخباري
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-primary/20 hover:border-primary/40 transition-colors">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground arabic-text flex items-center gap-2">
-                    <Languages className="h-4 w-4" />
-                    أخبار عربية
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-primary">
-                    {summary.statistics.arabicNews || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground arabic-text mt-1">
-                    خبر باللغة العربية
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-primary/20 hover:border-primary/40 transition-colors">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground arabic-text flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    تاريخ الملخص
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-lg font-bold text-primary">
-                    {new Date(summary.date).toLocaleDateString("ar-SA", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </div>
-                  <p className="text-xs text-muted-foreground arabic-text mt-1">
-                    آخر تحديث: {new Date(summary.createdAt).toLocaleTimeString("ar-SA")}
-                  </p>
-                </CardContent>
-              </Card>
+          <div className="flex items-start justify-between gap-6 flex-wrap">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">الملخص اليومي الذكي</h1>
+                  <p className="text-white/60 text-sm mt-0.5">مُولَّد بالذكاء الاصطناعي</p>
+                </div>
+              </div>
+              {dateLabel && (
+                <div className="flex items-center gap-2 text-white/70 text-sm mt-2 flex-wrap">
+                  <Calendar className="w-4 h-4" />
+                  <span>{dateLabel}</span>
+                  <span className="mx-1">•</span>
+                  <Clock className="w-4 h-4" />
+                  <span>يتجدد تلقائياً كل صباح الساعة 7:00</span>
+                </div>
+              )}
             </div>
 
-            {/* Main Summary */}
-            <Card className="mb-8 border-2 border-primary/20">
-              <CardHeader>
-                <CardTitle className="text-2xl arabic-text flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  ملخص اليوم الشامل
-                </CardTitle>
-                <CardDescription className="arabic-text">
-                  تحليل ذكي لأهم الأخبار والأحداث
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-lg max-w-none dark:prose-invert">
-                  <p className="text-lg leading-relaxed arabic-text text-right whitespace-pre-wrap">
-                    {summary.summary}
-                  </p>
+            <div className="flex items-center gap-3">
+              {user ? (
+                <Button
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className="gap-2 bg-white text-slate-900 hover:bg-white/90 rounded-full px-6 shadow-lg font-semibold"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      جاري التوليد...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      توليد ملخص جديد
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <a href={getLoginUrl()}>
+                  <Button className="gap-2 bg-white text-slate-900 hover:bg-white/90 rounded-full px-6 font-semibold">
+                    تسجيل الدخول للتوليد
+                  </Button>
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Content ── */}
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        {summary ? (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <StatCard
+                icon={Newspaper}
+                label="إجمالي الأخبار"
+                value={stats.totalNews || 0}
+                colorBg="bg-blue-500"
+                colorText="text-blue-500"
+              />
+              <StatCard
+                icon={Globe}
+                label="المصادر النشطة"
+                value={stats.activeSources || 0}
+                colorBg="bg-green-500"
+                colorText="text-green-500"
+              />
+              <StatCard
+                icon={BookOpen}
+                label="أخبار عربية"
+                value={stats.arabicNews || 0}
+                colorBg="bg-orange-500"
+                colorText="text-orange-500"
+              />
+              <StatCard
+                icon={BarChart3}
+                label="أخبار سويدية"
+                value={stats.swedishNews || 0}
+                colorBg="bg-purple-500"
+                colorText="text-purple-500"
+              />
+            </div>
+
+            {/* Share Bar */}
+            <div className="flex items-center justify-between flex-wrap gap-3 mb-6 p-4 rounded-2xl bg-muted/50 border border-border">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Share2 className="w-4 h-4 text-muted-foreground" />
+                <span>مشاركة الملخص</span>
+              </div>
+              <ShareButtons summary={summary as Summary} onDownloadPDF={handleDownloadPDF} />
+            </div>
+
+            {/* Main Summary Card */}
+            <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden mb-6">
+              <div className="bg-gradient-to-l from-blue-600/10 to-indigo-600/10 border-b border-border px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-lg">ملخص اليوم الشامل</h2>
+                    <p className="text-xs text-muted-foreground">تحليل ذكي لأهم الأخبار والأحداث</p>
+                  </div>
+                  <Badge className="mr-auto bg-blue-600/10 text-blue-600 border border-blue-600/20 text-xs">
+                    <Zap className="w-3 h-3 ml-1" />
+                    AI Generated
+                  </Badge>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="p-6">
+                <p className="text-base leading-[2.2] text-foreground whitespace-pre-wrap text-right">
+                  {summary.summary}
+                </p>
+              </div>
+              {/* Footer of card */}
+              <div className="border-t border-border px-6 py-3 bg-muted/30 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  آخر تحديث: {new Date(summary.createdAt).toLocaleTimeString("ar-SA")}
+                </span>
+                <Button
+                  onClick={handleDownloadPDF}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  تحميل PDF
+                </Button>
+              </div>
+            </div>
 
             {/* Trending Topics */}
-            {summary.trendingTopics && summary.trendingTopics.length > 0 && (
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle className="arabic-text flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    الموضوعات الرائجة
-                  </CardTitle>
-                  <CardDescription className="arabic-text">
-                    أكثر المواضيع تداولاً اليوم
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+            {summary.trendingTopics?.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden mb-6">
+                <div className="border-b border-border px-6 py-4 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold">الموضوعات الرائجة</h2>
+                    <p className="text-xs text-muted-foreground">أكثر المواضيع تداولاً اليوم</p>
+                  </div>
+                </div>
+                <div className="p-6">
                   <div className="flex flex-wrap gap-2">
-                    {summary.trendingTopics.map((topic: string, index: number) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="text-sm py-2 px-4 arabic-text hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                    {summary.trendingTopics.map((topic: string, i: number) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-l from-blue-600/10 to-indigo-600/10 border border-blue-600/20 text-sm font-medium text-blue-700 dark:text-blue-400 hover:from-blue-600/20 transition-all cursor-default"
                       >
-                        <TrendingUp className="h-3 w-3 ml-1" />
+                        <TrendingUp className="w-3 h-3" />
                         {topic}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* Top News */}
-            {summary.topNews && summary.topNews.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="arabic-text flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    أهم الأخبار
-                  </CardTitle>
-                  <CardDescription className="arabic-text">
-                    الأخبار الأكثر أهمية اليوم
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {summary.topNews.map((newsId: number, index: number) => (
-                      <Link key={newsId} href={`/news/${newsId}`}>
-                        <div className="flex items-center gap-4 p-4 rounded-lg border hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-primary font-bold">{index + 1}</span>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm text-muted-foreground arabic-text">
-                              خبر رقم {newsId}
-                            </p>
-                          </div>
-                          <Button variant="ghost" size="sm" className="arabic-text">
-                            قراءة المزيد
-                          </Button>
-                        </div>
-                      </Link>
-                    ))}
+            {summary.topNews?.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden mb-8">
+                <div className="border-b border-border px-6 py-4 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                    <Newspaper className="w-4 h-4 text-white" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h2 className="font-bold">أبرز أخبار اليوم</h2>
+                    <p className="text-xs text-muted-foreground">الأخبار الأكثر أهمية</p>
+                  </div>
+                </div>
+                <div className="divide-y divide-border">
+                  {summary.topNews.map((newsId: number, i: number) => (
+                    <Link key={newsId} href={`/news/${newsId}`}>
+                      <div className="flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors cursor-pointer group">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-sm">
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-muted-foreground">خبر #{newsId}</p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )}
+
+            {/* Bottom Share CTA */}
+            <div className="rounded-2xl border border-border bg-gradient-to-l from-blue-600/5 to-indigo-600/5 p-8 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-600/20 flex items-center justify-center mx-auto mb-4">
+                <Share2 className="w-7 h-7 text-blue-500" />
+              </div>
+              <h3 className="font-bold text-xl mb-2">أعجبك الملخص؟</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                شاركه مع أصدقائك بضغطة واحدة أو حمّله كملف PDF
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <ShareButtons summary={summary as Summary} onDownloadPDF={handleDownloadPDF} />
+              </div>
+            </div>
           </>
         ) : (
-          <Card className="text-center py-16">
-            <CardContent>
-              <Sparkles className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <h2 className="text-2xl font-bold mb-2 arabic-text">لا يوجد ملخص يومي بعد</h2>
-              <p className="text-muted-foreground arabic-text mb-6">
-                قم بتوليد ملخص ذكي لأهم أخبار اليوم
-              </p>
+          /* ── Empty State ── */
+          <div className="text-center py-20">
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500/10 to-indigo-600/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-12 h-12 text-blue-500/50" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3">لا يوجد ملخص يومي بعد</h2>
+            <p className="text-muted-foreground mb-2 max-w-md mx-auto">
+              يتم توليد الملخص تلقائياً كل صباح الساعة 7:00. يمكنك توليده يدوياً الآن.
+            </p>
+            <p className="text-sm text-muted-foreground mb-8">
+              يستغرق التوليد 15-30 ثانية حسب عدد الأخبار المتاحة.
+            </p>
+            {user ? (
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating}
                 size="lg"
-                className="gap-2 arabic-text"
+                className="gap-2 bg-gradient-to-l from-blue-600 to-indigo-600 text-white rounded-full px-8 shadow-lg shadow-blue-600/20"
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    جاري التوليد...
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    جاري التوليد... (15-30 ثانية)
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-5 w-5" />
+                    <Sparkles className="w-5 h-5" />
                     توليد الملخص اليومي
                   </>
                 )}
               </Button>
-            </CardContent>
-          </Card>
+            ) : (
+              <a href={getLoginUrl()}>
+                <Button size="lg" className="gap-2 rounded-full px-8">
+                  سجّل الدخول لتوليد الملخص
+                </Button>
+              </a>
+            )}
+          </div>
         )}
       </div>
     </div>

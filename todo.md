@@ -643,3 +643,20 @@
 - [x] بناء صفحة AdminLiveTV مع إضافة/تعديل/حذف/تفعيل القنوات
 - [x] تحديث صفحة LiveTV لجلب القنوات من DB مع مشغل HLS للـ M3U8
 - [x] تسجيل مسار /admin/live في App.tsx
+
+## الملخص اليومي الذكي بالـ AI
+- [ ] إعداد جدول daily_summaries في قاعدة البيانات
+- [ ] إضافة endpoints: dailySummary.generate, dailySummary.getLatest, dailySummary.list
+- [ ] جدولة توليد الملخص تلقائياً كل صباح الساعة 7:00
+- [ ] بناء صفحة /daily-summary لعرض الملخص
+- [ ] إضافة إدارة الملخص في لوحة التحكم /admin/daily-summary
+- [ ] إضافة رابط الملخص في القائمة الجانبية للأدمن
+
+## الملخص اليومي الذكي مع PDF والمشاركة - المرحلة 18
+- [x] تثبيت jspdf و html2canvas لتوليد PDF
+- [x] إضافة جدولة تلقائية كل صباح 7:00 في cronJobs.ts
+- [x] إضافة endpoint delete و getPdfData في dailySummary router
+- [x] بناء صفحة DailySummary الاحترافية مع تصدير PDF + واتساب + تيليجرام + إيميل + نسخ
+- [x] بناء صفحة AdminDailySummary في لوحة التحكم مع حذف وتوليد
+- [x] إضافة رابط الملخص اليومي في القائمة الجانبية AdminLayout
+- [x] تسجيل مسار /admin/daily-summary في App.tsx

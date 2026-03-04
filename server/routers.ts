@@ -727,9 +727,32 @@ export const appRouter = router({
           statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
         }));
       }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { dailySummaries } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(dailySummaries).where(eq(dailySummaries.id, input.id));
+        return { success: true };
+      }),
+    // Generate PDF content (returns structured data for client-side PDF generation)
+    getPdfData: publicProcedure
+      .input(z.object({ id: z.number().optional() }))
+      .query(async ({ input }) => {
+        const { getLatestDailySummary } = await import("./db");
+        const summary = await getLatestDailySummary();
+        if (!summary) return null;
+        return {
+          ...summary,
+          topNews: summary.topNews ? JSON.parse(summary.topNews) : [],
+          trendingTopics: summary.trendingTopics ? JSON.parse(summary.trendingTopics) : [],
+          statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
+        };
+      }),
   }),
-
-  // Archive router
+  // Archive routerr
   archive: router({
     toggle: protectedProcedure
       .input(z.object({ newsId: z.number() }))
