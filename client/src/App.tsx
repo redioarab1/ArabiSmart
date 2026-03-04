@@ -5,7 +5,6 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import AdminDashboard from "./pages/AdminDashboard";
 import Favorites from "./pages/Favorites";
 import NotificationSettings from "./pages/NotificationSettings";
 import NewsDetail from "./pages/NewsDetail";
@@ -16,16 +15,22 @@ import Settings from "./pages/Settings";
 import Folders from "./pages/Folders";
 import FolderDetail from "./pages/FolderDetail";
 import DailySummary from "./pages/DailySummary";
-import AdminSources from "./pages/AdminSources";
 import Videos from "./pages/Videos";
 import LiveTV from "./pages/LiveTV";
 
+// Admin Pages
+import AdminHome from "./pages/admin/AdminHome";
+import AdminNews from "./pages/admin/AdminNews";
+import AdminVideos from "./pages/admin/AdminVideos";
+import AdminSources from "./pages/admin/AdminSources";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSettings from "./pages/admin/AdminSettings";
+
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
+      {/* Public Routes */}
       <Route path={"/"} component={Home} />
-      <Route path="/admin" component={AdminDashboard} />
       <Route path="/favorites" component={Favorites} />
       <Route path="/notifications" component={NotificationSettings} />
       <Route path="/news/:id" component={NewsDetail} />
@@ -36,20 +41,23 @@ function Router() {
       <Route path="/folders" component={Folders} />
       <Route path="/folders/:id" component={FolderDetail} />
       <Route path="/daily-summary" component={DailySummary} />
-      <Route path="/admin/sources" component={AdminSources} />
       <Route path="/videos" component={Videos} />
       <Route path="/live" component={LiveTV} />
+
+      {/* Admin Routes */}
+      <Route path="/admin" component={AdminHome} />
+      <Route path="/admin/news" component={AdminNews} />
+      <Route path="/admin/videos" component={AdminVideos} />
+      <Route path="/admin/sources" component={AdminSources} />
+      <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/admin/settings" component={AdminSettings} />
+
+      {/* Fallback */}
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
-
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
   return (

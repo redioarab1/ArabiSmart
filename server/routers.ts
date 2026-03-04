@@ -333,6 +333,107 @@ export const appRouter = router({
       await fetchAllRSS();
       return { success: true, newItemsCount: 0 };
     }),
+    addSource: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        url: z.string(),
+        category: z.enum(["SE", "عربية"]),
+        language: z.enum(["ar", "sv", "en"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { rssSources } = await import("../drizzle/schema");
+        await db.insert(rssSources).values({ ...input, isActive: 1 });
+        return { success: true };
+      }),
+    updateSource: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        url: z.string().optional(),
+        category: z.enum(["SE", "عربية"]).optional(),
+        language: z.enum(["ar", "sv", "en"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { rssSources } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const { id, ...updateData } = input;
+        await db.update(rssSources).set(updateData).where(eq(rssSources.id, id));
+        return { success: true };
+      }),
+    deleteSource: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { rssSources } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(rssSources).where(eq(rssSources.id, input.id));
+        return { success: true };
+      }),
+    toggleSource: protectedProcedure
+      .input(z.object({ id: z.number(), isActive: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { rssSources } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.update(rssSources).set({ isActive: input.isActive ? 1 : 0 }).where(eq(rssSources.id, input.id));
+        return { success: true };
+      }),
+    deleteVideo: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { videos } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(videos).where(eq(videos.id, input.id));
+        return { success: true };
+      }),
+    getStats: protectedProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return { totalNews: 0, totalVideos: 0, totalUsers: 0, activeSources: 0 };
+      const { news, videos, users, rssSources } = await import("../drizzle/schema");
+      const { sql, eq } = await import("drizzle-orm");
+      const [newsCount] = await db.select({ count: sql<number>`count(*)` }).from(news);
+      const [videosCount] = await db.select({ count: sql<number>`count(*)` }).from(videos);
+      const [usersCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+      const [sourcesCount] = await db.select({ count: sql<number>`count(*)` }).from(rssSources).where(eq(rssSources.isActive, 1));
+      return {
+        totalNews: Number(newsCount?.count || 0),
+        totalVideos: Number(videosCount?.count || 0),
+        totalUsers: Number(usersCount?.count || 0),
+        activeSources: Number(sourcesCount?.count || 0),
+      };
+    }),
+    listUsers: protectedProcedure
+      .input(z.object({ search: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return [];
+        const { users } = await import("../drizzle/schema");
+        const { like, or } = await import("drizzle-orm");
+        if (input?.search) {
+          return await db.select().from(users).where(
+            or(like(users.name, `%${input.search}%`), like(users.openId, `%${input.search}%`))
+          );
+        }
+        return await db.select().from(users);
+      }),
+    promoteUser: protectedProcedure
+      .input(z.object({ userId: z.number(), role: z.enum(["admin", "user"]) }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { users } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.update(users).set({ role: input.role }).where(eq(users.id, input.userId));
+        return { success: true };
+      }),
   }),
 
   // Podcast router
