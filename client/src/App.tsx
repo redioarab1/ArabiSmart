@@ -18,6 +18,7 @@ import FolderDetail from "./pages/FolderDetail";
 import DailySummary from "./pages/DailySummary";
 import AdminSources from "./pages/AdminSources";
 import Videos from "./pages/Videos";
+import LiveTV from "./pages/LiveTV";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/daily-summary" component={DailySummary} />
       <Route path="/admin/sources" component={AdminSources} />
       <Route path="/videos" component={Videos} />
+      <Route path="/live" component={LiveTV} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -19,6 +19,8 @@ import {
   X,
   LogIn,
   User,
+  Radio,
+  Home,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -67,50 +69,80 @@ export default function Videos() {
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="gap-1">
-                <ArrowRight className="w-4 h-4" />
-                <span className="hidden sm:inline">الرئيسية</span>
-              </Button>
-            </Link>
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          {/* Top row: title + user actions */}
+          <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
               <Tv2 className="w-5 h-5 text-red-500" />
-              <h1 className="text-lg font-bold">الأخبار المصوّرة</h1>
+              <h1 className="text-lg font-bold">مركز الفيديو</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {user ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fetchMutation.mutate()}
+                    disabled={fetchMutation.isPending}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${fetchMutation.isPending ? "animate-spin" : ""}`} />
+                    <span className="hidden sm:inline">تحديث</span>
+                  </Button>
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1.5 border border-border">
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <User className="w-3.5 h-3.5 text-primary-foreground" />
+                    </div>
+                    <span className="text-xs font-medium hidden sm:inline">{user.name || "مستخدم"}</span>
+                  </div>
+                </>
+              ) : (
+                <a href={getLoginUrl()}>
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-red-600 hover:bg-red-700 text-white rounded-full px-4"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>تسجيل الدخول</span>
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {user ? (
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => fetchMutation.mutate()}
-                  disabled={fetchMutation.isPending}
-                  className="gap-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${fetchMutation.isPending ? "animate-spin" : ""}`} />
-                  <span className="hidden sm:inline">تحديث</span>
-                </Button>
-                <div className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1.5 border border-border">
-                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                    <User className="w-3.5 h-3.5 text-primary-foreground" />
-                  </div>
-                  <span className="text-xs font-medium hidden sm:inline">{user.name || "مستخدم"}</span>
-                </div>
-              </>
-            ) : (
-              <a href={getLoginUrl()}>
-                <Button
-                  size="sm"
-                  className="gap-2 bg-red-600 hover:bg-red-700 text-white rounded-full px-4"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>تسجيل الدخول</span>
-                </Button>
-              </a>
-            )}
+
+          {/* Navigation tabs: 3 icons */}
+          <div className="flex items-center gap-1">
+            <Link href="/">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 text-muted-foreground hover:text-foreground rounded-full px-3"
+              >
+                <Home className="w-4 h-4" />
+                <span className="text-xs">الرئيسية</span>
+              </Button>
+            </Link>
+            <div className="h-4 w-px bg-border mx-1" />
+            <Link href="/videos">
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2 bg-red-600 hover:bg-red-700 text-white rounded-full px-3"
+              >
+                <Tv2 className="w-4 h-4" />
+                <span className="text-xs">فيديو</span>
+              </Button>
+            </Link>
+            <Link href="/live">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 text-muted-foreground hover:text-red-500 rounded-full px-3"
+              >
+                <Radio className="w-4 h-4" />
+                <span className="text-xs">بث مباشر</span>
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
