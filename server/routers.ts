@@ -727,6 +727,20 @@ export const appRouter = router({
           statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
         }));
       }),
+    getByDate: publicProcedure
+      .input(z.object({ date: z.string() }))
+      .query(async ({ input }) => {
+        const { getDailySummaryByDate } = await import("./db");
+        const date = new Date(input.date);
+        const summary = await getDailySummaryByDate(date);
+        if (!summary) return null;
+        return {
+          ...summary,
+          topNews: summary.topNews ? JSON.parse(summary.topNews) : [],
+          trendingTopics: summary.trendingTopics ? JSON.parse(summary.trendingTopics) : [],
+          statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
+        };
+      }),
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
