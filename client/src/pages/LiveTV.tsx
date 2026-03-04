@@ -1,22 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, Tv2, Radio, LogIn, User, ExternalLink } from "lucide-react";
+import { Home, Tv2, Radio, LogIn, User, ExternalLink, RefreshCw, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
+import { trpc } from "@/lib/trpc";
 import ScrollToTop from "@/components/ScrollToTop";
 
-// القنوات الإخبارية العربية مع روابط البث المباشر الصحيحة
+// القنوات الإخبارية العربية مع Channel IDs لجلب Video ID تلقائياً
 const LIVE_CHANNELS = [
   {
     id: "aljazeeraarabic",
     name: "قناة الجزيرة",
     nameEn: "Al Jazeera Arabic",
-    youtubeUrl: "https://www.youtube.com/live/events?channel=AlJazeeraArabic",
-    // البث المباشر عبر channel ID
-    embedType: "channel",
     channelId: "UCNye-wNBqNL5ZzHSJj3l8Bg",
+    youtubeUrl: "https://www.youtube.com/aljazeeraarabic/live",
+    fallbackVideoId: "hBkJ1Ve0CYc",
     logo: "🎙️",
     color: "#00A86B",
     description: "قناة الجزيرة الإخبارية العربية – بث مباشر على مدار الساعة",
@@ -25,9 +25,9 @@ const LIVE_CHANNELS = [
     id: "alarabiya",
     name: "قناة العربية",
     nameEn: "Al Arabiya",
+    channelId: "UCrBcmSIvhKlWMhKGqFhFMtg",
     youtubeUrl: "https://www.youtube.com/c/AlArabiya/live",
-    embedType: "video",
-    videoId: "jJqcFN-hjGg",
+    fallbackVideoId: "jJqcFN-hjGg",
     logo: "📡",
     color: "#C8102E",
     description: "قناة العربية الإخبارية – بث مباشر 24 ساعة",
@@ -36,9 +36,9 @@ const LIVE_CHANNELS = [
     id: "skynewsarabia",
     name: "سكاي نيوز عربية",
     nameEn: "Sky News Arabia",
+    channelId: "UCeIFRRMGJjQoKVMVQiAqGGA",
     youtubeUrl: "https://www.youtube.com/watch?v=U--OjmpjF5o",
-    embedType: "video",
-    videoId: "U--OjmpjF5o",
+    fallbackVideoId: "U--OjmpjF5o",
     logo: "🌐",
     color: "#0057A8",
     description: "سكاي نيوز عربية – أخبار عاجلة وتغطيات مباشرة",
@@ -47,9 +47,9 @@ const LIVE_CHANNELS = [
     id: "bbcarabic",
     name: "بي بي سي عربي",
     nameEn: "BBC News Arabic",
-    youtubeUrl: "https://www.youtube.com/channel/UC8Sp1qD1goeU5ejP0eK7wYQ/live",
-    embedType: "channel",
     channelId: "UC8Sp1qD1goeU5ejP0eK7wYQ",
+    youtubeUrl: "https://www.youtube.com/channel/UC8Sp1qD1goeU5ejP0eK7wYQ/live",
+    fallbackVideoId: null,
     logo: "🔴",
     color: "#BB1919",
     description: "بي بي سي عربي – أخبار موثوقة ومتنوعة",
@@ -58,9 +58,9 @@ const LIVE_CHANNELS = [
     id: "almayadeen",
     name: "قناة الميادين",
     nameEn: "Al Mayadeen",
-    youtubeUrl: "https://www.youtube.com/channel/UCpXEVrHWM1stnAdBNLP5ZHA/live",
-    embedType: "channel",
     channelId: "UCpXEVrHWM1stnAdBNLP5ZHA",
+    youtubeUrl: "https://www.youtube.com/channel/UCpXEVrHWM1stnAdBNLP5ZHA/live",
+    fallbackVideoId: null,
     logo: "🌙",
     color: "#1A5276",
     description: "قناة الميادين – تغطية إخبارية شاملة من لبنان",
@@ -69,9 +69,9 @@ const LIVE_CHANNELS = [
     id: "alhurra",
     name: "قناة الحرة",
     nameEn: "Alhurra",
-    youtubeUrl: "https://www.youtube.com/channel/UCdltdHkhQyR8HFnfUNcRiGg/live",
-    embedType: "channel",
     channelId: "UCdltdHkhQyR8HFnfUNcRiGg",
+    youtubeUrl: "https://www.youtube.com/channel/UCdltdHkhQyR8HFnfUNcRiGg/live",
+    fallbackVideoId: null,
     logo: "🗽",
     color: "#2980B9",
     description: "قناة الحرة – إعلام أمريكي عربي مستقل",
@@ -80,9 +80,9 @@ const LIVE_CHANNELS = [
     id: "france24arabic",
     name: "فرانس 24 عربي",
     nameEn: "France 24 Arabic",
-    youtubeUrl: "https://www.youtube.com/@FRANCE24Arabic",
-    embedType: "channel",
     channelId: "UCVi6ofFy3QyK1RSqDCiArsA",
+    youtubeUrl: "https://www.youtube.com/@FRANCE24Arabic",
+    fallbackVideoId: null,
     logo: "🇫🇷",
     color: "#003189",
     description: "فرانس 24 عربي – نظرة عالمية على الأخبار",
@@ -91,9 +91,9 @@ const LIVE_CHANNELS = [
     id: "rtarabic",
     name: "روسيا اليوم",
     nameEn: "RT Arabic",
-    youtubeUrl: "https://www.youtube.com/channel/UCiMKtlkLJ4ZW8Vp6s3r3C8g/live",
-    embedType: "channel",
     channelId: "UCiMKtlkLJ4ZW8Vp6s3r3C8g",
+    youtubeUrl: "https://www.youtube.com/channel/UCiMKtlkLJ4ZW8Vp6s3r3C8g/live",
+    fallbackVideoId: null,
     logo: "📺",
     color: "#C0392B",
     description: "قناة روسيا اليوم العربية – منظور مختلف للأخبار",
@@ -102,9 +102,9 @@ const LIVE_CHANNELS = [
     id: "alarabytv",
     name: "العربي – أخبار",
     nameEn: "Alaraby TV News",
-    youtubeUrl: "https://www.youtube.com/watch?v=e2RgSa1Wt5o",
-    embedType: "video",
-    videoId: "e2RgSa1Wt5o",
+    channelId: "UCRJUVYt9gjg8MnlGacySUdg",
+    youtubeUrl: "https://www.youtube.com/@AlarabyTVNews/live",
+    fallbackVideoId: "e2RgSa1Wt5o",
     logo: "🌍",
     color: "#1ABC9C",
     description: "قناة العربي الإخبارية – بث مباشر",
@@ -113,9 +113,9 @@ const LIVE_CHANNELS = [
     id: "dwarabic",
     name: "DW عربية",
     nameEn: "DW Arabic",
-    youtubeUrl: "https://www.youtube.com/@DWArabic",
-    embedType: "channel",
     channelId: "UCNje_9zfCqqofJTXGnt5Mhg",
+    youtubeUrl: "https://www.youtube.com/@DWArabic",
+    fallbackVideoId: null,
     logo: "🇩🇪",
     color: "#004B7F",
     description: "دويتشه فيله عربي – أخبار ألمانية وعالمية بالعربية",
@@ -124,23 +124,71 @@ const LIVE_CHANNELS = [
 
 type Channel = typeof LIVE_CHANNELS[number];
 
-function getEmbedUrl(channel: Channel): string {
-  if (channel.embedType === "video") {
-    return `https://www.youtube.com/embed/${channel.videoId}?autoplay=1&rel=0&modestbranding=1`;
-  } else {
-    // channel embed
-    return `https://www.youtube.com/embed/live_stream?channel=${channel.channelId}&autoplay=1&rel=0`;
+// مكون لعرض مشغل قناة واحدة مع جلب Video ID تلقائياً
+function ChannelPlayer({ channel, onError }: { channel: Channel; onError: () => void }) {
+  const { data, isLoading } = trpc.videos.getLiveVideoId.useQuery(
+    { channelId: channel.channelId },
+    { staleTime: 5 * 60 * 1000, retry: 1 }
+  );
+
+  const videoId = data?.videoId || channel.fallbackVideoId;
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-background to-muted">
+        <Loader2 className="w-12 h-12 animate-spin text-red-500" />
+        <p className="text-muted-foreground text-sm">جاري تحميل البث المباشر...</p>
+      </div>
+    );
   }
+
+  if (!videoId) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-background to-muted p-8 text-center">
+        <span className="text-6xl">{channel.logo}</span>
+        <div>
+          <h3 className="text-xl font-bold mb-2">{channel.name}</h3>
+          <p className="text-muted-foreground text-sm mb-6">
+            البث المباشر متاح على يوتيوب مباشرة
+          </p>
+          <a href={channel.youtubeUrl} target="_blank" rel="noopener noreferrer">
+            <Button className="gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full text-base">
+              <Radio className="w-5 h-5 animate-pulse" />
+              مشاهدة البث المباشر على يوتيوب
+              <ExternalLink className="w-4 h-4" />
+            </Button>
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <iframe
+      key={`${channel.id}-${videoId}`}
+      src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+      title={`${channel.name} - بث مباشر`}
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+      allowFullScreen
+      className="w-full h-full"
+      onError={onError}
+    />
+  );
 }
 
 export default function LiveTV() {
   const { user } = useAuth();
   const [selectedChannel, setSelectedChannel] = useState<Channel>(LIVE_CHANNELS[0]);
-  const [embedError, setEmbedError] = useState(false);
+  const [playerError, setPlayerError] = useState(false);
+
+  // إعادة تعيين الخطأ عند تغيير القناة
+  useEffect(() => {
+    setPlayerError(false);
+  }, [selectedChannel.id]);
 
   function handleChannelChange(channel: Channel) {
     setSelectedChannel(channel);
-    setEmbedError(false);
+    setPlayerError(false);
   }
 
   return (
@@ -248,11 +296,16 @@ export default function LiveTV() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge className="bg-red-600 text-white animate-pulse">🔴 مباشر</Badge>
-                <a
-                  href={selectedChannel.youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => { setPlayerError(false); }}
                 >
+                  <RefreshCw className="w-4 h-4" />
+                  <span className="hidden sm:inline">تحديث</span>
+                </Button>
+                <a href={selectedChannel.youtubeUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="sm" className="gap-2">
                     <ExternalLink className="w-4 h-4" />
                     <span className="hidden sm:inline">يوتيوب</span>
@@ -263,7 +316,7 @@ export default function LiveTV() {
 
             {/* YouTube Embed */}
             <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-border">
-              {embedError ? (
+              {playerError ? (
                 /* Fallback when embed fails */
                 <div className="w-full h-full flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-background to-muted p-8 text-center">
                   <span className="text-6xl">{selectedChannel.logo}</span>
@@ -272,11 +325,7 @@ export default function LiveTV() {
                     <p className="text-muted-foreground text-sm mb-6">
                       البث المباشر متاح على يوتيوب مباشرة
                     </p>
-                    <a
-                      href={selectedChannel.youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <a href={selectedChannel.youtubeUrl} target="_blank" rel="noopener noreferrer">
                       <Button className="gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full text-base">
                         <Radio className="w-5 h-5 animate-pulse" />
                         مشاهدة البث المباشر على يوتيوب
@@ -286,22 +335,17 @@ export default function LiveTV() {
                   </div>
                 </div>
               ) : (
-                <iframe
-                  key={selectedChannel.id}
-                  src={getEmbedUrl(selectedChannel)}
-                  title={`${selectedChannel.name} - بث مباشر`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                  allowFullScreen
-                  className="w-full h-full"
-                  onError={() => setEmbedError(true)}
+                <ChannelPlayer
+                  channel={selectedChannel}
+                  onError={() => setPlayerError(true)}
                 />
               )}
             </div>
 
-            {/* Note about live streams */}
+            {/* Tip */}
             <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <Radio className="w-3 h-3" />
-              <span>إذا لم يعمل البث، اضغط على زر "يوتيوب" لمشاهدة البث المباشر مباشرة</span>
+              <Radio className="w-3 h-3 text-red-500 animate-pulse" />
+              <span>يتم جلب أحدث فيديو من كل قناة تلقائياً. إذا لم يعمل البث، اضغط "يوتيوب" للمشاهدة المباشرة.</span>
             </div>
 
             {/* Other channels quick access */}

@@ -725,6 +725,24 @@ export const appRouter = router({
       return { success: true, count };
     }),
 
+    getLiveVideoId: publicProcedure
+      .input(z.object({ channelId: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const res = await fetch(
+            `https://www.youtube.com/feeds/videos.xml?channel_id=${input.channelId}`,
+            { signal: AbortSignal.timeout(8000) }
+          );
+          if (!res.ok) return { videoId: null };
+          const xml = await res.text();
+          const match = xml.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+          const videoId = match ? match[1].trim() : null;
+          return { videoId };
+        } catch {
+          return { videoId: null };
+        }
+      }),
+
     addManual: protectedProcedure
       .input(
         z.object({
