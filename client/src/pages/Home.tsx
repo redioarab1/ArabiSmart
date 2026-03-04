@@ -369,6 +369,29 @@ export default function Home() {
                 </Button>
               </Link>
               
+              {/* Daily Summary Link - أيقونة الملخص اليومي */}
+              <Link href="/daily-summary">
+                <div className="relative group">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full border-2 border-blue-500/40 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20 hover:border-blue-500/70 transition-all duration-300 shadow-sm hover:shadow-blue-500/20 hover:shadow-md"
+                  >
+                    <Sparkles className="h-4.5 w-4.5 text-blue-500" style={{ width: 18, height: 18 }} />
+                  </Button>
+                  {/* Tooltip */}
+                  <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900 dark:bg-slate-700 text-white text-xs px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg border border-slate-700/50 arabic-text">
+                    ملخص اليوم
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 dark:bg-slate-700 rotate-45 border-l border-t border-slate-700/50" />
+                  </div>
+                  {/* Animated pulse dot */}
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-60" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500" />
+                  </span>
+                </div>
+              </Link>
+
               {/* Notifications Link */}
               <Link href="/notifications">
                 <Button variant="outline" size="icon" className="rounded-full">
