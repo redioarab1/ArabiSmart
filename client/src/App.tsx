@@ -25,6 +25,7 @@ import AdminVideos from "./pages/admin/AdminVideos";
 import AdminSources from "./pages/admin/AdminSources";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminLiveTV from "./pages/admin/AdminLiveTV";
 
 function Router() {
   return (
@@ -51,6 +52,7 @@ function Router() {
       <Route path="/admin/sources" component={AdminSources} />
       <Route path="/admin/users" component={AdminUsers} />
       <Route path="/admin/settings" component={AdminSettings} />
+      <Route path="/admin/live" component={AdminLiveTV} />
 
       {/* Fallback */}
       <Route path={"/404"} component={NotFound} />

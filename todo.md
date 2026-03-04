@@ -626,3 +626,20 @@
 - [x] صفحة AdminSettings: إعدادات الموقع + إحصائيات النظام
 - [x] backend endpoints: addSource, updateSource, deleteSource, toggleSource, deleteVideo, getStats, listUsers, promoteUser
 - [x] تسجيل جميع مسارات /admin/* في App.tsx
+
+## إدارة البث المباشر مع دعم M3U8 و YouTube - المرحلة 56
+- [ ] تحديث جدول liveChannels لإضافة حقل streamType (youtube/m3u8) وm3u8Url
+- [ ] تثبيت hls.js لتشغيل روابط M3U8
+- [ ] إضافة Backend endpoints لإدارة القنوات (add/update/delete/toggle/list)
+- [ ] بناء صفحة AdminLiveTV في لوحة التحكم مع نموذج إضافة/تعديل
+- [ ] تحديث صفحة LiveTV لجلب القنوات من DB ودعم مشغل HLS للـ M3U8
+- [ ] تسجيل مسار /admin/live في App.tsx
+
+
+## إدارة البث المباشر مع دعم YouTube و M3U8
+- [x] إضافة حقول streamType و m3u8Url لجدول liveChannels في قاعدة البيانات
+- [x] تثبيت hls.js لدعم بث M3U8 في المتصفح
+- [x] إضافة endpoints: liveTV.list, liveTV.listAll, liveTV.add, liveTV.update, liveTV.delete, liveTV.toggle
+- [x] بناء صفحة AdminLiveTV مع إضافة/تعديل/حذف/تفعيل القنوات
+- [x] تحديث صفحة LiveTV لجلب القنوات من DB مع مشغل HLS للـ M3U8
+- [x] تسجيل مسار /admin/live في App.tsx

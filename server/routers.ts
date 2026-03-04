@@ -893,6 +893,107 @@ export const appRouter = router({
         }
       }),
   }),
+  // Live TV Channels router
+  liveTV: router({
+    list: publicProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return [];
+      const { liveChannels } = await import("../drizzle/schema");
+      const { eq, asc } = await import("drizzle-orm");
+      return await db
+        .select()
+        .from(liveChannels)
+        .where(eq(liveChannels.isActive, 1))
+        .orderBy(asc(liveChannels.sortOrder));
+    }),
+    listAll: protectedProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return [];
+      const { liveChannels } = await import("../drizzle/schema");
+      const { asc } = await import("drizzle-orm");
+      return await db.select().from(liveChannels).orderBy(asc(liveChannels.sortOrder));
+    }),
+    add: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        nameEn: z.string().optional(),
+        streamType: z.enum(["youtube", "m3u8"]).default("youtube"),
+        channelId: z.string().optional(),
+        youtubeUrl: z.string().optional(),
+        fallbackVideoId: z.string().optional(),
+        m3u8Url: z.string().optional(),
+        logo: z.string().optional(),
+        color: z.string().optional(),
+        description: z.string().optional(),
+        sortOrder: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { liveChannels } = await import("../drizzle/schema");
+        await db.insert(liveChannels).values({
+          name: input.name,
+          nameEn: input.nameEn,
+          streamType: input.streamType || "youtube",
+          channelId: input.channelId || "",
+          youtubeUrl: input.youtubeUrl || "",
+          fallbackVideoId: input.fallbackVideoId,
+          m3u8Url: input.m3u8Url,
+          logo: input.logo || "📺",
+          color: input.color || "#ef4444",
+          description: input.description,
+          sortOrder: input.sortOrder ?? 0,
+          isActive: 1,
+        });
+        return { success: true };
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        nameEn: z.string().optional(),
+        streamType: z.enum(["youtube", "m3u8"]).optional(),
+        channelId: z.string().optional(),
+        youtubeUrl: z.string().optional(),
+        fallbackVideoId: z.string().nullable().optional(),
+        m3u8Url: z.string().nullable().optional(),
+        logo: z.string().optional(),
+        color: z.string().optional(),
+        description: z.string().optional(),
+        sortOrder: z.number().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { liveChannels } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const { id, isActive, ...rest } = input;
+        const updateData: Record<string, unknown> = { ...rest };
+        if (isActive !== undefined) updateData.isActive = isActive ? 1 : 0;
+        await db.update(liveChannels).set(updateData).where(eq(liveChannels.id, id));
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { liveChannels } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(liveChannels).where(eq(liveChannels.id, input.id));
+        return { success: true };
+      }),
+    toggle: protectedProcedure
+      .input(z.object({ id: z.number(), isActive: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { liveChannels } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.update(liveChannels).set({ isActive: input.isActive ? 1 : 0 }).where(eq(liveChannels.id, input.id));
+        return { success: true };
+      }),
+  }),
 });
-
 export type AppRouter = typeof appRouter;

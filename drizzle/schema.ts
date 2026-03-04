@@ -261,3 +261,26 @@ export const videos = mysqlTable("videos", {
 });
 export type Video = typeof videos.$inferSelect;
 export type InsertVideo = typeof videos.$inferInsert;
+
+/**
+ * Live TV Channels table - stores live streaming channels managed from admin panel
+ */
+export const liveChannels = mysqlTable("liveChannels", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  nameEn: varchar("nameEn", { length: 255 }),
+  channelId: varchar("channelId", { length: 255 }).notNull(),
+  youtubeUrl: varchar("youtubeUrl", { length: 1024 }).notNull(),
+  fallbackVideoId: varchar("fallbackVideoId", { length: 255 }),
+  logo: varchar("logo", { length: 10 }).default("📺").notNull(),
+  color: varchar("color", { length: 20 }).default("#ef4444").notNull(),
+  description: text("description"),
+  streamType: varchar("streamType", { length: 10 }).default("youtube").notNull(),
+  m3u8Url: varchar("m3u8Url", { length: 2048 }),
+  isActive: int("isActive").default(1).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type LiveChannel = typeof liveChannels.$inferSelect;
+export type InsertLiveChannel = typeof liveChannels.$inferInsert;
