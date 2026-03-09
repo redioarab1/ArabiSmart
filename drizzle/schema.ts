@@ -273,6 +273,7 @@ export const liveChannels = mysqlTable("liveChannels", {
   youtubeUrl: varchar("youtubeUrl", { length: 1024 }).notNull(),
   fallbackVideoId: varchar("fallbackVideoId", { length: 255 }),
   logo: varchar("logo", { length: 10 }).default("📺").notNull(),
+  logoUrl: varchar("logoUrl", { length: 2048 }),
   color: varchar("color", { length: 20 }).default("#ef4444").notNull(),
   description: text("description"),
   streamType: varchar("streamType", { length: 10 }).default("youtube").notNull(),

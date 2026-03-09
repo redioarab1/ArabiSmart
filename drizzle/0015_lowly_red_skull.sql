@@ -1,0 +1,1 @@
+ALTER TABLE `liveChannels` ADD `logoUrl` varchar(2048);

@@ -19,6 +19,7 @@ type LiveChannel = {
   fallbackVideoId: string | null;
   m3u8Url: string | null;
   logo: string;
+  logoUrl: string | null;
   color: string;
   description: string | null;
   isActive: number;
@@ -282,7 +283,11 @@ export default function LiveTV() {
                         : "border-border hover:border-red-500/50 hover:bg-muted/50"
                     }`}
                   >
-                    <span className="text-2xl flex-shrink-0">{channel.logo}</span>
+                    {channel.logoUrl ? (
+                      <img src={channel.logoUrl} alt={channel.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                    ) : (
+                      <span className="text-2xl flex-shrink-0">{channel.logo}</span>
+                    )}
                     <div className="min-w-0 flex-1">
                       <p className={`text-sm font-medium truncate ${selectedChannel.id === channel.id ? "text-red-500" : "text-foreground"}`}>
                         {channel.name}

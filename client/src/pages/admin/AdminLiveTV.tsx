@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,11 +29,14 @@ import {
   Radio,
   Youtube,
   Tv,
-  GripVertical,
   Eye,
   EyeOff,
   AlertCircle,
   Link,
+  Upload,
+  XCircle,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 
 type Channel = {
@@ -46,6 +49,7 @@ type Channel = {
   fallbackVideoId: string | null;
   m3u8Url: string | null;
   logo: string;
+  logoUrl: string | null;
   color: string;
   description: string | null;
   isActive: number;
@@ -68,10 +72,88 @@ const emptyForm = {
   fallbackVideoId: "",
   m3u8Url: "",
   logo: "📺",
+  logoUrl: "",
   color: "#ef4444",
   description: "",
   sortOrder: 0,
 };
+
+// ─── Logo Uploader Component ─────────────────────────────────────────────────
+function LogoUploader({
+  currentLogoUrl,
+  currentEmoji,
+  channelId,
+  onUpload,
+}: {
+  currentLogoUrl: string;
+  currentEmoji: string;
+  channelId: string;
+  onUpload: (url: string) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string>(currentLogoUrl);
+
+  const handleFile = useCallback(async (file: File) => {
+    if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+      alert("يُسمح فقط بصيغة JPG أو PNG");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("حجم الصورة يجب أن يكون أقل من 5 ميجابايت");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => setPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+      formData.append("channelId", channelId || "new");
+      const res = await fetch("/api/live-channel/upload-logo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      onUpload(data.url);
+    } catch {
+      setPreview(currentLogoUrl);
+      alert("فشل رفع الشعار. حاول مرة أخرى.");
+    } finally {
+      setUploading(false);
+    }
+  }, [channelId, currentLogoUrl, onUpload]);
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">شعار القناة (JPG/PNG)</label>
+      <div className="flex items-center gap-3">
+        <div
+          className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-muted cursor-pointer hover:border-primary transition-colors"
+          onClick={() => fileRef.current?.click()}
+        >
+          {preview ? (
+            <img src={preview} alt="شعار" className="w-full h-full object-cover rounded-xl" />
+          ) : (
+            <span className="text-2xl">{currentEmoji}</span>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} className="gap-2">
+            {uploading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {uploading ? "جاري الرفع..." : "رفع صورة"}
+          </Button>
+          {preview && (
+            <Button type="button" variant="ghost" size="sm" onClick={() => { setPreview(""); onUpload(""); }} className="gap-2 text-destructive hover:text-destructive">
+              <XCircle className="h-4 w-4" />إزالة
+            </Button>
+          )}
+        </div>
+        <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
+      </div>
+      <p className="text-xs text-muted-foreground">الصيغ: JPG, PNG — الحد الأقصى: 5 ميجابايت</p>
+    </div>
+  );
+}
 
 export default function AdminLiveTV() {
   const utils = trpc.useUtils();
@@ -140,6 +222,7 @@ export default function AdminLiveTV() {
       fallbackVideoId: ch.fallbackVideoId || "",
       m3u8Url: ch.m3u8Url || "",
       logo: ch.logo || "📺",
+      logoUrl: ch.logoUrl || "",
       color: ch.color || "#ef4444",
       description: ch.description || "",
       sortOrder: ch.sortOrder || 0,
@@ -172,6 +255,7 @@ export default function AdminLiveTV() {
         fallbackVideoId: form.fallbackVideoId || null,
         m3u8Url: form.m3u8Url || null,
         logo: form.logo,
+        logoUrl: form.logoUrl || undefined,
         color: form.color,
         description: form.description || undefined,
         sortOrder: form.sortOrder,
@@ -186,6 +270,7 @@ export default function AdminLiveTV() {
         fallbackVideoId: form.fallbackVideoId || undefined,
         m3u8Url: form.m3u8Url || undefined,
         logo: form.logo,
+        logoUrl: form.logoUrl || undefined,
         color: form.color,
         description: form.description || undefined,
         sortOrder: form.sortOrder,
@@ -295,15 +380,19 @@ export default function AdminLiveTV() {
                   {channels.map((ch) => (
                     <tr key={ch.id} className="border-b border-border hover:bg-muted/20 transition-colors">
                       <td className="p-3 text-muted-foreground">
-                        <GripVertical className="w-4 h-4" />
+                        {ch.sortOrder}
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+                            className="w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0 overflow-hidden"
                             style={{ backgroundColor: ch.color + "20", border: `1px solid ${ch.color}40` }}
                           >
-                            {ch.logo}
+                            {ch.logoUrl ? (
+                              <img src={ch.logoUrl} alt={ch.name} className="w-full h-full object-cover" />
+                            ) : (
+                              ch.logo
+                            )}
                           </div>
                           <div>
                             <p className="font-medium">{ch.name}</p>
@@ -491,10 +580,18 @@ export default function AdminLiveTV() {
               </div>
             )}
 
+            {/* Logo Upload */}
+            <LogoUploader
+              currentLogoUrl={form.logoUrl}
+              currentEmoji={form.logo}
+              channelId={editChannel?.id?.toString() || "new"}
+              onUpload={(url) => setForm((f) => ({ ...f, logoUrl: url }))}
+            />
+
             {/* Logo & Color */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>الأيقونة</Label>
+                <Label>الأيقونة الافتراضية (إيموجي)</Label>
                 <div className="flex flex-wrap gap-1.5 p-2 border border-border rounded-lg max-h-24 overflow-y-auto">
                   {EMOJI_OPTIONS.map((emoji) => (
                     <button

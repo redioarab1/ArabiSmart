@@ -99,6 +99,48 @@ async function startServer() {
     }
   });
 
+  // ── Channel Logo Upload ──
+  app.post("/api/live-channel/upload-logo", async (req, res) => {
+    try {
+      const contentType = req.headers["content-type"] || "";
+      if (!contentType.includes("multipart/form-data")) {
+        res.status(400).json({ error: "Expected multipart/form-data" });
+        return;
+      }
+      const busboy = (await import("busboy")).default;
+      const bb = busboy({ headers: req.headers, limits: { fileSize: 5 * 1024 * 1024 } });
+      let fileBuffer: Buffer | null = null;
+      let mimeType = "image/jpeg";
+      let channelId = "unknown";
+      bb.on("file", (_field: string, file: any, info: any) => {
+        mimeType = info.mimeType || "image/jpeg";
+        const chunks: Buffer[] = [];
+        file.on("data", (chunk: Buffer) => chunks.push(chunk));
+        file.on("end", () => { fileBuffer = Buffer.concat(chunks); });
+      });
+      bb.on("field", (name: string, val: string) => {
+        if (name === "channelId") channelId = val;
+      });
+      await new Promise<void>((resolve, reject) => {
+        bb.on("finish", resolve);
+        bb.on("error", reject);
+        req.pipe(bb);
+      });
+      if (!fileBuffer) {
+        res.status(400).json({ error: "No file uploaded" });
+        return;
+      }
+      const ext = mimeType.includes("png") ? "png" : "jpg";
+      const key = `live-channels/logos/channel-${channelId}-${Date.now()}.${ext}`;
+      const { storagePut } = await import("../storage");
+      const { url } = await storagePut(key, fileBuffer, mimeType);
+      res.json({ success: true, url });
+    } catch (err: any) {
+      console.error("[Logo Upload] Error:", err?.message);
+      res.status(500).json({ error: "Upload failed", details: err?.message });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",
