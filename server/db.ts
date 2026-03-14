@@ -784,12 +784,10 @@ export async function upsertDailySummary(summaryData: InsertDailySummary) {
 export async function getDailySummaryByDate(date: Date): Promise<DailySummary | null> {
   const db = await getDb();
   if (!db) return null;
-
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  // Use UTC dates to avoid timezone issues
+  const d = new Date(date);
+  const startOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0));
+  const endOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
 
   const result = await db
     .select()

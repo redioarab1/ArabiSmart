@@ -690,3 +690,6 @@
 - [x] تحديث صفحة LiveTV لعرض صورة الشعار في القائمة الجانبية
 - [x] إضافة logoUrl في liveTV.add وliveTV.update في routers.ts
 - [x] دعم التحويل بين YouTube وM3U8 من نموذج التعديل
+
+## إصلاح خلل PDF ملخصات الأخبار
+- [x] تشخيص وإصلاح خلل توليد PDF - إصلاح مشكلة UTC timezone في getDailySummaryByDate
