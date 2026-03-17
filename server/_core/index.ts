@@ -109,6 +109,144 @@ async function startServer() {
     }
   });
 
+  // ── Newspaper PNG Generator (PDF → PNG → S3) ──
+  app.get("/api/daily-summary/png", async (req, res) => {
+    try {
+      const { getLatestDailySummary, getDailySummaryByDate } = await import("../db");
+      const { generateNewspaperPDF } = await import("../pdfService");
+      const { storagePut } = await import("../storage");
+      const { execFile } = await import("child_process");
+      const { promisify } = await import("util");
+      const { mkdtemp, rm, readdir, readFile } = await import("fs/promises");
+      const { tmpdir } = await import("os");
+      const { join } = await import("path");
+      const sharp = (await import("sharp")).default;
+      const execFileAsync = promisify(execFile);
+
+      const dateParam = req.query.date as string | undefined;
+      let summaryRaw: any = null;
+
+      if (dateParam) {
+        summaryRaw = await getDailySummaryByDate(new Date(dateParam));
+        if (!summaryRaw) summaryRaw = await getLatestDailySummary();
+      } else {
+        summaryRaw = await getLatestDailySummary();
+      }
+
+      if (!summaryRaw) {
+        res.status(404).json({ error: "No summary found. Please generate a daily summary first." });
+        return;
+      }
+
+      const summary = {
+        ...summaryRaw,
+        topNews: summaryRaw.topNews ? JSON.parse(summaryRaw.topNews) : [],
+        trendingTopics: summaryRaw.trendingTopics ? JSON.parse(summaryRaw.trendingTopics) : [],
+        statistics: summaryRaw.statistics ? JSON.parse(summaryRaw.statistics) : {},
+        topNewsItems: [] as any[],
+      };
+
+      // Fetch top news images
+      if (summary.topNews && summary.topNews.length > 0) {
+        try {
+          const { getDb } = await import("../db");
+          const db = await getDb();
+          if (!db) throw new Error("DB not available");
+          const { news } = await import("../../drizzle/schema");
+          const { inArray } = await import("drizzle-orm");
+          const ids = summary.topNews.slice(0, 5);
+          const newsItems = await db.select({
+            id: news.id, title: news.title, source: news.source,
+            category: news.category, imageUrl: news.image,
+          }).from(news).where(inArray(news.id, ids));
+          summary.topNewsItems = newsItems;
+        } catch { summary.topNewsItems = []; }
+      }
+
+      // Generate PDF buffer
+      const pdfBuffer = await generateNewspaperPDF(summary);
+      const dateStr = new Date(summary.date).toISOString().split("T")[0];
+
+      // Convert PDF pages to PNG using pdftoppm
+      const tmpDir = await mkdtemp(join(tmpdir(), "arabismart-png-"));
+      try {
+        const pdfPath = join(tmpDir, "summary.pdf");
+        const { writeFile } = await import("fs/promises");
+        await writeFile(pdfPath, pdfBuffer);
+
+        // Convert all pages at 200 DPI
+        await execFileAsync("pdftoppm", [
+          "-r", "200",
+          "-png",
+          pdfPath,
+          join(tmpDir, "page")
+        ]);
+
+        // Read generated PNG files
+        const files = (await readdir(tmpDir))
+          .filter(f => f.endsWith(".png"))
+          .sort();
+
+        if (files.length === 0) {
+          throw new Error("No PNG pages generated from PDF");
+        }
+
+        // If multiple pages, stitch them vertically using sharp
+        let finalPngBuffer: Buffer;
+        if (files.length === 1) {
+          finalPngBuffer = await readFile(join(tmpDir, files[0]));
+        } else {
+          // Load all pages
+          const pageBuffers = await Promise.all(
+            files.map(f => readFile(join(tmpDir, f)))
+          );
+          // Get dimensions of first page
+          const firstMeta = await sharp(pageBuffers[0]).metadata();
+          const pageWidth = firstMeta.width || 794;
+          const pageHeight = firstMeta.height || 1123;
+          const totalHeight = pageHeight * files.length;
+
+          // Create composite
+          const compositeInput = pageBuffers.map((buf, i) => ({
+            input: buf,
+            top: i * pageHeight,
+            left: 0,
+          }));
+
+          finalPngBuffer = await sharp({
+            create: {
+              width: pageWidth,
+              height: totalHeight,
+              channels: 3,
+              background: { r: 255, g: 255, b: 255 },
+            },
+          })
+            .composite(compositeInput)
+            .png({ quality: 95, compressionLevel: 6 })
+            .toBuffer();
+        }
+
+        // Upload to S3
+        const s3Key = `daily-summaries/png/arabismart-${dateStr}-${Date.now()}.png`;
+        const { url: imageUrl } = await storagePut(s3Key, finalPngBuffer, "image/png");
+
+        // Return JSON with download URL
+        res.json({
+          success: true,
+          url: imageUrl,
+          filename: `arabismart-${dateStr}.png`,
+          date: dateStr,
+          pages: files.length,
+        });
+      } finally {
+        await rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+      }
+    } catch (err: any) {
+      console.error("[PNG] Error generating PNG:", err?.message);
+      res.status(500).json({ error: "Failed to generate PNG", details: err?.message });
+    }
+  });
+
   // ── Channel Logo Upload ──
   app.post("/api/live-channel/upload-logo", async (req, res) => {
     try {

@@ -107,6 +107,9 @@ export default function DailySummary() {
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [isPngLoading, setIsPngLoading] = useState(false);
+  const [pngUrl, setPngUrl] = useState<string | null>(null);
+  const [pngCopied, setPngCopied] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(
     () => new Date().toISOString().split("T")[0]
   );
@@ -181,6 +184,49 @@ export default function DailySummary() {
       setIsPdfLoading(false);
     }
   }, [activeSummary]);
+
+  // ── PNG Download Handler ──
+  const handleDownloadPNG = useCallback(async () => {
+    if (!activeSummary) return;
+    setIsPngLoading(true);
+    setPngUrl(null);
+    try {
+      toast.info("جاري تحضير صورة PNG... قد يستغرق ذلك 20-30 ثانية");
+      const dateStr = new Date(activeSummary.date).toISOString().split("T")[0];
+      const response = await fetch(`/api/daily-summary/png?date=${dateStr}`);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error ${response.status}`);
+      }
+      const data = await response.json();
+      setPngUrl(data.url);
+      // Auto-download
+      const link = document.createElement("a");
+      link.href = data.url;
+      link.download = data.filename;
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("تم تحضير صورة PNG بنجاح!");
+    } catch (err: any) {
+      toast.error("فشل تحضير PNG: " + (err?.message || "حاول مرة أخرى"));
+    } finally {
+      setIsPngLoading(false);
+    }
+  }, [activeSummary]);
+
+  const handleCopyPngUrl = useCallback(async () => {
+    if (!pngUrl) return;
+    try {
+      await navigator.clipboard.writeText(pngUrl);
+      setPngCopied(true);
+      toast.success("تم نسخ رابط الصورة!");
+      setTimeout(() => setPngCopied(false), 3000);
+    } catch {
+      toast.error("فشل نسخ الرابط");
+    }
+  }, [pngUrl]);
 
   const handleShareWhatsApp = useCallback(() => {
     if (!activeSummary) return;
@@ -510,6 +556,21 @@ export default function DailySummary() {
                   </div>
                 </button>
 
+                {/* PNG */}
+                <button
+                  onClick={handleDownloadPNG}
+                  disabled={isPngLoading}
+                  className="group flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl border-2 border-emerald-200 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-950/40 hover:border-emerald-400 transition-all duration-200 cursor-pointer disabled:opacity-60"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                    {isPngLoading ? <Loader2 className="h-5 w-5 text-white animate-spin" /> : <FileText className="h-5 w-5 text-white" />}
+                  </div>
+                  <div className="text-center">
+                    <p className="font-bold text-xs text-emerald-700 dark:text-emerald-400 arabic-text">PNG</p>
+                    <p className="text-xs text-muted-foreground arabic-text hidden sm:block">صورة</p>
+                  </div>
+                </button>
+
                 {/* WhatsApp */}
                 <button
                   onClick={handleShareWhatsApp}
@@ -571,7 +632,7 @@ export default function DailySummary() {
               </div>
 
               {/* Copy text row */}
-              <div className="mt-3 pt-3 border-t border-blue-500/10">
+              <div className="mt-3 pt-3 border-t border-blue-500/10 space-y-2">
                 <button
                   onClick={handleCopy}
                   className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 transition-all duration-200 cursor-pointer"
@@ -581,6 +642,32 @@ export default function DailySummary() {
                     {copied ? "✓ تم نسخ الملخص مع العناوين!" : "نسخ الملخص الكامل مع العناوين"}
                   </span>
                 </button>
+
+                {/* PNG Direct Link Row - shows after PNG is generated */}
+                {pngUrl && (
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium arabic-text mb-0.5">رابط مباشر للصورة PNG</p>
+                      <p className="text-xs text-muted-foreground truncate font-mono" dir="ltr">{pngUrl}</p>
+                    </div>
+                    <button
+                      onClick={handleCopyPngUrl}
+                      className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium transition-colors"
+                    >
+                      {pngCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      <span className="arabic-text">{pngCopied ? "تم!" : "نسخ"}</span>
+                    </button>
+                    <a
+                      href={pngUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium transition-colors"
+                    >
+                      <Download className="h-3 w-3" />
+                      <span className="arabic-text">فتح</span>
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </>
