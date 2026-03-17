@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,12 +25,13 @@ import {
   Zap,
   ArrowLeft,
   FileText,
+  Hash,
+  Send,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-// jsPDF removed - using server-side PDF generation
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SummaryStats = {
@@ -50,6 +51,13 @@ type Summary = {
   language: string;
   createdAt: Date | string;
 };
+type NewsItem = {
+  id: number;
+  title: string;
+  source: string | null;
+  category: string | null;
+  publishedAt: Date | string | null;
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(date: Date | string) {
@@ -67,10 +75,13 @@ function formatDateShort(date: Date | string) {
 function toISODate(date: Date | string) {
   return new Date(date).toISOString().split("T")[0];
 }
-function buildShareText(summary: Summary) {
+function buildShareText(summary: Summary, topNewsItems?: NewsItem[]) {
   const dateStr = formatDate(summary.date);
   const topics = summary.trendingTopics?.slice(0, 4).join(" • ") || "";
-  return `📰 ملخص أخبار اليوم - ${dateStr}\n\n${summary.summary?.slice(0, 300)}...\n\n🔥 الأبرز: ${topics}\n\n🌐 www.arabismart.vip`;
+  const headlinesText = topNewsItems && topNewsItems.length > 0
+    ? "\n\n📌 أبرز العناوين:\n" + topNewsItems.slice(0, 5).map((n, i) => `${i + 1}. ${n.title}`).join("\n")
+    : "";
+  return `📰 ملخص أخبار اليوم - ${dateStr}\n\n${summary.summary?.slice(0, 280)}...${headlinesText}\n\n🔥 الأبرز: ${topics}\n\n🌐 www.arabismart.vip`;
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -83,6 +94,7 @@ function SummaryPageSkeleton() {
           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
         </div>
         <Skeleton className="h-56 rounded-2xl" />
+        <Skeleton className="h-40 rounded-2xl" />
         <Skeleton className="h-32 rounded-2xl" />
       </div>
     </div>
@@ -94,6 +106,7 @@ export default function DailySummary() {
   const { isAuthenticated } = useAuth();
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(
     () => new Date().toISOString().split("T")[0]
   );
@@ -111,6 +124,19 @@ export default function DailySummary() {
   // Archive list
   const { data: summaryList } = trpc.dailySummary.list.useQuery({ limit: 30 });
 
+  const activeSummary: Summary | null | undefined = isToday
+    ? (summaryByDate ?? latestSummary)
+    : summaryByDate;
+
+  // Fetch top news details
+  const topNewsIds = useMemo(() => activeSummary?.topNews?.slice(0, 5) ?? [], [activeSummary?.id]);
+  const { data: topNewsItems } = trpc.dailySummary.getTopNewsDetails.useQuery(
+    { newsIds: topNewsIds },
+    { enabled: topNewsIds.length > 0 }
+  );
+
+  const isLoading = isToday ? isLoadingLatest : isLoadingByDate;
+
   // Generate mutation
   const generateMutation = trpc.dailySummary.generate.useMutation({
     onSuccess: () => {
@@ -125,51 +151,69 @@ export default function DailySummary() {
     },
   });
 
-  const activeSummary: Summary | null | undefined = isToday
-    ? (summaryByDate ?? latestSummary)
-    : summaryByDate;
-
-  const isLoading = isToday ? isLoadingLatest : isLoadingByDate;
-
   // ── Handlers ──
   const handleDownloadPDF = useCallback(async () => {
     if (!activeSummary) return;
+    setIsPdfLoading(true);
     try {
       toast.info("جاري تحضير ملف PDF...");
       const dateStr = new Date(activeSummary.date).toISOString().split("T")[0];
       const url = `/api/daily-summary/pdf?date=${dateStr}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error("Server error");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error ${response.status}`);
+      }
       const blob = await response.blob();
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `arabismart-${dateStr}.pdf`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
       toast.success("تم تحميل ملف PDF بنجاح!");
-    } catch {
-      toast.error("فشل تحميل PDF. حاول مرة أخرى.");
+    } catch (err: any) {
+      toast.error("فشل تحميل PDF: " + (err?.message || "حاول مرة أخرى"));
+    } finally {
+      setIsPdfLoading(false);
     }
   }, [activeSummary]);
 
   const handleShareWhatsApp = useCallback(() => {
     if (!activeSummary) return;
-    window.open(`https://wa.me/?text=${encodeURIComponent(buildShareText(activeSummary))}`, "_blank");
+    const text = buildShareText(activeSummary, topNewsItems ?? []);
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  }, [activeSummary, topNewsItems]);
+
+  const handleShareTelegram = useCallback(() => {
+    if (!activeSummary) return;
+    const text = buildShareText(activeSummary, topNewsItems ?? []);
+    const url = `https://www.arabismart.vip/daily-summary`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank");
+  }, [activeSummary, topNewsItems]);
+
+  const handleShareFacebook = useCallback(() => {
+    if (!activeSummary) return;
+    const url = `https://www.arabismart.vip/daily-summary`;
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank", "width=600,height=400");
   }, [activeSummary]);
 
   const handleShareEmail = useCallback(() => {
     if (!activeSummary) return;
     const subject = `ملخص أخبار اليوم - ${formatDate(activeSummary.date)}`;
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildShareText(activeSummary))}`;
-  }, [activeSummary]);
+    const body = buildShareText(activeSummary, topNewsItems ?? []);
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }, [activeSummary, topNewsItems]);
 
   const handleCopy = useCallback(async () => {
     if (!activeSummary) return;
-    await navigator.clipboard.writeText(buildShareText(activeSummary));
+    const text = buildShareText(activeSummary, topNewsItems ?? []);
+    await navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success("تم نسخ الملخص!");
-    setTimeout(() => setCopied(false), 2000);
-  }, [activeSummary]);
+    toast.success("تم نسخ الملخص مع العناوين!");
+    setTimeout(() => setCopied(false), 2500);
+  }, [activeSummary, topNewsItems]);
 
   const handleGenerate = () => {
     if (!isAuthenticated) { window.location.href = getLoginUrl(); return; }
@@ -321,7 +365,7 @@ export default function DailySummary() {
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
                 <span className="arabic-text">
-                  آخر تحديث: {new Date(activeSummary.createdAt).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+                  آخر تحديث: {new Date(activeSummary.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit", calendar: "gregory" })}
                 </span>
                 <Button
                   variant="ghost"
@@ -347,7 +391,7 @@ export default function DailySummary() {
                     <div className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-2`}>
                       <stat.icon className={`h-4 w-4 ${stat.cls}`} />
                     </div>
-                    <p className={`text-2xl font-bold ${stat.cls}`}>{stat.value.toLocaleString("ar-SA")}</p>
+                    <p className={`text-2xl font-bold ${stat.cls}`}>{stat.value.toLocaleString("ar-EG")}</p>
                     <p className="text-xs text-muted-foreground arabic-text mt-0.5">{stat.label}</p>
                   </div>
                 ))}
@@ -371,6 +415,52 @@ export default function DailySummary() {
                 </p>
               </div>
             </div>
+
+            {/* ── أهم 5 عناوين ── */}
+            {topNewsItems && topNewsItems.length > 0 && (
+              <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3 px-5 py-4 border-b bg-muted/30">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center">
+                    <Hash className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold arabic-text">أبرز عناوين اليوم</h2>
+                    <p className="text-xs text-muted-foreground arabic-text">أهم {topNewsItems.length} أخبار</p>
+                  </div>
+                </div>
+                <div className="divide-y">
+                  {topNewsItems.map((item, i) => (
+                    <div key={item.id} className="flex items-start gap-4 px-5 py-4 hover:bg-muted/20 transition-colors">
+                      {/* رقم الخبر */}
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm ${
+                        i === 0 ? "bg-gradient-to-br from-yellow-400 to-orange-500" :
+                        i === 1 ? "bg-gradient-to-br from-slate-400 to-slate-600" :
+                        i === 2 ? "bg-gradient-to-br from-amber-600 to-amber-800" :
+                        "bg-gradient-to-br from-blue-500 to-indigo-600"
+                      }`}>
+                        {i + 1}
+                      </div>
+                      {/* محتوى الخبر */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm arabic-text leading-6 text-foreground">{item.title}</p>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          {item.source && (
+                            <span className="text-xs text-muted-foreground arabic-text bg-muted/50 px-2 py-0.5 rounded-full">
+                              {item.source}
+                            </span>
+                          )}
+                          {item.category && (
+                            <Badge variant="outline" className="text-xs arabic-text py-0 h-5">
+                              {item.category}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Trending Topics */}
             {activeSummary.trendingTopics && activeSummary.trendingTopics.length > 0 && (
@@ -401,64 +491,93 @@ export default function DailySummary() {
                 <Share2 className="h-4 w-4 text-blue-500" />
                 <h3 className="font-semibold arabic-text">مشاركة وتصدير الملخص</h3>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
 
                 {/* PDF */}
                 <button
                   onClick={handleDownloadPDF}
-                  className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 hover:border-red-400 transition-all duration-200 cursor-pointer"
+                  disabled={isPdfLoading}
+                  className="group flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl border-2 border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 hover:border-red-400 transition-all duration-200 cursor-pointer disabled:opacity-60"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-red-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
-                    <Download className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                    {isPdfLoading ? <Loader2 className="h-5 w-5 text-white animate-spin" /> : <Download className="h-5 w-5 text-white" />}
                   </div>
                   <div className="text-center">
-                    <p className="font-bold text-xs text-red-700 dark:text-red-400 arabic-text">تحميل PDF</p>
-                    <p className="text-xs text-muted-foreground arabic-text">ملف جاهز للطباعة</p>
+                    <p className="font-bold text-xs text-red-700 dark:text-red-400 arabic-text">PDF</p>
+                    <p className="text-xs text-muted-foreground arabic-text hidden sm:block">تحميل</p>
                   </div>
                 </button>
 
                 {/* WhatsApp */}
                 <button
                   onClick={handleShareWhatsApp}
-                  className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/40 hover:border-green-400 transition-all duration-200 cursor-pointer"
+                  className="group flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl border-2 border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/40 hover:border-green-400 transition-all duration-200 cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-green-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
                     <MessageCircle className="h-5 w-5 text-white" />
                   </div>
                   <div className="text-center">
                     <p className="font-bold text-xs text-green-700 dark:text-green-400 arabic-text">واتساب</p>
-                    <p className="text-xs text-muted-foreground arabic-text">مشاركة فورية</p>
+                    <p className="text-xs text-muted-foreground arabic-text hidden sm:block">مشاركة</p>
+                  </div>
+                </button>
+
+                {/* Telegram */}
+                <button
+                  onClick={handleShareTelegram}
+                  className="group flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl border-2 border-sky-200 dark:border-sky-900/40 bg-sky-50 dark:bg-sky-950/20 hover:bg-sky-100 dark:hover:bg-sky-950/40 hover:border-sky-400 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                    <Send className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-bold text-xs text-sky-700 dark:text-sky-400 arabic-text">تيليجرام</p>
+                    <p className="text-xs text-muted-foreground arabic-text hidden sm:block">مشاركة</p>
+                  </div>
+                </button>
+
+                {/* Facebook */}
+                <button
+                  onClick={handleShareFacebook}
+                  className="group flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl border-2 border-blue-200 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/40 hover:border-blue-400 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                    {/* Facebook icon SVG */}
+                    <svg className="h-5 w-5 text-white fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-bold text-xs text-blue-700 dark:text-blue-400 arabic-text">فيسبوك</p>
+                    <p className="text-xs text-muted-foreground arabic-text hidden sm:block">نشر</p>
                   </div>
                 </button>
 
                 {/* Email */}
                 <button
                   onClick={handleShareEmail}
-                  className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 border-blue-200 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/40 hover:border-blue-400 transition-all duration-200 cursor-pointer"
+                  className="group flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl border-2 border-violet-200 dark:border-violet-900/40 bg-violet-50 dark:bg-violet-950/20 hover:bg-violet-100 dark:hover:bg-violet-950/40 hover:border-violet-400 transition-all duration-200 cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-blue-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
                     <Mail className="h-5 w-5 text-white" />
                   </div>
                   <div className="text-center">
-                    <p className="font-bold text-xs text-blue-700 dark:text-blue-400 arabic-text">البريد الإلكتروني</p>
-                    <p className="text-xs text-muted-foreground arabic-text">إرسال بالإيميل</p>
+                    <p className="font-bold text-xs text-violet-700 dark:text-violet-400 arabic-text">إيميل</p>
+                    <p className="text-xs text-muted-foreground arabic-text hidden sm:block">إرسال</p>
                   </div>
                 </button>
+              </div>
 
-                {/* Copy */}
+              {/* Copy text row */}
+              <div className="mt-3 pt-3 border-t border-blue-500/10">
                 <button
                   onClick={handleCopy}
-                  className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 border-purple-200 dark:border-purple-900/40 bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 hover:border-purple-400 transition-all duration-200 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 transition-all duration-200 cursor-pointer"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-purple-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
-                    {copied ? <Check className="h-5 w-5 text-white" /> : <Copy className="h-5 w-5 text-white" />}
-                  </div>
-                  <div className="text-center">
-                    <p className="font-bold text-xs text-purple-700 dark:text-purple-400 arabic-text">
-                      {copied ? "تم النسخ!" : "نسخ النص"}
-                    </p>
-                    <p className="text-xs text-muted-foreground arabic-text">نسخ للحافظة</p>
-                  </div>
+                  {copied ? <Check className="h-4 w-4 text-purple-600" /> : <Copy className="h-4 w-4 text-purple-600" />}
+                  <span className="text-sm font-medium text-purple-700 dark:text-purple-400 arabic-text">
+                    {copied ? "✓ تم نسخ الملخص مع العناوين!" : "نسخ الملخص الكامل مع العناوين"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -475,7 +594,7 @@ export default function DailySummary() {
               <h2 className="font-bold arabic-text">أرشيف الملخصات السابقة</h2>
             </div>
             <div className="divide-y">
-              {summaryList.slice(0, 8).map((s) => {
+              {summaryList.slice(0, 10).map((s) => {
                 const sDate = toISODate(s.date);
                 const isSelected = sDate === selectedDate;
                 return (

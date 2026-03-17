@@ -751,6 +751,23 @@ export const appRouter = router({
         await db.delete(dailySummaries).where(eq(dailySummaries.id, input.id));
         return { success: true };
       }),
+    // Get top news details (titles) for a summary
+    getTopNewsDetails: publicProcedure
+      .input(z.object({ newsIds: z.array(z.number()) }))
+      .query(async ({ input }) => {
+        if (!input.newsIds || input.newsIds.length === 0) return [];
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) return [];
+        const { news } = await import("../drizzle/schema");
+        const { inArray } = await import("drizzle-orm");
+        const ids = input.newsIds.slice(0, 5);
+        const items = await db
+          .select({ id: news.id, title: news.title, source: news.source, category: news.category, publishedAt: news.publishedAt })
+          .from(news)
+          .where(inArray(news.id, ids));
+        return items;
+      }),
     // Generate PDF content (returns structured data for client-side PDF generation)
     getPdfData: publicProcedure
       .input(z.object({ id: z.number().optional() }))
