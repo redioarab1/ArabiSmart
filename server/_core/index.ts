@@ -40,6 +40,30 @@ async function startServer() {
   // Sitemap
   app.get("/sitemap.xml", generateSitemap);
 
+  // ── Tools Check (temporary debug endpoint) ──
+  app.get("/api/debug/tools", async (req, res) => {
+    const { execFile } = await import("child_process");
+    const { promisify } = await import("util");
+    const execAsync = promisify(execFile);
+    const results: Record<string, string> = {};
+    const checks = [
+      { name: "weasyprint", cmd: "weasyprint", args: ["--version"] },
+      { name: "python3", cmd: "python3", args: ["-c", "import weasyprint; print(weasyprint.__version__)"] },
+      { name: "pdftoppm", cmd: "pdftoppm", args: ["-v"] },
+      { name: "chromium", cmd: "chromium-browser", args: ["--version"] },
+      { name: "google-chrome", cmd: "google-chrome", args: ["--version"] },
+    ];
+    for (const c of checks) {
+      try {
+        const r = await execAsync(c.cmd, c.args, { timeout: 5000 });
+        results[c.name] = (r.stdout || r.stderr || "ok").trim().slice(0, 100);
+      } catch (e: any) {
+        results[c.name] = "NOT FOUND: " + (e.message || "").slice(0, 80);
+      }
+    }
+    res.json(results);
+  });
+
   // ── Newspaper PDF Generator ──
   app.get("/api/daily-summary/pdf", async (req, res) => {
     try {
