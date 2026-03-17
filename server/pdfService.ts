@@ -743,8 +743,25 @@ export async function generateNewspaperPDF(data: SummaryData): Promise<Buffer> {
 
   const html = await buildHTML(data, logoDataUrl);
 
+  // Determine the best executable path:
+  // 1. Use puppeteer's bundled Chrome (works in all environments including production)
+  // 2. Fall back to system chromium-browser if bundled is not available
+  let executablePath: string | undefined;
+  try {
+    const { executablePath: bundledPath } = await import("puppeteer");
+    const bundled = bundledPath();
+    const { existsSync } = await import("fs");
+    if (existsSync(bundled)) {
+      executablePath = bundled;
+    } else {
+      executablePath = "/usr/bin/chromium-browser";
+    }
+  } catch {
+    executablePath = "/usr/bin/chromium-browser";
+  }
+
   const browser = await puppeteer.launch({
-    executablePath: "/usr/bin/chromium-browser",
+    executablePath,
     headless: true,
     args: [
       "--no-sandbox",
