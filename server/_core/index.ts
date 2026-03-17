@@ -51,12 +51,16 @@ async function startServer() {
 
       if (dateParam) {
         summaryRaw = await getDailySummaryByDate(new Date(dateParam));
+        // If no summary found for the requested date, fall back to the latest available
+        if (!summaryRaw) {
+          summaryRaw = await getLatestDailySummary();
+        }
       } else {
         summaryRaw = await getLatestDailySummary();
       }
 
       if (!summaryRaw) {
-        res.status(404).json({ error: "No summary found" });
+        res.status(404).json({ error: "No summary found. Please generate a daily summary first." });
         return;
       }
 

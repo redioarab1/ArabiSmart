@@ -124,8 +124,10 @@ export default function DailySummary() {
   // Archive list
   const { data: summaryList } = trpc.dailySummary.list.useQuery({ limit: 30 });
 
+  // When isToday: prefer summaryByDate if found, otherwise fall back to latestSummary
+  // summaryByDate can be null (not found) or undefined (loading) - only fallback if null/undefined
   const activeSummary: Summary | null | undefined = isToday
-    ? (summaryByDate ?? latestSummary)
+    ? (summaryByDate || latestSummary)
     : summaryByDate;
 
   // Fetch top news details
