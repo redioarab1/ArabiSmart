@@ -76,8 +76,14 @@ async function startServer() {
           if (!db) throw new Error("DB not available");
           const { news } = await import("../../drizzle/schema");
           const { inArray } = await import("drizzle-orm");
-          const ids = summary.topNews.slice(0, 6);
-          const newsItems = await db.select({ id: news.id, title: news.title, source: news.source })
+          const ids = summary.topNews.slice(0, 5);
+          const newsItems = await db.select({
+            id: news.id,
+            title: news.title,
+            source: news.source,
+            category: news.category,
+            imageUrl: news.image,
+          })
             .from(news)
             .where(inArray(news.id, ids));
           summary.topNewsItems = newsItems;
