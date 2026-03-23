@@ -529,30 +529,38 @@ export default function Home() {
         }`}
       >
         <div className="container py-4">
-          <Tabs value={activeCategory} onValueChange={(v) => handleCategoryChange(v as NewsCategory)} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-background/50 backdrop-blur">
-              <TabsTrigger 
-                value="all" 
-                className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-3"
-              >
-                <img 
-                  src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028696863/TREiIprHXGJofwwf.png" 
-                  alt="ArabiSmart News"
-                  loading="eager" 
-                  className="h-16 w-auto object-contain"
-                />
-              </TabsTrigger>
-              <TabsTrigger value="arabic" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                <span className="text-4xl">🇸🇦</span>
-              </TabsTrigger>
-              <TabsTrigger value="swedish" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                <span className="text-4xl">🇸🇪</span>
-              </TabsTrigger>
-              <TabsTrigger value="international" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                <span className="text-4xl">🌍</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center gap-3 w-full">
+            {/* Category Tabs */}
+            <Tabs value={activeCategory} onValueChange={(v) => handleCategoryChange(v as NewsCategory)} className="flex-1">
+              <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-background/50 backdrop-blur">
+                <TabsTrigger 
+                  value="all" 
+                  className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-3"
+                >
+                  <img 
+                    src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028696863/TREiIprHXGJofwwf.png" 
+                    alt="ArabiSmart News"
+                    loading="eager" 
+                    className="h-16 w-auto object-contain"
+                  />
+                </TabsTrigger>
+                <TabsTrigger value="arabic" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  <span className="text-4xl">🇸🇦</span>
+                </TabsTrigger>
+                <TabsTrigger value="swedish" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  <span className="text-4xl">🇸🇪</span>
+                </TabsTrigger>
+                <TabsTrigger value="international" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                  <span className="text-4xl">🌍</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            {/* Language Switcher - inline flags */}
+            <div className="hidden md:flex items-center border-r border-border/50 pr-3">
+              <LanguageSwitcher variant="inline" />
+            </div>
+          </div>
           
 
         </div>
