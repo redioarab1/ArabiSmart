@@ -557,7 +557,8 @@ export default function Home() {
             </Tabs>
 
             {/* Language Switcher - inline flags */}
-            <div className="hidden md:flex items-center border-r border-border/50 pr-3">
+            <div className="hidden md:flex flex-col items-center border-r border-border/50 pr-3 gap-0.5">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground select-none">Language</span>
               <LanguageSwitcher variant="inline" />
             </div>
           </div>
