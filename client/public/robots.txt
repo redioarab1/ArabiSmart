@@ -1,13 +1,25 @@
 # robots.txt for ArabiSmart News
+# https://arabismart.vip
 
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /api/
 
-# Sitemap
-Sitemap: https://arabismart-news.manus.space/sitemap.xml
+# Sitemaps
+Sitemap: https://arabismart.vip/sitemap.xml
 
-# Disallow admin pages
+# Allow major search engine bots
+User-agent: Googlebot
+Allow: /
 Disallow: /admin/
 
-# Crawl-delay (optional, helps prevent server overload)
-Crawl-delay: 10
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+
+User-agent: facebookexternalhit
+Allow: /
+
+# Crawl-delay
+Crawl-delay: 2

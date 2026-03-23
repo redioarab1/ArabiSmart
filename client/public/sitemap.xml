@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://arabismart.vip/</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://arabismart.vip/" />
+  </url>
+
+  <!-- Daily Summary -->
+  <url>
+    <loc>https://arabismart.vip/daily-summary</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://arabismart.vip/daily-summary" />
+  </url>
+
+  <!-- Videos -->
+  <url>
+    <loc>https://arabismart.vip/videos</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Live TV -->
+  <url>
+    <loc>https://arabismart.vip/live</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Archive -->
+  <url>
+    <loc>https://arabismart.vip/archive</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- About Us -->
+  <url>
+    <loc>https://arabismart.vip/about</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://arabismart.vip/about" />
+  </url>
+
+  <!-- Contact Us -->
+  <url>
+    <loc>https://arabismart.vip/contact</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://arabismart.vip/contact" />
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://arabismart.vip/privacy</loc>
+    <lastmod>2026-03-23</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://arabismart.vip/privacy" />
+  </url>
+
+</urlset>

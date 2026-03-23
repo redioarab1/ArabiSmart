@@ -17,6 +17,9 @@ import FolderDetail from "./pages/FolderDetail";
 import DailySummary from "./pages/DailySummary";
 import Videos from "./pages/Videos";
 import LiveTV from "./pages/LiveTV";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
 
 // Admin Pages
 import AdminHome from "./pages/admin/AdminHome";
@@ -45,6 +48,9 @@ function Router() {
       <Route path="/daily-summary" component={DailySummary} />
       <Route path="/videos" component={Videos} />
       <Route path="/live" component={LiveTV} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/privacy" component={Privacy} />
 
       {/* Admin Routes */}
       <Route path="/admin" component={AdminHome} />

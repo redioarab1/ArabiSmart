@@ -895,6 +895,15 @@ export default function Home() {
             <Globe className="h-5 w-5 text-primary" />
             <p className="text-sm font-medium arabic-text">ArabiSmart News - تغطية بلا حدود</p>
           </div>
+          <div className="flex items-center justify-center flex-wrap gap-4 text-sm text-muted-foreground arabic-text">
+            <Link href="/about"><span className="hover:text-foreground cursor-pointer transition-colors">عن الموقع</span></Link>
+            <span>•</span>
+            <Link href="/contact"><span className="hover:text-foreground cursor-pointer transition-colors">اتصل بنا</span></Link>
+            <span>•</span>
+            <Link href="/privacy"><span className="hover:text-foreground cursor-pointer transition-colors">سياسة الخصوصية</span></Link>
+            <span>•</span>
+            <Link href="/daily-summary"><span className="hover:text-foreground cursor-pointer transition-colors">الملخص اليومي</span></Link>
+          </div>
           <p className="text-sm text-muted-foreground arabic-text">
             © 2026 ArabiSmart News. جميع الحقوق محفوظة.
           </p>

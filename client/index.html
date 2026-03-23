@@ -1,90 +1,116 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>ArabiSmart News - موقع الأخبار الذكي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+    <title>ArabiSmart News | عربي سمارت - أخبار عربية وسويدية</title>
     
-    <!-- PWA Meta Tags -->
-    <meta name="description" content="أخبار عربية وسويدية عاجلة من أكثر من 20 مصدر موثوق. تابع آخر الأخبار المحلية والعالمية في مكان واحد." />
-    <meta name="keywords" content="أخبار عربية, أخبار سويدية, أخبار عاجلة, أخبار السويد, Arabic news, Swedish news" />
+    <!-- Primary Meta Tags -->
+    <meta name="description" content="عربي سمارت للأخبار - تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 20 مصدر موثوق مع ملخصات يومية بالذكاء الاصطناعي." />
+    <meta name="keywords" content="أخبار عربية, أخبار سويدية, أخبار عاجلة, أخبار السويد, عرب السويد, Arabic news Sweden, Swedish Arabic news, عربي سمارت, ArabiSmart" />
     <meta name="author" content="ArabiSmart News" />
-    <meta name="robots" content="index, follow" />
-    <meta name="language" content="Arabic, Swedish, English" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="language" content="ar" />
+    <meta name="geo.region" content="SE" />
+    <meta name="geo.placename" content="Sweden" />
+    <link rel="canonical" href="https://arabismart.vip/" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://arabismart-news.manus.space/" />
-    <meta property="og:title" content="ArabiSmart News - موقع الأخبار الذكي" />
-    <meta property="og:description" content="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 25 مصدر موثوق." />
-    <meta property="og:image" content="https://arabismart-news.manus.space/icon-192x192.png" />
+    <meta property="og:url" content="https://arabismart.vip/" />
+    <meta property="og:title" content="ArabiSmart News | عربي سمارت - أخبار عربية وسويدية" />
+    <meta property="og:description" content="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 20 مصدر موثوق مع ملخصات يومية بالذكاء الاصطناعي." />
+    <meta property="og:image" content="https://arabismart.vip/icon-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
     <meta property="og:locale" content="ar_AR" />
     <meta property="og:locale:alternate" content="sv_SE" />
-    <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:site_name" content="ArabiSmart News" />
+    <meta property="og:site_name" content="ArabiSmart News - عربي سمارت" />
     
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://arabismart-news.manus.space/" />
-    <meta property="twitter:title" content="ArabiSmart News - موقع الأخبار الذكي" />
-    <meta property="twitter:description" content="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 25 مصدر موثوق." />
-    <meta property="twitter:image" content="https://arabismart-news.manus.space/icon-192x192.png" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://arabismart.vip/" />
+    <meta name="twitter:title" content="ArabiSmart News | عربي سمارت - أخبار عربية وسويدية" />
+    <meta name="twitter:description" content="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 20 مصدر موثوق." />
+    <meta name="twitter:image" content="https://arabismart.vip/icon-512x512.png" />
     
+    <!-- PWA / Mobile -->
     <meta name="theme-color" content="#3b82f6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="ArabiSmart" />
+    <meta name="apple-mobile-web-app-title" content="عربي سمارت" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
     <link rel="apple-touch-icon" href="/icon-192x192.png" />
     
-    <!-- Structured Data (JSON-LD) -->
+    <!-- Structured Data: WebSite -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "ArabiSmart News",
-      "alternateName": "موقع الأخبار الذكي",
-      "url": "https://arabismart-news.manus.space/",
-      "description": "تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد",
+      "alternateName": "عربي سمارت للأخبار",
+      "url": "https://arabismart.vip/",
+      "description": "موقع أخبار يجمع أكثر من 20 مصدر إخباري عربي وسويدي في مكان واحد مع ملخصات يومية بالذكاء الاصطناعي",
       "inLanguage": ["ar", "sv", "en"],
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://arabismart-news.manus.space/?q={search_term_string}",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://arabismart.vip/?q={search_term_string}"
+        },
         "query-input": "required name=search_term_string"
       },
       "publisher": {
         "@type": "Organization",
         "name": "ArabiSmart News",
+        "url": "https://arabismart.vip/",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://arabismart-news.manus.space/icon-192x192.png"
+          "url": "https://arabismart.vip/icon-512x512.png",
+          "width": 512,
+          "height": 512
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "info@arabismart.vip",
+          "contactType": "customer service",
+          "availableLanguage": ["Arabic", "Swedish", "English"]
         }
       }
     }
     </script>
+    
+    <!-- Structured Data: NewsMediaOrganization -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "NewsMediaOrganization",
       "name": "ArabiSmart News",
-      "url": "https://arabismart-news.manus.space/",
-      "logo": "https://arabismart-news.manus.space/icon-192x192.png",
-      "description": "موقع أخبار يجمع أكثر من 25 مصدر إخباري عربي وسويدي في مكان واحد",
-      "sameAs": [
-        "https://arabismart-news.manus.space/"
-      ]
+      "alternateName": "عربي سمارت للأخبار",
+      "url": "https://arabismart.vip/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://arabismart.vip/icon-512x512.png"
+      },
+      "description": "موقع أخبار عربية وسويدية يخدم الجالية العربية في السويد والعالم",
+      "foundingDate": "2024",
+      "areaServed": ["SE", "SA", "AE", "EG"],
+      "knowsLanguage": ["ar", "sv", "en"],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "info@arabismart.vip",
+        "contactType": "editorial"
+      }
     }
     </script>
     
-    <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
+    <!-- Google Fonts: Arabic Support -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    THIS IS THE END OF A COMMENT BLOCK, BLOCK TO BE DELETED -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
   </head>
 
   <body>

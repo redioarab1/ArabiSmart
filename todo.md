@@ -738,3 +738,25 @@
 - [x] إضافة صور الأخبار من URLs مباشرة
 - [x] اختبار في بيئة التطوير بنجاح
 - [ ] اختبار في بيئة الإنتاج بعد النشر
+
+## المرحلة الأولى: صفحات المعلومات الأساسية (AdSense)
+- [x] إنشاء صفحة سياسة الخصوصية (Privacy Policy) /privacy
+- [x] إنشاء صفحة اتصل بنا (Contact Us) /contact مع نموذج تواصل
+- [x] إنشاء صفحة عن الموقع (About Us) /about
+- [x] إضافة روابط الصفحات في Footer وHeader
+
+## المرحلة الثانية: تحسين SEO
+- [x] إضافة meta tags محسّنة في index.html (title, description, og:image, canonical)
+- [x] إنشاء sitemap.xml للصفحات الثابتة
+- [x] تحديث robots.txt بالدومين الصحيح arabismart.vip
+- [x] إضافة Schema Markup (WebSite + NewsMediaOrganization JSON-LD)
+- [x] تحسين lang="ar" وdir="rtl" في HTML
+- [x] إضافة خطوط عربية Cairo/Amiri في index.html
+- [ ] إضافة meta tags ديناميكية لكل خبر (NewsArticle)
+- [ ] إنشاء sitemap.xml ديناميكي للأخبار
+
+## المرحلة الثالثة: النشر التلقائي على فيسبوك وتيليجرام
+- [ ] إضافة نظام النشر التلقائي على فيسبوك (Facebook Graph API)
+- [ ] إضافة نظام النشر التلقائي على تيليجرام (Telegram Bot API)
+- [ ] إضافة زر "نشر الآن" في صفحة الملخص اليومي
+- [ ] جدولة النشر التلقائي مع الملخص اليومي
