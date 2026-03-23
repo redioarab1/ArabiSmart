@@ -9,6 +9,9 @@ import CommentsSection from "@/components/CommentsSection";
 import { WebSpeechPlayer } from "@/components/WebSpeechPlayer";
 import { ShareButtons } from "@/components/ShareButtons";
 import { StoryGenerator } from "@/components/StoryGenerator";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslationTargets, langNames } from "@/lib/translations";
 import {
   ArrowRight,
   Calendar,
@@ -37,22 +40,21 @@ export default function NewsDetail() {
   const [, params] = useRoute("/news/:id");
   const newsId = params?.id ? parseInt(params.id) : null;
   const [isFavorite, setIsFavorite] = useState(false);
-  const [translating, setTranslating] = useState(false);
-  const [translation, setTranslation] = useState<{ title: string; description: string } | null>(null);
+  // translations: { en?: {...}, sv?: {...}, ar?: {...} }
+  const [newsTranslations, setNewsTranslations] = useState<Record<string, { title: string; description: string }>>({});
+  const [translatingLang, setTranslatingLang] = useState<string | null>(null);
+  const [activeTranslation, setActiveTranslation] = useState<string | null>(null);
   const [showPodcast, setShowPodcast] = useState(false);
+  const { t } = useLanguage();
 
   const { data: news, isLoading } = trpc.news.getById.useQuery(
     { id: newsId! },
     { enabled: !!newsId }
   );
 
-  const translateMutation = trpc.translate.text.useMutation();
+  const newsTranslateMutation = (trpc as any).newsTranslation?.translate?.useMutation?.() || null;
 
-  // Set RTL direction
-  useEffect(() => {
-    document.documentElement.setAttribute("dir", "rtl");
-    document.documentElement.setAttribute("lang", "ar");
-  }, []);
+  // dir/lang managed by LanguageContext
 
   // Load favorite status from localStorage
   useEffect(() => {
@@ -118,27 +120,30 @@ export default function NewsDetail() {
     }
   };
 
-  const handleTranslate = async () => {
-    if (!news || translating) return;
+  const handleTranslateTo = async (targetLang: "ar" | "en" | "sv") => {
+    if (!news || translatingLang) return;
 
-    setTranslating(true);
+    // If already translated, just toggle display
+    if (newsTranslations[targetLang]) {
+      setActiveTranslation(activeTranslation === targetLang ? null : targetLang);
+      return;
+    }
+
+    setTranslatingLang(targetLang);
     try {
-      const result = await translateMutation.mutateAsync({
-        text: `${news.title}\n\n${news.description || ""}`,
-        targetLang: "ar",
-      });
-
-      const [title, ...descParts] = result.translated.split("\n\n");
-      setTranslation({
-        title: title || result.translated,
-        description: descParts.join("\n\n") || "",
-      });
-      toast.success("تمت الترجمة بنجاح");
+      if (newsTranslateMutation && newsId) {
+        const result = await newsTranslateMutation.mutateAsync({ newsId, language: targetLang });
+        if (result) {
+          setNewsTranslations(prev => ({ ...prev, [targetLang]: { title: result.title, description: result.description || "" } }));
+          setActiveTranslation(targetLang);
+          toast.success(t.translated);
+        }
+      }
     } catch (error) {
-      toast.error("فشلت الترجمة");
+      toast.error(t.failed);
       console.error("Translation error:", error);
     } finally {
-      setTranslating(false);
+      setTranslatingLang(null);
     }
   };
 
@@ -185,9 +190,14 @@ export default function NewsDetail() {
     );
   }
 
-  const displayTitle = translation?.title || news.title;
-  const displayDescription = translation?.description || news.description || "";
-  const isTranslated = !!translation;
+  // Determine which translation to show (active one or original)
+  const activeTransData = activeTranslation ? newsTranslations[activeTranslation] : null;
+  const displayTitle = activeTransData?.title || news.title;
+  const displayDescription = activeTransData?.description || news.description || "";
+  const isTranslated = !!activeTransData;
+  // Get the two target languages for this article based on its original language
+  const newsLang = (news.language || "ar") as "ar" | "en" | "sv";
+  const translationTargets = getTranslationTargets(newsLang);
 
   // Build clean description for meta (strip HTML, limit to 160 chars)
   const metaDescription = (news.description || "")
@@ -262,11 +272,12 @@ export default function NewsDetail() {
             <Link href="/">
               <Button variant="outline" className="arabic-text">
                 <ArrowRight className="h-4 w-4 ml-2" />
-                العودة للرئيسية
+                {t.backToHome}
               </Button>
             </Link>
             
             <div className="flex items-center gap-2">
+              <LanguageSwitcher />
               <Button
                 variant={isFavorite ? "default" : "outline"}
                 size="icon"
@@ -328,21 +339,36 @@ export default function NewsDetail() {
                   {news.category}
                 </Badge>
                 
-                {news.language !== "ar" && (
-                  <Button
-                    variant="secondary"
-                    className="absolute bottom-4 right-4 shadow-lg"
-                    onClick={handleTranslate}
-                    disabled={translating}
-                  >
-                    {translating ? (
-                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                    ) : (
-                      <Languages className="h-4 w-4 ml-2" />
-                    )}
-                    <span className="arabic-text">{isTranslated ? "مترجم" : "ترجمة"}</span>
-                  </Button>
-                )}
+                {/* Translation buttons - show for all articles */}
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  {translationTargets.map((tLang) => (
+                    <Button
+                      key={tLang}
+                      variant={activeTranslation === tLang ? "default" : "secondary"}
+                      size="sm"
+                      className="shadow-lg text-xs"
+                      onClick={() => handleTranslateTo(tLang)}
+                      disabled={!!translatingLang}
+                    >
+                      {translatingLang === tLang ? (
+                        <Loader2 className="h-3 w-3 animate-spin ml-1" />
+                      ) : (
+                        <Languages className="h-3 w-3 ml-1" />
+                      )}
+                      {langNames[tLang].flag} {langNames[tLang].native}
+                    </Button>
+                  ))}
+                  {isTranslated && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shadow-lg text-xs bg-background/80"
+                      onClick={() => setActiveTranslation(null)}
+                    >
+                      {t.originalText}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
             
@@ -374,10 +400,37 @@ export default function NewsDetail() {
                 </p>
               )}
               
+              {/* Translation Buttons - shown when no image (otherwise shown on image) */}
+              {!news.image && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="text-sm text-muted-foreground flex items-center gap-1"><Languages className="h-4 w-4" /> {t.translateTo}:</span>
+                  {translationTargets.map((tLang) => (
+                    <Button
+                      key={tLang}
+                      variant={activeTranslation === tLang ? "default" : "outline"}
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => handleTranslateTo(tLang)}
+                      disabled={!!translatingLang}
+                    >
+                      {translatingLang === tLang ? (
+                        <Loader2 className="h-3 w-3 animate-spin ml-1" />
+                      ) : null}
+                      {langNames[tLang].flag} {langNames[tLang].native}
+                    </Button>
+                  ))}
+                  {isTranslated && (
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => setActiveTranslation(null)}>
+                      {t.originalText}
+                    </Button>
+                  )}
+                </div>
+              )}
+
               <Button asChild variant="outline" className="w-full arabic-text">
                 <a href={news.link} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4 ml-2" />
-                  قراءة الخبر الكامل من المصدر
+                  {t.readFull}
                 </a>
               </Button>
 

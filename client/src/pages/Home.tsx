@@ -36,6 +36,8 @@ import SEOHead from "@/components/SEOHead";
 import { AddToFolderButton } from "@/components/AddToFolderButton";
 import { getLoginUrl } from "@/const";
 import ScrollToTop from "@/components/ScrollToTop";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
@@ -75,13 +77,10 @@ export default function Home() {
 
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t, lang } = useLanguage();
   const utils = trpc.useUtils();
 
-  // Set RTL direction for Arabic content
-  useEffect(() => {
-    document.documentElement.setAttribute("dir", "rtl");
-    document.documentElement.setAttribute("lang", "ar");
-  }, []);
+  // dir/lang are managed by LanguageContext — no need to override here
 
   // Handle scroll to hide/show tabs
   useEffect(() => {
@@ -372,7 +371,7 @@ export default function Home() {
                 <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent arabic-text">
                   ArabiSmart News
                 </h1>
-                <p className="text-xs md:text-sm text-muted-foreground arabic-text">تغطية بلا حدود، اجتمعت لتكون بين يديك في مكان واحد</p>
+                <p className="text-xs md:text-sm text-muted-foreground arabic-text">{t.siteSlogan}</p>
               </div>
             </div>
             
@@ -517,6 +516,9 @@ export default function Home() {
                 </DropdownMenuContent>
               </DropdownMenu>
               
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+
               {/* Theme Toggle */}
               <Button
                 variant="outline"

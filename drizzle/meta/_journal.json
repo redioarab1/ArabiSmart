@@ -113,6 +113,13 @@
       "when": 1773075559838,
       "tag": "0015_lowly_red_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1774281585537,
+      "tag": "0016_thankful_shocker",
+      "breakpoints": true
     }
   ]
 }

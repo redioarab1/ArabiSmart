@@ -924,6 +924,246 @@ export const appRouter = router({
       }),
   }),
 
+  // News Translation router - translate news to EN/SV and cache in DB
+  newsTranslation: router({
+    // Translate a specific news article to EN or SV
+    translate: protectedProcedure
+      .input(z.object({
+        newsId: z.number(),
+        language: z.enum(["en", "sv"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { news, newsTranslations } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+
+        // Check if translation already exists
+        const existing = await db
+          .select()
+          .from(newsTranslations)
+          .where(and(eq(newsTranslations.newsId, input.newsId), eq(newsTranslations.language, input.language)))
+          .limit(1);
+
+        if (existing.length > 0) {
+          return existing[0];
+        }
+
+        // Get the news article
+        const [article] = await db.select().from(news).where(eq(news.id, input.newsId)).limit(1);
+        if (!article) throw new Error("News article not found");
+
+        // Translate using LLM for better quality
+        const { invokeLLM } = await import("./_core/llm");
+        const langName = input.language === "en" ? "English" : "Swedish";
+        const textToTranslate = `Title: ${article.title}\n\nDescription: ${article.description || ""}`;
+
+        const llmResponse = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `You are a professional news translator. Translate the following Arabic news article to ${langName}. Keep the translation natural, accurate, and suitable for news media. Return ONLY a JSON object with keys: title, description.`,
+            },
+            { role: "user", content: textToTranslate },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "translation",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                },
+                required: ["title", "description"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const rawContent = llmResponse.choices?.[0]?.message?.content;
+        const content = typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent);
+        const parsed = JSON.parse(content || "{}");
+
+        // Save translation to DB
+        await db.insert(newsTranslations).values({
+          newsId: input.newsId,
+          language: input.language,
+          title: parsed.title || article.title,
+          description: parsed.description || article.description || "",
+        });
+
+        const [saved] = await db
+          .select()
+          .from(newsTranslations)
+          .where(and(eq(newsTranslations.newsId, input.newsId), eq(newsTranslations.language, input.language)))
+          .limit(1);
+
+        return saved;
+      }),
+
+    // Get cached translation for a news article
+    get: publicProcedure
+      .input(z.object({ newsId: z.number(), language: z.enum(["en", "sv"]) }))
+      .query(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return null;
+        const { newsTranslations } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const [result] = await db
+          .select()
+          .from(newsTranslations)
+          .where(and(eq(newsTranslations.newsId, input.newsId), eq(newsTranslations.language, input.language)))
+          .limit(1);
+        return result || null;
+      }),
+
+    // Batch translate multiple news articles (admin only)
+    batchTranslate: protectedProcedure
+      .input(z.object({
+        newsIds: z.array(z.number()),
+        language: z.enum(["en", "sv"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { news, newsTranslations } = await import("../drizzle/schema");
+        const { eq, and, inArray } = await import("drizzle-orm");
+        const { invokeLLM } = await import("./_core/llm");
+
+        let translated = 0;
+        let skipped = 0;
+
+        for (const newsId of input.newsIds.slice(0, 20)) { // limit to 20 per batch
+          // Check if already translated
+          const existing = await db
+            .select({ id: newsTranslations.id })
+            .from(newsTranslations)
+            .where(and(eq(newsTranslations.newsId, newsId), eq(newsTranslations.language, input.language)))
+            .limit(1);
+
+          if (existing.length > 0) { skipped++; continue; }
+
+          const [article] = await db.select().from(news).where(eq(news.id, newsId)).limit(1);
+          if (!article) continue;
+
+          try {
+            const langName = input.language === "en" ? "English" : "Swedish";
+            const llmResponse = await invokeLLM({
+              messages: [
+                { role: "system", content: `Translate this Arabic news to ${langName}. Return JSON: {title, description}` },
+                { role: "user", content: `Title: ${article.title}\nDescription: ${article.description || ""}` },
+              ],
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: "translation",
+                  strict: true,
+                  schema: {
+                    type: "object",
+                    properties: { title: { type: "string" }, description: { type: "string" } },
+                    required: ["title", "description"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+            });
+            const rawMsg = llmResponse.choices?.[0]?.message?.content;
+            const parsed = JSON.parse(typeof rawMsg === "string" ? rawMsg : JSON.stringify(rawMsg || "{}"));
+            await db.insert(newsTranslations).values({
+              newsId,
+              language: input.language,
+              title: parsed.title || article.title,
+              description: parsed.description || "",
+            });
+            translated++;
+          } catch (e) {
+            console.error(`[BatchTranslate] Error translating newsId ${newsId}:`, e);
+          }
+        }
+
+        return { translated, skipped, total: input.newsIds.length };
+      }),
+  }),
+
+  // Auto-Archive management router
+  autoArchive: router({
+    // Run auto-archive manually (admin)
+    runNow: protectedProcedure
+      .input(z.object({ olderThanDays: z.number().min(1).max(365).default(7) }))
+      .mutation(async ({ input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new Error("Database not available");
+        const { news, archivedNews, autoArchiveLogs } = await import("../drizzle/schema");
+        const { lt, sql } = await import("drizzle-orm");
+
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - input.olderThanDays);
+
+        try {
+          // Get IDs already archived
+          const alreadyArchived = await db.select({ newsId: archivedNews.newsId }).from(archivedNews);
+          const archivedIds = new Set(alreadyArchived.map((a: any) => a.newsId));
+
+          // Get old news not yet archived
+          const oldNews = await db
+            .select({ id: news.id })
+            .from(news)
+            .where(lt(news.publishedAt, cutoffDate))
+            .limit(500);
+
+          const toArchive = oldNews.filter((n: any) => !archivedIds.has(n.id));
+
+          if (toArchive.length > 0) {
+            await db
+              .insert(archivedNews)
+              .values(toArchive.map((n: any) => ({ userId: 0, newsId: n.id })))
+              .onDuplicateKeyUpdate({ set: { newsId: sql`newsId` } });
+          }
+
+          // Log the operation
+          await db.insert(autoArchiveLogs).values({
+            archivedCount: toArchive.length,
+            olderThanDays: input.olderThanDays,
+            status: "success",
+          });
+
+          return { success: true, archivedCount: toArchive.length, olderThanDays: input.olderThanDays };
+        } catch (error: any) {
+          await db.insert(autoArchiveLogs).values({
+            archivedCount: 0,
+            olderThanDays: input.olderThanDays,
+            status: "error",
+            errorMessage: error.message,
+          });
+          throw error;
+        }
+      }),
+
+    // Get archive statistics
+    stats: protectedProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return { totalArchived: 0, systemArchived: 0, logs: [] };
+      const { archivedNews, autoArchiveLogs, news } = await import("../drizzle/schema");
+      const { eq, sql, desc } = await import("drizzle-orm");
+
+      const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(archivedNews);
+      const [systemResult] = await db.select({ count: sql<number>`count(*)` }).from(archivedNews).where(eq(archivedNews.userId, 0));
+      const [totalNewsResult] = await db.select({ count: sql<number>`count(*)` }).from(news);
+      const logs = await db.select().from(autoArchiveLogs).orderBy(desc(autoArchiveLogs.createdAt)).limit(10);
+
+      return {
+        totalArchived: Number(totalResult?.count || 0),
+        systemArchived: Number(systemResult?.count || 0),
+        totalNews: Number(totalNewsResult?.count || 0),
+        logs,
+      };
+    }),
+  }),
+
   // Breaking News - Fetch RSS immediately
   breakingNews: router({
     fetchNow: publicProcedure

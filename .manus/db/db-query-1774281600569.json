@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `autoArchiveLogs` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`archivedCount` int NOT NULL DEFAULT 0,\n\t`olderThanDays` int NOT NULL DEFAULT 7,\n\t`status` enum('success','error') NOT NULL,\n\t`errorMessage` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `autoArchiveLogs_id` PRIMARY KEY(`id`)\n);\nCREATE TABLE `newsTranslations` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`newsId` int NOT NULL,\n\t`language` enum('en','sv') NOT NULL,\n\t`title` text NOT NULL,\n\t`description` text,\n\t`translatedAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `newsTranslations_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute CREATE TABLE `autoArchiveLogs` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`archivedCount` int NOT NULL DEFAULT 0,\n\t`olderThanDays` int NOT NULL DEFAULT 7,\n\t`status` enum('success','error') NOT NULL,\n\t`errorMessage` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `autoArchiveLogs_id` PRIMARY KEY(`id`)\n);\nCREATE TABLE `newsTranslations` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`newsId` int NOT NULL,\n\t`language` enum('en','sv') NOT NULL,\n\t`title` text NOT NULL,\n\t`description` text,\n\t`translatedAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `newsTranslations_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 4501
+}

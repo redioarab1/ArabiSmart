@@ -285,3 +285,31 @@ export const liveChannels = mysqlTable("liveChannels", {
 });
 export type LiveChannel = typeof liveChannels.$inferSelect;
 export type InsertLiveChannel = typeof liveChannels.$inferInsert;
+
+/**
+ * News translations table - stores translated versions of news articles
+ */
+export const newsTranslations = mysqlTable("newsTranslations", {
+  id: int("id").autoincrement().primaryKey(),
+  newsId: int("newsId").notNull(),
+  language: mysqlEnum("language", ["en", "sv"]).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  translatedAt: timestamp("translatedAt").defaultNow().notNull(),
+});
+export type NewsTranslation = typeof newsTranslations.$inferSelect;
+export type InsertNewsTranslation = typeof newsTranslations.$inferInsert;
+
+/**
+ * Auto archive log table - tracks daily auto-archiving operations
+ */
+export const autoArchiveLogs = mysqlTable("autoArchiveLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  archivedCount: int("archivedCount").default(0).notNull(),
+  olderThanDays: int("olderThanDays").default(7).notNull(),
+  status: mysqlEnum("status", ["success", "error"]).notNull(),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AutoArchiveLog = typeof autoArchiveLogs.$inferSelect;
+export type InsertAutoArchiveLog = typeof autoArchiveLogs.$inferInsert;
