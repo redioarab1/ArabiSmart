@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Globe, Mail, MessageSquare, Send, CheckCircle, AlertCircle } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,11 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <SEOHead
+        title="اتصل بنا"
+        description="تواصل مع فريق عربي سمارت للأخبار. لديك استفسار أو اقتراح أو شكوى؟ نحن هنا لمساعدتك."
+        url="/contact"
+      />
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="container flex items-center justify-between h-14">

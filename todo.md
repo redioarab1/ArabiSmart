@@ -760,3 +760,12 @@
 - [ ] إضافة نظام النشر التلقائي على تيليجرام (Telegram Bot API)
 - [ ] إضافة زر "نشر الآن" في صفحة الملخص اليومي
 - [ ] جدولة النشر التلقائي مع الملخص اليومي
+
+## تحسين SEO المتقدم - Meta Tags ديناميكية وSitemap ديناميكي
+- [x] تثبيت react-helmet-async لإدارة meta tags ديناميكية
+- [x] إنشاء مكوّن SEOHead مشترك لإدارة meta tags (Open Graph + Twitter Card + canonical)
+- [x] تطبيق SEOHead على صفحة تفاصيل الخبر مع NewsArticle JSON-LD
+- [x] تطبيق SEOHead على الصفحات الرئيسية (Home, About, Contact, Privacy, DailySummary)
+- [x] تحديث sitemap.ts لدعم Google News Sitemap مع title + publication date
+- [x] إضافة NewsArticle JSON-LD في صفحة تفاصيل الخبر
+- [x] تحديث getAllNewsForSitemap لإضافة حقل title وحد 5000 خبر

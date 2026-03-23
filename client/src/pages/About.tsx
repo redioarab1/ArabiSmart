@@ -1,4 +1,5 @@
 import { Globe, Zap, Shield, Users, BookOpen, Target, Mail, ExternalLink } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,11 @@ import ScrollToTop from "@/components/ScrollToTop";
 export default function About() {
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <SEOHead
+        title="عن عربي سمارت للأخبار"
+        description="تعرّف على موقع عربي سمارت للأخبار - منصة إخبارية ذكية تجمع أهم الأخبار العربية والسويدية مع ملخصات يومية بالذكاء الاصطناعي."
+        url="/about"
+      />
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="container flex items-center justify-between h-14">

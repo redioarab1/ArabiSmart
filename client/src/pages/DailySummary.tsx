@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -281,6 +282,11 @@ export default function DailySummary() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
+      <SEOHead
+        title="الملخص اليومي الذكي"
+        description="ملخص يومي شامل لأبرز الأخبار العربية والسويدية والعالمية، مُولَّد بالذكاء الاصطناعي. تابع أهم أحداث اليوم في مكان واحد."
+        url="/daily-summary"
+      />
 
       {/* ── Sticky Top Bar ── */}
       <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

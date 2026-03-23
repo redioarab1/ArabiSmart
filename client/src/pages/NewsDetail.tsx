@@ -24,6 +24,8 @@ import {
 import { toast } from "sonner";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
+import SEOHead from "@/components/SEOHead";
+import { Helmet } from "react-helmet-async";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -187,8 +189,72 @@ export default function NewsDetail() {
   const displayDescription = translation?.description || news.description || "";
   const isTranslated = !!translation;
 
+  // Build clean description for meta (strip HTML, limit to 160 chars)
+  const metaDescription = (news.description || "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160);
+
+  const newsUrl = `/news/${news.id}`;
+  const publishedISO = news.publishedAt
+    ? new Date(news.publishedAt).toISOString()
+    : new Date(news.createdAt).toISOString();
+
+  // NewsArticle JSON-LD structured data
+  const newsArticleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: news.title,
+    description: metaDescription,
+    image: news.image
+      ? [news.image]
+      : ["https://arabismart.vip/icon-512x512.png"],
+    datePublished: publishedISO,
+    dateModified: publishedISO,
+    author: {
+      "@type": "Organization",
+      name: news.source || "ArabiSmart News",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "ArabiSmart News",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://arabismart.vip/icon-512x512.png",
+      },
+    },
+    url: `https://arabismart.vip/news/${news.id}`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://arabismart.vip/news/${news.id}`,
+    },
+    inLanguage: "ar",
+    articleSection: news.category || "أخبار",
+    keywords: [news.source, news.category, "أخبار عربية", "ArabiSmart"]
+      .filter(Boolean)
+      .join(", "),
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/10">
+      {/* SEO Meta Tags */}
+      <SEOHead
+        title={news.title}
+        description={metaDescription || undefined}
+        image={news.image || undefined}
+        url={newsUrl}
+        type="article"
+        publishedTime={publishedISO}
+        author={news.source || undefined}
+        section={news.category || undefined}
+      />
+      {/* NewsArticle JSON-LD */}
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(newsArticleJsonLd)}
+        </script>
+      </Helmet>
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
         <div className="container py-4">

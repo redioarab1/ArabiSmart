@@ -3,12 +3,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import ScrollToTop from "@/components/ScrollToTop";
+import SEOHead from "@/components/SEOHead";
 
 export default function Privacy() {
   const lastUpdated = "23 مارس 2026";
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <SEOHead
+        title="سياسة الخصوصية"
+        description="سياسة الخصوصية لموقع عربي سمارت للأخبار. تعرّف على كيفية جمع بياناتك واستخدامها وحمايتها وحقوقك كمستخدم."
+        url="/privacy"
+        noIndex={false}
+      />
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="container flex items-center justify-between h-14">

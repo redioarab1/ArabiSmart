@@ -926,10 +926,12 @@ export async function getAllNewsForSitemap() {
   return db
     .select({
       id: news.id,
+      title: news.title,
       publishedAt: news.publishedAt,
     })
     .from(news)
-    .orderBy(desc(news.publishedAt));
+    .orderBy(desc(news.publishedAt))
+    .limit(5000); // Limit to 5000 for performance
 }
 
 /**

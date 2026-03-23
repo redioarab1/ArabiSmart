@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import SEOHead from "@/components/SEOHead";
 import { AddToFolderButton } from "@/components/AddToFolderButton";
 import { getLoginUrl } from "@/const";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -353,6 +354,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/10">
+      <SEOHead
+        title="أخبار عربية وسويدية عاجلة"
+        description="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 20 مصدراً موثوقاً مع ملخصات يومية بالذكاء الاصطناعي."
+        url="/"
+      />
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
         <div className="container py-4">
