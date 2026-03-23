@@ -206,6 +206,8 @@ export const categories = mysqlTable("categories", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
   nameAr: varchar("nameAr", { length: 100 }).notNull(), // Arabic name
+  nameEn: varchar("nameEn", { length: 100 }), // English name
+  nameSv: varchar("nameSv", { length: 100 }), // Swedish name
   icon: varchar("icon", { length: 50 }), // emoji or icon name
   color: varchar("color", { length: 20 }), // hex color for UI
   order: int("order").default(0).notNull(), // display order

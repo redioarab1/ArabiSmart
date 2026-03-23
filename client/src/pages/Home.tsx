@@ -591,7 +591,7 @@ export default function Home() {
             
             <Select value={source || "all"} onValueChange={handleSourceChange}>
               <SelectTrigger className="w-[200px] arabic-text">
-                <SelectValue placeholder="جميع المصادر" />
+                <SelectValue placeholder={t.allSources} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t.allSources}</SelectItem>
@@ -607,7 +607,7 @@ export default function Home() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <Select value={timeFilter} onValueChange={(value: any) => { setTimeFilter(value); setPage(1); }}>
                 <SelectTrigger className="w-[200px] arabic-text">
-                  <SelectValue placeholder="الفترة الزمنية" />
+                  <SelectValue placeholder={t.allTimes} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">📅 {t.allTimes}</SelectItem>
@@ -663,22 +663,29 @@ export default function Home() {
               >
                 {t.catAll}
               </Button>
-              {categories.map((category: any) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategoryId === category.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => { setSelectedCategoryId(category.id); setPage(1); }}
-                  className="arabic-text whitespace-nowrap flex-shrink-0"
-                  style={{
-                    backgroundColor: selectedCategoryId === category.id ? category.color || undefined : undefined,
-                    borderColor: category.color || undefined,
-                  }}
-                >
-                  {category.icon && <span className="ml-1">{category.icon}</span>}
-                  {category.nameAr}
-                </Button>
-              ))}
+              {categories.map((category: any) => {
+                const catName = lang === 'en'
+                  ? (category.nameEn || category.nameAr)
+                  : lang === 'sv'
+                  ? (category.nameSv || category.nameAr)
+                  : category.nameAr;
+                return (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategoryId === category.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => { setSelectedCategoryId(category.id); setPage(1); }}
+                    className="arabic-text whitespace-nowrap flex-shrink-0"
+                    style={{
+                      backgroundColor: selectedCategoryId === category.id ? category.color || undefined : undefined,
+                      borderColor: category.color || undefined,
+                    }}
+                  >
+                    {category.icon && <span className="ml-1">{category.icon}</span>}
+                    {catName}
+                  </Button>
+                );
+              })}
             </div>
           </div>
         </section>

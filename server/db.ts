@@ -978,6 +978,8 @@ export async function getNewsCategoriesByNewsId(newsId: number): Promise<Categor
       id: categories.id,
       name: categories.name,
       nameAr: categories.nameAr,
+      nameEn: categories.nameEn,
+      nameSv: categories.nameSv,
       icon: categories.icon,
       color: categories.color,
       order: categories.order,
