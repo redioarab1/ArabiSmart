@@ -565,6 +565,7 @@ export default function Home() {
                   }`}
                 >
                   <span className="text-4xl">🇸🇦</span>
+                  <span className="text-[11px] font-semibold tracking-wide text-foreground/80">Arabic</span>
                   {(activeCategory === "arabic" || lang === "ar") && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
@@ -580,6 +581,7 @@ export default function Home() {
                   }`}
                 >
                   <span className="text-4xl">🇸🇪</span>
+                  <span className="text-[11px] font-semibold tracking-wide text-foreground/80">Swedish</span>
                   {(activeCategory === "swedish" || lang === "sv") && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
@@ -595,6 +597,7 @@ export default function Home() {
                   }`}
                 >
                   <span className="text-4xl">🇬🇧</span>
+                  <span className="text-[11px] font-semibold tracking-wide text-foreground/80">English</span>
                   {(activeCategory === "international" || lang === "en") && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
