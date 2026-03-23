@@ -557,48 +557,48 @@ export default function Home() {
               <div className="flex items-center gap-1 w-full">
                 {/* Arabic */}
                 <button
-                  onClick={() => { handleCategoryChange("arabic"); setLang("ar"); }}
+                  onClick={() => setLang("ar")}
                   className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 transition-all duration-200 ${
-                    activeCategory === "arabic" || lang === "ar"
+                    lang === "ar"
                       ? "bg-primary/20 ring-2 ring-primary shadow-md scale-105"
                       : "hover:bg-muted/60 hover:scale-105 opacity-75 hover:opacity-100"
                   }`}
                 >
                   <span className="text-4xl">🇸🇦</span>
                   <span className="text-[11px] font-semibold tracking-wide text-foreground/80">Arabic</span>
-                  {(activeCategory === "arabic" || lang === "ar") && (
+                  {lang === "ar" && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
                 </button>
 
                 {/* Swedish */}
                 <button
-                  onClick={() => { handleCategoryChange("swedish"); setLang("sv"); }}
+                  onClick={() => setLang("sv")}
                   className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 transition-all duration-200 ${
-                    activeCategory === "swedish" || lang === "sv"
+                    lang === "sv"
                       ? "bg-primary/20 ring-2 ring-primary shadow-md scale-105"
                       : "hover:bg-muted/60 hover:scale-105 opacity-75 hover:opacity-100"
                   }`}
                 >
                   <span className="text-4xl">🇸🇪</span>
                   <span className="text-[11px] font-semibold tracking-wide text-foreground/80">Swedish</span>
-                  {(activeCategory === "swedish" || lang === "sv") && (
+                  {lang === "sv" && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
                 </button>
 
-                {/* International / English */}
+                {/* English */}
                 <button
-                  onClick={() => { handleCategoryChange("international"); setLang("en"); }}
+                  onClick={() => setLang("en")}
                   className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 transition-all duration-200 ${
-                    activeCategory === "international" || lang === "en"
+                    lang === "en"
                       ? "bg-primary/20 ring-2 ring-primary shadow-md scale-105"
                       : "hover:bg-muted/60 hover:scale-105 opacity-75 hover:opacity-100"
                   }`}
                 >
                   <span className="text-4xl">🇬🇧</span>
                   <span className="text-[11px] font-semibold tracking-wide text-foreground/80">English</span>
-                  {(activeCategory === "international" || lang === "en") && (
+                  {lang === "en" && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
                 </button>
