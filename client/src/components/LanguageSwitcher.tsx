@@ -4,7 +4,7 @@ import { SiteLang } from "@/lib/translations";
 const LANGS: { code: SiteLang; flag: string; label: string }[] = [
   { code: "ar", flag: "🇸🇦", label: "العربية" },
   { code: "sv", flag: "🇸🇪", label: "Svenska" },
-  { code: "en", flag: "🌍", label: "English" },
+  { code: "en", flag: "🇬🇧", label: "English" },
 ];
 
 interface LanguageSwitcherProps {

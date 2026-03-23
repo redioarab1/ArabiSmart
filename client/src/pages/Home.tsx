@@ -77,7 +77,7 @@ export default function Home() {
 
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { t, lang } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
   const utils = trpc.useUtils();
 
   // dir/lang are managed by LanguageContext — no need to override here
@@ -529,37 +529,77 @@ export default function Home() {
         }`}
       >
         <div className="container py-4">
-          <div className="flex items-center gap-3 w-full">
-            {/* Category Tabs */}
-            <Tabs value={activeCategory} onValueChange={(v) => handleCategoryChange(v as NewsCategory)} className="flex-1">
-              <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-background/50 backdrop-blur">
-                <TabsTrigger 
-                  value="all" 
-                  className="arabic-text data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-3"
-                >
-                  <img 
-                    src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028696863/TREiIprHXGJofwwf.png" 
-                    alt="ArabiSmart News"
-                    loading="eager" 
-                    className="h-16 w-auto object-contain"
-                  />
-                </TabsTrigger>
-                <TabsTrigger value="arabic" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                  <span className="text-4xl">🇸🇦</span>
-                </TabsTrigger>
-                <TabsTrigger value="swedish" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                  <span className="text-4xl">🇸🇪</span>
-                </TabsTrigger>
-                <TabsTrigger value="international" className="flex-1 arabic-text data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                  <span className="text-4xl">🌍</span>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+          {/* Combined: Category Filter + Language Switcher */}
+          <div className="flex items-center w-full gap-2">
+            {/* Logo tab */}
+            <button
+              onClick={() => handleCategoryChange("all")}
+              className={`flex-shrink-0 flex items-center justify-center rounded-xl px-3 py-2 transition-all duration-200 ${
+                activeCategory === "all"
+                  ? "bg-primary/20 ring-2 ring-primary shadow"
+                  : "hover:bg-muted/60"
+              }`}
+            >
+              <img
+                src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663028696863/TREiIprHXGJofwwf.png"
+                alt="ArabiSmart News"
+                loading="eager"
+                className="h-14 w-auto object-contain"
+              />
+            </button>
 
-            {/* Language Switcher - inline flags */}
-            <div className="hidden md:flex flex-col items-center border-r border-border/50 pr-3 gap-0.5">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground select-none">Language</span>
-              <LanguageSwitcher variant="inline" />
+            {/* Divider */}
+            <div className="h-12 w-px bg-border/60 flex-shrink-0" />
+
+            {/* Language label + flags — each flag = filter category + language switch */}
+            <div className="flex flex-col items-start gap-0.5 flex-1">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground select-none px-1">Language</span>
+              <div className="flex items-center gap-1 w-full">
+                {/* Arabic */}
+                <button
+                  onClick={() => { handleCategoryChange("arabic"); setLang("ar"); }}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 transition-all duration-200 ${
+                    activeCategory === "arabic" || lang === "ar"
+                      ? "bg-primary/20 ring-2 ring-primary shadow-md scale-105"
+                      : "hover:bg-muted/60 hover:scale-105 opacity-75 hover:opacity-100"
+                  }`}
+                >
+                  <span className="text-4xl">🇸🇦</span>
+                  {(activeCategory === "arabic" || lang === "ar") && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  )}
+                </button>
+
+                {/* Swedish */}
+                <button
+                  onClick={() => { handleCategoryChange("swedish"); setLang("sv"); }}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 transition-all duration-200 ${
+                    activeCategory === "swedish" || lang === "sv"
+                      ? "bg-primary/20 ring-2 ring-primary shadow-md scale-105"
+                      : "hover:bg-muted/60 hover:scale-105 opacity-75 hover:opacity-100"
+                  }`}
+                >
+                  <span className="text-4xl">🇸🇪</span>
+                  {(activeCategory === "swedish" || lang === "sv") && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  )}
+                </button>
+
+                {/* International / English */}
+                <button
+                  onClick={() => { handleCategoryChange("international"); setLang("en"); }}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl py-2 transition-all duration-200 ${
+                    activeCategory === "international" || lang === "en"
+                      ? "bg-primary/20 ring-2 ring-primary shadow-md scale-105"
+                      : "hover:bg-muted/60 hover:scale-105 opacity-75 hover:opacity-100"
+                  }`}
+                >
+                  <span className="text-4xl">🇬🇧</span>
+                  {(activeCategory === "international" || lang === "en") && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
           
