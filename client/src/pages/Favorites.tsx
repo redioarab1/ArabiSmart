@@ -23,18 +23,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Favorites() {
   const [category, setCategory] = useState<string>("all");
   const [localFavorites, setLocalFavorites] = useState<number[]>([]);
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
-
-  // Set RTL direction
-  useEffect(() => {
-    document.documentElement.setAttribute("dir", "rtl");
-    document.documentElement.setAttribute("lang", "ar");
-  }, []);
+  const { t, lang } = useLanguage();
 
   // Load favorites from localStorage for non-authenticated users
   useEffect(() => {
@@ -63,7 +60,7 @@ export default function Favorites() {
 
   const removeFavoriteMutation = trpc.favorites.remove.useMutation({
     onSuccess: () => {
-      toast.success("تمت إزالة الخبر من المفضلة");
+      toast.success(lang === "ar" ? "تمت إزالة الخبر من المفضلة" : lang === "sv" ? "Nyhet borttagen från favoriter" : "News removed from favorites");
       utils.favorites.list.invalidate();
     },
   });
@@ -74,7 +71,7 @@ export default function Favorites() {
       const newFavorites = localFavorites.filter(id => id !== newsId);
       setLocalFavorites(newFavorites);
       localStorage.setItem("favorites", JSON.stringify(newFavorites));
-      toast.success("تمت إزالة الخبر من المفضلة");
+      toast.success(lang === "ar" ? "تمت إزالة الخبر من المفضلة" : lang === "sv" ? "Nyhet borttagen från favoriter" : "News removed from favorites");
       return;
     }
 
@@ -86,7 +83,7 @@ export default function Favorites() {
     if (!isAuthenticated) {
       setLocalFavorites([]);
       localStorage.removeItem("favorites");
-      toast.success("تم مسح جميع المفضلة");
+      toast.success(lang === "ar" ? "تم مسح جميع المفضلة" : lang === "sv" ? "Alla favoriter rensade" : "All favorites cleared");
       return;
     }
 
@@ -135,19 +132,22 @@ export default function Favorites() {
             <div className="flex items-center gap-3">
               <Heart className="h-8 w-8 text-red-500 fill-current" />
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold arabic-text">المفضلة</h1>
-                <p className="text-sm text-muted-foreground arabic-text">
-                  {filteredFavorites.length} خبر محفوظ
+                <h1 className="text-2xl md:text-3xl font-bold">{lang === "ar" ? "المفضلة" : lang === "sv" ? "Favoriter" : "Favorites"}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {filteredFavorites.length} {lang === "ar" ? "خبر محفوظ" : lang === "sv" ? "sparade nyheter" : "saved news"}
                 </p>
               </div>
             </div>
             
-            <Link href="/">
-              <Button variant="outline" className="arabic-text">
-                <ArrowRight className="h-4 w-4 ml-2" />
-                العودة للرئيسية
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <Link href="/">
+                <Button variant="outline">
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                  {t.home}
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -160,17 +160,17 @@ export default function Favorites() {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium arabic-text">تصفية:</span>
+                  <span className="text-sm font-medium">{lang === "ar" ? "تصفية:" : lang === "sv" ? "Filtrera:" : "Filter:"}</span>
                 </div>
                 
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-[200px] arabic-text">
-                    <SelectValue placeholder="جميع الفئات" />
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder={lang === "ar" ? "جميع الفئات" : lang === "sv" ? "Alla kategorier" : "All Categories"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">جميع الفئات</SelectItem>
-                    <SelectItem value="عربية">عربية</SelectItem>
-                    <SelectItem value="SE">سويدية</SelectItem>
+                    <SelectItem value="all">{lang === "ar" ? "جميع الفئات" : lang === "sv" ? "Alla kategorier" : "All Categories"}</SelectItem>
+                    <SelectItem value="عربية">{lang === "ar" ? "عربية" : lang === "sv" ? "Arabiska" : "Arabic"}</SelectItem>
+                    <SelectItem value="SE">{lang === "ar" ? "سويدية" : lang === "sv" ? "Svenska" : "Swedish"}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -179,10 +179,9 @@ export default function Favorites() {
                 variant="destructive"
                 size="sm"
                 onClick={handleClearAll}
-                className="arabic-text"
               >
                 <Trash2 className="h-4 w-4 ml-2" />
-                مسح الكل
+                {lang === "ar" ? "مسح الكل" : lang === "sv" ? "Rensa alla" : "Clear All"}
               </Button>
             </div>
           </div>
@@ -267,18 +266,18 @@ export default function Favorites() {
                         className="w-full arabic-text group-hover:bg-primary group-hover:scale-105 transition-all"
                       >
                         <a href={item.link} target="_blank" rel="noopener noreferrer">
-                          <span>قراءة المزيد</span>
+                          <span>{lang === "ar" ? "قراءة المزيد" : lang === "sv" ? "Läs mer" : "Read More"}</span>
                           <ExternalLink className="h-4 w-4 mr-2" />
                         </a>
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full arabic-text"
+                        className="w-full"
                         onClick={() => handleRemoveFavorite(item.id)}
                       >
                         <Trash2 className="h-4 w-4 ml-2" />
-                        إزالة من المفضلة
+                        {lang === "ar" ? "إزالة من المفضلة" : lang === "sv" ? "Ta bort från favoriter" : "Remove from Favorites"}
                       </Button>
                     </CardContent>
                   </Card>
@@ -288,14 +287,14 @@ export default function Favorites() {
           ) : (
             <div className="text-center py-12">
               <HeartOff className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <h3 className="text-xl font-bold mb-2 arabic-text">لا توجد أخبار في المفضلة</h3>
-              <p className="text-muted-foreground arabic-text mb-6">
-                ابدأ بإضافة الأخبار المفضلة لديك من الصفحة الرئيسية
+              <h3 className="text-xl font-bold mb-2">{lang === "ar" ? "لا توجد أخبار في المفضلة" : lang === "sv" ? "Inga favoriter ännu" : "No favorites yet"}</h3>
+              <p className="text-muted-foreground mb-6">
+                {lang === "ar" ? "ابدأ بإضافة الأخبار المفضلة لديك من الصفحة الرئيسية" : lang === "sv" ? "Börja lägga till favoriter från startsidan" : "Start adding your favorite news from the home page"}
               </p>
               <Link href="/">
-                <Button className="arabic-text">
+                <Button>
                   <ArrowRight className="h-4 w-4 ml-2" />
-                  تصفح الأخبار
+                  {lang === "ar" ? "تصفح الأخبار" : lang === "sv" ? "Bläddra nyheter" : "Browse News"}
                 </Button>
               </Link>
             </div>

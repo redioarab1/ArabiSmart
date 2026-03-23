@@ -14,19 +14,16 @@ import {
   loadNotificationPreferences,
   getNotificationPermission,
 } from "@/lib/notifications";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NotificationSettings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>("default");
+  const { t, lang } = useLanguage();
 
   const { data: sources } = trpc.rssSources.list.useQuery();
-
-  // Set RTL direction
-  useEffect(() => {
-    document.documentElement.setAttribute("dir", "rtl");
-    document.documentElement.setAttribute("lang", "ar");
-  }, []);
 
   // Load preferences and permission status
   useEffect(() => {
@@ -46,9 +43,9 @@ export default function NotificationSettings() {
         enabled: true,
         sources: selectedSources,
       });
-      toast.success("تم تفعيل الإشعارات بنجاح");
+      toast.success(lang === "ar" ? "تم تفعيل الإشعارات بنجاح" : lang === "sv" ? "Aviseringar aktiverade" : "Notifications enabled");
     } else {
-      toast.error("تم رفض إذن الإشعارات");
+      toast.error(lang === "ar" ? "تم رفض إذن الإشعارات" : lang === "sv" ? "Avisering nekad" : "Notification permission denied");
       setPermissionStatus(getNotificationPermission());
     }
   };
@@ -59,7 +56,7 @@ export default function NotificationSettings() {
       enabled: false,
       sources: selectedSources,
     });
-    toast.success("تم إيقاف الإشعارات");
+    toast.success(lang === "ar" ? "تم إيقاف الإشعارات" : lang === "sv" ? "Aviseringar inaktiverade" : "Notifications disabled");
   };
 
   const handleToggleSource = (sourceName: string) => {
@@ -82,7 +79,7 @@ export default function NotificationSettings() {
         enabled: notificationsEnabled,
         sources: allSources,
       });
-      toast.success("تم تحديد جميع المصادر");
+      toast.success(lang === "ar" ? "تم تحديد جميع المصادر" : lang === "sv" ? "Alla källor valda" : "All sources selected");
     }
   };
 
@@ -92,11 +89,11 @@ export default function NotificationSettings() {
       enabled: notificationsEnabled,
       sources: [],
     });
-    toast.success("تم إلغاء تحديد جميع المصادر");
+    toast.success(lang === "ar" ? "تم إلغاء تحديد جميع المصادر" : lang === "sv" ? "Alla källor avvalda" : "All sources deselected");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/10">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/10" dir={t.dir}>
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
         <div className="container py-4">
@@ -104,19 +101,21 @@ export default function NotificationSettings() {
             <div className="flex items-center gap-3">
               <Bell className="h-8 w-8 text-primary" />
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold arabic-text">إعدادات الإشعارات</h1>
-                <p className="text-sm text-muted-foreground arabic-text">
-                  تحكم في إشعارات الأخبار العاجلة
+                <h1 className="text-2xl md:text-3xl font-bold">{lang === "ar" ? "إعدادات الإشعارات" : lang === "sv" ? "Aviseringsinställningar" : "Notification Settings"}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {lang === "ar" ? "تحكم في إشعارات الأخبار العاجلة" : lang === "sv" ? "Kontrollera dina nyhetsaviseringar" : "Control your breaking news notifications"}
                 </p>
               </div>
             </div>
-            
-            <Link href="/">
-              <Button variant="outline" className="arabic-text">
-                <ArrowRight className="h-4 w-4 ml-2" />
-                العودة للرئيسية
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <Link href="/">
+                <Button variant="outline">
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                  {t.home}
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -134,29 +133,29 @@ export default function NotificationSettings() {
                   ) : (
                     <BellOff className="h-5 w-5 text-muted-foreground" />
                   )}
-                  تفعيل الإشعارات
+                  {lang === "ar" ? "تفعيل الإشعارات" : lang === "sv" ? "Aktivera aviseringar" : "Enable Notifications"}
                 </CardTitle>
-                <CardDescription className="arabic-text">
-                  احصل على إشعارات فورية عند نشر أخبار جديدة من المصادر المفضلة لديك
+                <CardDescription>
+                  {lang === "ar" ? "احصل على إشعارات فورية عند نشر أخبار جديدة" : lang === "sv" ? "Få omedelbara aviseringar när nya nyheter publiceras" : "Get instant notifications when new news is published"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="font-medium arabic-text">
-                      {notificationsEnabled ? "الإشعارات مفعلة" : "الإشعارات معطلة"}
+                    <p className="font-medium">
+                      {notificationsEnabled ? (lang === "ar" ? "الإشعارات مفعلة" : lang === "sv" ? "Aviseringar aktiverade" : "Notifications enabled") : (lang === "ar" ? "الإشعارات معطلة" : lang === "sv" ? "Aviseringar inaktiverade" : "Notifications disabled")}
                     </p>
-                    <p className="text-sm text-muted-foreground arabic-text">
+                    <p className="text-sm text-muted-foreground">
                       {permissionStatus === "denied"
-                        ? "تم رفض إذن الإشعارات من المتصفح"
+                        ? (lang === "ar" ? "تم رفض إذن الإشعارات من المتصفح" : lang === "sv" ? "Avisering nekad av webbläsaren" : "Notification permission denied by browser")
                         : permissionStatus === "granted"
-                        ? "تم منح إذن الإشعارات"
-                        : "لم يتم طلب إذن الإشعارات بعد"}
+                        ? (lang === "ar" ? "تم منح إذن الإشعارات" : lang === "sv" ? "Avisering bevärdigad" : "Notification permission granted")
+                        : (lang === "ar" ? "لم يتم طلب إذن الإشعارات بعد" : lang === "sv" ? "Avisering inte begärd än" : "Notification permission not requested yet")}
                     </p>
                   </div>
                   
                   {permissionStatus === "denied" ? (
-                    <Badge variant="destructive" className="arabic-text">مرفوض</Badge>
+                    <Badge variant="destructive">{lang === "ar" ? "مرفوض" : lang === "sv" ? "Nekad" : "Denied"}</Badge>
                   ) : (
                     <Switch
                       checked={notificationsEnabled}
@@ -187,17 +186,17 @@ export default function NotificationSettings() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="arabic-text">اختر المصادر</CardTitle>
-                      <CardDescription className="arabic-text">
-                        حدد المصادر التي تريد تلقي إشعارات منها
+                      <CardTitle>{lang === "ar" ? "اختر المصادر" : lang === "sv" ? "Välj källor" : "Select Sources"}</CardTitle>
+                      <CardDescription>
+                        {lang === "ar" ? "حدد المصادر التي تريد تلقي إشعارات منها" : lang === "sv" ? "Välj källor du vill få aviseringar från" : "Select sources you want to receive notifications from"}
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={handleSelectAll} className="arabic-text">
-                        تحديد الكل
+                      <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                        {lang === "ar" ? "تحديد الكل" : lang === "sv" ? "Välj alla" : "Select All"}
                       </Button>
-                      <Button variant="outline" size="sm" onClick={handleClearAll} className="arabic-text">
-                        إلغاء الكل
+                      <Button variant="outline" size="sm" onClick={handleClearAll}>
+                        {lang === "ar" ? "إلغاء الكل" : lang === "sv" ? "Avvälj alla" : "Clear All"}
                       </Button>
                     </div>
                   </div>

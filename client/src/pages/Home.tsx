@@ -327,29 +327,14 @@ export default function Home() {
 
   const getCategoryLabel = (cat: NewsCategory) => {
     switch (cat) {
-      case "arabic":
-        return "الأخبار العربية";
-      case "swedish":
-        return "الأخبار السويدية";
-      case "international":
-        return "الأخبار العالمية";
-      default:
-        return "جميع الأخبار";
+      case "arabic": return t.catArabic;
+      case "swedish": return t.catSwedish;
+      case "international": return t.catInternational;
+      default: return t.catAll;
     }
   };
 
-  const getCategoryDescription = (cat: NewsCategory) => {
-    switch (cat) {
-      case "arabic":
-        return "أخبار من العالم العربي";
-      case "swedish":
-        return "أخبار السويد بالعربية والسويدية";
-      case "international":
-        return "أخبار عالمية بلغات متعددة";
-      default:
-        return "جميع الأخبار من كل المصادر";
-    }
-  };
+  const getCategoryDescription = (_cat: NewsCategory) => getCategoryLabel(_cat);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/10">
@@ -391,11 +376,11 @@ export default function Home() {
                 <div className="hidden md:flex items-center gap-6 text-sm">
                   <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
                     <p className="font-bold text-xl text-primary">{stats.totalNews}</p>
-                    <p className="text-muted-foreground arabic-text">خبر</p>
+                    <p className="text-muted-foreground arabic-text">{t.news}</p>
                   </div>
                   <div className="text-center px-4 py-2 rounded-lg bg-primary/10">
                     <p className="font-bold text-xl text-primary">{stats.activeSources}</p>
-                    <p className="text-muted-foreground arabic-text">مصدر</p>
+                    <p className="text-muted-foreground arabic-text">{t.source}</p>
                   </div>
                 </div>
               )}
@@ -419,7 +404,7 @@ export default function Home() {
                   </Button>
                   {/* Tooltip */}
                   <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900 dark:bg-slate-800 text-white text-xs px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-xl border border-slate-700/50 arabic-text z-50">
-                    ملخص اليوم
+                    {t.dailySummary}
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 dark:bg-slate-800 rotate-45 border-l border-t border-slate-700/50" />
                   </div>
                   {/* Live pulse dot */}
@@ -491,7 +476,7 @@ export default function Home() {
                 <a href={getLoginUrl()}>
                   <Button className="gap-2 rounded-full">
                     <LogIn className="h-5 w-5" />
-                    <span className="arabic-text hidden md:inline">تسجيل الدخول</span>
+                    <span className="arabic-text hidden md:inline">{t.login}</span>
                   </Button>
                 </a>
               )}
@@ -505,13 +490,13 @@ export default function Home() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => setFontSize('small')} className="arabic-text">
-                    <span className={fontSize === 'small' ? 'font-bold' : ''}>خط صغير</span>
+                    <span className={fontSize === 'small' ? 'font-bold' : ''}>{t.fontSmall}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFontSize('medium')} className="arabic-text">
-                    <span className={fontSize === 'medium' ? 'font-bold' : ''}>خط متوسط</span>
+                    <span className={fontSize === 'medium' ? 'font-bold' : ''}>{t.fontMedium}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFontSize('large')} className="arabic-text">
-                    <span className={fontSize === 'large' ? 'font-bold' : ''}>خط كبير</span>
+                    <span className={fontSize === 'large' ? 'font-bold' : ''}>{t.fontLarge}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -581,7 +566,7 @@ export default function Home() {
             {/* Search Bar */}
             <div className="flex gap-2 max-w-xl mx-auto">
               <Input
-                placeholder="ابحث في الأخبار..."
+                placeholder={t.searchPlaceholder}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -601,7 +586,7 @@ export default function Home() {
           <div className="flex flex-wrap items-center gap-4 justify-center">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium arabic-text">تصفية:</span>
+              <span className="text-sm font-medium arabic-text">{t.filter}:</span>
             </div>
             
             <Select value={source || "all"} onValueChange={handleSourceChange}>
@@ -609,7 +594,7 @@ export default function Home() {
                 <SelectValue placeholder="جميع المصادر" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">جميع المصادر</SelectItem>
+                <SelectItem value="all">{t.allSources}</SelectItem>
                 {sources?.map((s) => (
                   <SelectItem key={s.id} value={s.name}>
                     {s.name}
@@ -625,10 +610,10 @@ export default function Home() {
                   <SelectValue placeholder="الفترة الزمنية" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">📅 كل الأوقات</SelectItem>
-                  <SelectItem value="today">🔥 أخبار اليوم</SelectItem>
-                  <SelectItem value="week">📆 هذا الأسبوع</SelectItem>
-                  <SelectItem value="month">📊 هذا الشهر</SelectItem>
+                  <SelectItem value="all">📅 {t.allTimes}</SelectItem>
+                  <SelectItem value="today">🔥 {t.today}</SelectItem>
+                  <SelectItem value="week">📆 {t.thisWeek}</SelectItem>
+                  <SelectItem value="month">📊 {t.thisMonth}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -646,7 +631,7 @@ export default function Home() {
                 }}
                 className="arabic-text"
               >
-                إعادة تعيين
+                {t.retry}
               </Button>
             )}
           </div>
@@ -666,7 +651,7 @@ export default function Home() {
                   className="arabic-text whitespace-nowrap flex-shrink-0 gap-1.5 border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                 >
                   <Tv2 className="w-4 h-4" />
-                  <span>فيديو</span>
+                  <span>{t.catVideo}</span>
                 </Button>
               </Link>
               <div className="h-6 w-px bg-border flex-shrink-0 mx-1" />
@@ -676,7 +661,7 @@ export default function Home() {
                 onClick={() => { setSelectedCategoryId(null); setPage(1); }}
                 className="arabic-text whitespace-nowrap flex-shrink-0"
               >
-                الكل
+                {t.catAll}
               </Button>
               {categories.map((category: any) => (
                 <Button
@@ -752,7 +737,7 @@ export default function Home() {
                               variant={isFav ? "default" : "secondary"}
                               className="shadow-lg"
                               onClick={() => handleToggleFavorite(item.id)}
-                              title="إضافة للمفضلة"
+                              title={t.addToFavorites}
                             >
                               <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
                             </Button>
@@ -761,7 +746,7 @@ export default function Home() {
                               variant={isArchived ? "default" : "secondary"}
                               className={`shadow-lg transition-all ${isArchived ? "bg-amber-500 hover:bg-amber-600 border-amber-500" : ""}`}
                               onClick={() => handleToggleArchive(item.id)}
-                              title={isArchived ? "إزالة من الأرشيف" : "حفظ في الأرشيف"}
+                              title={isArchived ? t.unarchive : t.archiveNews}
                               disabled={archiveMutation.isPending}
                             >
                               <Archive className={`h-4 w-4 ${isArchived ? "fill-current" : ""}`} />
@@ -776,19 +761,19 @@ export default function Home() {
                               <DropdownMenuContent align="end" className="arabic-text">
                                 <DropdownMenuItem onClick={() => handleShare(item, "whatsapp")}>
                                   <span className="text-lg ml-2">📱</span>
-                                  واتساب
+                                  {t.whatsapp}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleShare(item, "twitter")}>
                                   <span className="text-lg ml-2">🐦</span>
-                                  تويتر
+                                  {t.twitter}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleShare(item, "facebook")}>
                                   <span className="text-lg ml-2">📘</span>
-                                  فيسبوك
+                                  {t.facebook}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleShare(item, "copy")}>
                                   <Copy className="h-4 w-4 ml-2" />
-                                  نسخ الرابط
+                                  {t.copyLink}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -807,7 +792,7 @@ export default function Home() {
                               ) : (
                                 <Languages className="h-4 w-4 ml-2" />
                               )}
-                              <span className="arabic-text">{isTranslated ? "مترجم" : "ترجمة"}</span>
+                              <span className="arabic-text">{isTranslated ? t.translated : t.translate}</span>
                             </Button>
                           )}
                         </div>
@@ -850,7 +835,7 @@ export default function Home() {
                             size="sm"
                             className="w-full arabic-text group-hover:bg-primary group-hover:scale-105 transition-all"
                           >
-                            <span>قراءة المزيد</span>
+                            <span>{t.readMore}</span>
                             <ExternalLink className="h-4 w-4 mr-2" />
                           </Button>
                         </Link>
@@ -869,10 +854,10 @@ export default function Home() {
                     disabled={page === 1}
                     className="arabic-text"
                   >
-                    السابق
+                    {lang === "ar" ? "السابق" : lang === "sv" ? "Föregående" : "Previous"}
                   </Button>
                   <span className="text-sm text-muted-foreground arabic-text px-4">
-                    صفحة {page} من {displayNewsData.totalPages}
+                    {lang === "ar" ? `صفحة ${page} من ${displayNewsData.totalPages}` : lang === "sv" ? `Sida ${page} av ${displayNewsData.totalPages}` : `Page ${page} of ${displayNewsData.totalPages}`}
                   </span>
                   <Button
                     variant="outline"
@@ -880,7 +865,7 @@ export default function Home() {
                     disabled={page === displayNewsData.totalPages}
                     className="arabic-text"
                   >
-                    التالي
+                    {lang === "ar" ? "التالي" : lang === "sv" ? "Nästa" : "Next"}
                   </Button>
                 </div>
               )}
@@ -889,7 +874,7 @@ export default function Home() {
             <div className="text-center py-12">
               <Globe className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
               <p className="text-lg text-muted-foreground arabic-text">
-                لا توجد أخبار متاحة حالياً في هذا القسم
+                {t.noNews}
               </p>
             </div>
           )}
@@ -901,19 +886,19 @@ export default function Home() {
         <div className="container text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
-            <p className="text-sm font-medium arabic-text">ArabiSmart News - تغطية بلا حدود</p>
+            <p className="text-sm font-medium arabic-text">ArabiSmart News - {t.siteSlogan}</p>
           </div>
           <div className="flex items-center justify-center flex-wrap gap-4 text-sm text-muted-foreground arabic-text">
-            <Link href="/about"><span className="hover:text-foreground cursor-pointer transition-colors">عن الموقع</span></Link>
+            <Link href="/about"><span className="hover:text-foreground cursor-pointer transition-colors">{t.about}</span></Link>
             <span>•</span>
-            <Link href="/contact"><span className="hover:text-foreground cursor-pointer transition-colors">اتصل بنا</span></Link>
+            <Link href="/contact"><span className="hover:text-foreground cursor-pointer transition-colors">{t.contact}</span></Link>
             <span>•</span>
-            <Link href="/privacy"><span className="hover:text-foreground cursor-pointer transition-colors">سياسة الخصوصية</span></Link>
+            <Link href="/privacy"><span className="hover:text-foreground cursor-pointer transition-colors">{t.privacy}</span></Link>
             <span>•</span>
-            <Link href="/daily-summary"><span className="hover:text-foreground cursor-pointer transition-colors">الملخص اليومي</span></Link>
+            <Link href="/daily-summary"><span className="hover:text-foreground cursor-pointer transition-colors">{t.dailySummary}</span></Link>
           </div>
           <p className="text-sm text-muted-foreground arabic-text">
-            © 2026 ArabiSmart News. جميع الحقوق محفوظة.
+            © 2026 ArabiSmart News. {t.allRightsReserved}.
           </p>
           {stats?.lastUpdate && (
             <p className="text-xs text-muted-foreground arabic-text">

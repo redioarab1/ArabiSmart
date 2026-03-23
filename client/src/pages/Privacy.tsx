@@ -4,12 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import ScrollToTop from "@/components/ScrollToTop";
 import SEOHead from "@/components/SEOHead";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Privacy() {
-  const lastUpdated = "23 مارس 2026";
+  const { t, lang } = useLanguage();
+  const lastUpdated = lang === "ar" ? "23 مارس 2026" : lang === "sv" ? "23 mars 2026" : "March 23, 2026";
+  const pageTitle = lang === "ar" ? "سياسة الخصوصية" : lang === "sv" ? "Integritetspolicy" : "Privacy Policy";
+  const pageSubtitle = lang === "ar" ? "سياسة الخصوصية وحماية البيانات" : lang === "sv" ? "Integritetspolicy och dataskydd" : "Privacy Policy and Data Protection";
+  const lastUpdatedLabel = lang === "ar" ? `آخر تحديث: ${lastUpdated}` : lang === "sv" ? `Senast uppdaterad: ${lastUpdated}` : `Last updated: ${lastUpdated}`;
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground" dir={t.dir}>
       <SEOHead
         title="سياسة الخصوصية"
         description="سياسة الخصوصية لموقع عربي سمارت للأخبار. تعرّف على كيفية جمع بياناتك واستخدامها وحمايتها وحقوقك كمستخدم."
@@ -26,9 +32,10 @@ export default function Privacy() {
             </div>
           </Link>
           <nav className="flex items-center gap-4 text-sm">
-            <Link href="/"><span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">الرئيسية</span></Link>
-            <Link href="/about"><span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">عن الموقع</span></Link>
-            <Link href="/contact"><span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">اتصل بنا</span></Link>
+            <Link href="/"><span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{t.home}</span></Link>
+            <Link href="/about"><span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{t.about}</span></Link>
+            <Link href="/contact"><span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{t.contact}</span></Link>
+            <LanguageSwitcher />
           </nav>
         </div>
       </header>
@@ -36,14 +43,12 @@ export default function Privacy() {
       {/* Hero */}
       <section className="py-12 bg-gradient-to-b from-primary/10 to-background">
         <div className="container text-center space-y-4 max-w-2xl mx-auto">
-          <Badge variant="outline" className="arabic-text">
+          <Badge variant="outline">
             <Shield className="h-3 w-3 ml-1" />
-            سياسة الخصوصية
+            {pageTitle}
           </Badge>
-          <h1 className="text-3xl font-bold arabic-text">سياسة الخصوصية وحماية البيانات</h1>
-          <p className="text-muted-foreground arabic-text">
-            آخر تحديث: {lastUpdated}
-          </p>
+          <h1 className="text-3xl font-bold">{pageSubtitle}</h1>
+          <p className="text-muted-foreground">{lastUpdatedLabel}</p>
         </div>
       </section>
 
@@ -52,18 +57,18 @@ export default function Privacy() {
         <div className="grid md:grid-cols-3 gap-4 mb-12">
           <Card className="p-5 text-center space-y-2 border-green-500/20 bg-green-500/5">
             <Eye className="h-8 w-8 text-green-500 mx-auto" />
-            <h3 className="font-semibold arabic-text text-sm">شفافية كاملة</h3>
-            <p className="text-xs text-muted-foreground arabic-text">نُخبرك بكل ما نجمعه من بيانات</p>
+            <h3 className="font-semibold text-sm">{lang === "ar" ? "شفافية كاملة" : lang === "sv" ? "Full transparens" : "Full Transparency"}</h3>
+            <p className="text-xs text-muted-foreground">{lang === "ar" ? "نُخبرك بكل ما نجمعه من بيانات" : lang === "sv" ? "Vi berättar allt vi samlar in" : "We tell you everything we collect"}</p>
           </Card>
           <Card className="p-5 text-center space-y-2 border-blue-500/20 bg-blue-500/5">
             <Lock className="h-8 w-8 text-blue-500 mx-auto" />
-            <h3 className="font-semibold arabic-text text-sm">حماية قوية</h3>
-            <p className="text-xs text-muted-foreground arabic-text">بياناتك محمية بأحدث تقنيات التشفير</p>
+            <h3 className="font-semibold text-sm">{lang === "ar" ? "حماية قوية" : lang === "sv" ? "Starkt skydd" : "Strong Protection"}</h3>
+            <p className="text-xs text-muted-foreground">{lang === "ar" ? "بياناتك محمية بأحدث تقنيات التشفير" : lang === "sv" ? "Dina data skyddas med modern kryptering" : "Your data is protected with modern encryption"}</p>
           </Card>
           <Card className="p-5 text-center space-y-2 border-purple-500/20 bg-purple-500/5">
             <UserCheck className="h-8 w-8 text-purple-500 mx-auto" />
-            <h3 className="font-semibold arabic-text text-sm">حقوقك محفوظة</h3>
-            <p className="text-xs text-muted-foreground arabic-text">يمكنك طلب حذف بياناتك في أي وقت</p>
+            <h3 className="font-semibold text-sm">{lang === "ar" ? "حقوقك محفوظة" : lang === "sv" ? "Dina rättigheter" : "Your Rights"}</h3>
+            <p className="text-xs text-muted-foreground">{lang === "ar" ? "يمكنك طلب حذف بياناتك في أي وقت" : lang === "sv" ? "Du kan begära radering av dina uppgifter" : "You can request deletion of your data anytime"}</p>
           </Card>
         </div>
 
@@ -271,17 +276,17 @@ export default function Privacy() {
         <div className="container text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
-            <p className="text-sm font-medium arabic-text">ArabiSmart News - تغطية بلا حدود</p>
+            <p className="text-sm font-medium">ArabiSmart News - {t.siteSlogan}</p>
           </div>
-          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground arabic-text">
-            <Link href="/privacy"><span className="hover:text-foreground cursor-pointer transition-colors">سياسة الخصوصية</span></Link>
+          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+            <Link href="/privacy"><span className="hover:text-foreground cursor-pointer transition-colors">{t.privacy}</span></Link>
             <span>•</span>
-            <Link href="/contact"><span className="hover:text-foreground cursor-pointer transition-colors">اتصل بنا</span></Link>
+            <Link href="/contact"><span className="hover:text-foreground cursor-pointer transition-colors">{t.contact}</span></Link>
             <span>•</span>
-            <Link href="/about"><span className="hover:text-foreground cursor-pointer transition-colors">عن الموقع</span></Link>
+            <Link href="/about"><span className="hover:text-foreground cursor-pointer transition-colors">{t.about}</span></Link>
           </div>
-          <p className="text-sm text-muted-foreground arabic-text">
-            © 2026 ArabiSmart News. جميع الحقوق محفوظة.
+          <p className="text-sm text-muted-foreground">
+            © 2026 ArabiSmart News. {t.allRightsReserved}.
           </p>
         </div>
       </footer>

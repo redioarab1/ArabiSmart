@@ -18,16 +18,13 @@ import {
   Calendar,
   TrendingUp,
 } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Profile() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
-
-  // Set RTL direction
-  useEffect(() => {
-    document.documentElement.setAttribute("dir", "rtl");
-    document.documentElement.setAttribute("lang", "ar");
-  }, []);
+  const { t, lang } = useLanguage();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -98,19 +95,21 @@ export default function Profile() {
             <div className="flex items-center gap-3">
               <User className="h-8 w-8 text-primary" />
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold arabic-text">الملف الشخصي</h1>
-                <p className="text-sm text-muted-foreground arabic-text">
-                  إحصائياتك ونشاطك
+                <h1 className="text-2xl md:text-3xl font-bold">{lang === "ar" ? "الملف الشخصي" : lang === "sv" ? "Profil" : "Profile"}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {lang === "ar" ? "إحصائياتك ونشاطك" : lang === "sv" ? "Din statistik och aktivitet" : "Your statistics and activity"}
                 </p>
               </div>
             </div>
-            
-            <Link href="/">
-              <Button variant="outline" className="arabic-text">
-                <ArrowRight className="h-4 w-4 ml-2" />
-                العودة للرئيسية
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <Link href="/">
+                <Button variant="outline">
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                  {t.home}
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -128,12 +127,12 @@ export default function Profile() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-right">
-                  <CardTitle className="text-2xl arabic-text">{user.name || "مستخدم"}</CardTitle>
-                  <CardDescription className="arabic-text">{user.email}</CardDescription>
+                  <CardTitle className="text-2xl">{user.name || (lang === "ar" ? "مستخدم" : lang === "sv" ? "Användare" : "User")}</CardTitle>
+                  <CardDescription>{user.email}</CardDescription>
                   <div className="flex gap-2 mt-2 justify-end">
-                    <Badge>{user.role === "admin" ? "مسؤول" : "مستخدم"}</Badge>
+                    <Badge>{user.role === "admin" ? (lang === "ar" ? "مسؤول" : lang === "sv" ? "Admin" : "Admin") : (lang === "ar" ? "مستخدم" : lang === "sv" ? "Användare" : "User")}</Badge>
                     <Badge variant="outline">
-                      انضم: {new Date(user.createdAt).toLocaleDateString("ar-SA")}
+                      {lang === "ar" ? "انضم" : lang === "sv" ? "Gick med" : "Joined"}: {new Date(user.createdAt).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "sv" ? "sv-SE" : "en-US")}
                     </Badge>
                   </div>
                 </div>
@@ -147,13 +146,13 @@ export default function Profile() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium arabic-text flex items-center justify-between">
                   <MessageCircle className="h-5 w-5 text-primary" />
-                  <span>التعليقات</span>
+                  <span>{lang === "ar" ? "التعليقات" : lang === "sv" ? "Kommentarer" : "Comments"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-right">{totalComments}</div>
-                <p className="text-xs text-muted-foreground arabic-text text-right mt-1">
-                  إجمالي التعليقات
+                <p className="text-xs text-muted-foreground text-right mt-1">
+                  {lang === "ar" ? "إجمالي التعليقات" : lang === "sv" ? "Totalt antal kommentarer" : "Total comments"}
                 </p>
               </CardContent>
             </Card>
@@ -162,13 +161,13 @@ export default function Profile() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium arabic-text flex items-center justify-between">
                   <Star className="h-5 w-5 text-yellow-500" />
-                  <span>التقييمات</span>
+                  <span>{lang === "ar" ? "التقييمات" : lang === "sv" ? "Betyg" : "Ratings"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-right">{totalRatings}</div>
-                <p className="text-xs text-muted-foreground arabic-text text-right mt-1">
-                  متوسط: {averageRating.toFixed(1)} ⭐
+                <p className="text-xs text-muted-foreground text-right mt-1">
+                  {lang === "ar" ? "متوسط" : lang === "sv" ? "Genomsnitt" : "Average"}: {averageRating.toFixed(1)} ⭐
                 </p>
               </CardContent>
             </Card>
@@ -177,13 +176,13 @@ export default function Profile() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium arabic-text flex items-center justify-between">
                   <Heart className="h-5 w-5 text-red-500" />
-                  <span>المفضلة</span>
+                  <span>{lang === "ar" ? "المفضلة" : lang === "sv" ? "Favoriter" : "Favorites"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-right">{displayFavorites}</div>
-                <p className="text-xs text-muted-foreground arabic-text text-right mt-1">
-                  أخبار محفوظة
+                <p className="text-xs text-muted-foreground text-right mt-1">
+                  {lang === "ar" ? "أخبار محفوظة" : lang === "sv" ? "Sparade nyheter" : "Saved news"}
                 </p>
               </CardContent>
             </Card>
@@ -192,15 +191,15 @@ export default function Profile() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium arabic-text flex items-center justify-between">
                   <TrendingUp className="h-5 w-5 text-green-500" />
-                  <span>النشاط</span>
+                  <span>{lang === "ar" ? "النشاط" : lang === "sv" ? "Aktivitet" : "Activity"}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-right">
                   {totalComments + totalRatings}
                 </div>
-                <p className="text-xs text-muted-foreground arabic-text text-right mt-1">
-                  إجمالي التفاعلات
+                <p className="text-xs text-muted-foreground text-right mt-1">
+                  {lang === "ar" ? "إجمالي التفاعلات" : lang === "sv" ? "Totalt antal interaktioner" : "Total interactions"}
                 </p>
               </CardContent>
             </Card>
@@ -209,9 +208,9 @@ export default function Profile() {
           {/* Recent Comments */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="arabic-text flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                آخر التعليقات
+                {lang === "ar" ? "آخر التعليقات" : lang === "sv" ? "Senaste kommentarer" : "Recent Comments"}
               </CardTitle>
             </CardHeader>
             <CardContent>

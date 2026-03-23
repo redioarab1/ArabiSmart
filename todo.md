@@ -799,3 +799,16 @@
 - [x] تحديث منطق الترجمة: عربي → إنجليزي+سويدي، سويدي → عربي+إنجليزي، إنجليزي → عربي+سويدي
 - [x] تطبيق dir="rtl" تلقائياً عند اختيار العربية و dir="ltr" للغات الأخرى
 - [x] تحديث صفحة NewsDetail لعرض أزرار الترجمة للغتين الأخريين وزر العودة للنص الأصلي
+
+## الترجمة الكاملة لجميع عناصر الواجهة (مكتمل)
+- [x] توسيع translations.ts بجميع النصوص المفقودة (فئات، أزرار، فلاتر، قوائم)
+- [x] تطبيق useLanguage على Home.tsx (الفئات، الفلاتر، الأزرار، الإحصائيات)
+- [x] تطبيق useLanguage على About.tsx
+- [x] تطبيق useLanguage على Contact.tsx
+- [x] تطبيق useLanguage على Privacy.tsx
+- [x] تطبيق useLanguage على DailySummary.tsx
+- [x] تطبيق useLanguage على Favorites.tsx
+- [x] تطبيق useLanguage على Archive.tsx
+- [x] تطبيق useLanguage على Profile.tsx
+- [x] تطبيق useLanguage على Settings.tsx
+- [x] تطبيق useLanguage على NotificationSettings.tsx

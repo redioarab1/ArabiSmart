@@ -9,15 +9,18 @@ import { Archive, ArrowRight, Calendar, ExternalLink, Trash2, Home } from "lucid
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ArchivePage() {
   const { user, loading, isAuthenticated } = useAuth();
+  const { t, lang } = useLanguage();
   const { data: archivedNews, isLoading, refetch } = trpc.archive.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
   const unarchiveMutation = trpc.archive.toggle.useMutation({
     onSuccess: () => {
-      toast.success("تمت إزالة الخبر من الأرشيف");
+      toast.success(lang === "ar" ? "تمت إزالة الخبر من الأرشيف" : lang === "sv" ? "Nyhet borttagen från arkivet" : "News removed from archive");
       refetch();
     },
   });
@@ -51,14 +54,17 @@ export default function ArchivePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Archive className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl md:text-3xl font-bold arabic-text">الأرشيف</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">{lang === "ar" ? "الأرشيف" : lang === "sv" ? "Arkiv" : "Archive"}</h1>
             </div>
-            <Link href="/">
-              <Button variant="outline" className="gap-2">
-                <Home className="h-4 w-4" />
-                <span className="arabic-text">الرئيسية</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <Link href="/">
+                <Button variant="outline" className="gap-2">
+                  <Home className="h-4 w-4" />
+                  <span>{t.home}</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -70,14 +76,14 @@ export default function ArchivePage() {
             <CardContent className="space-y-4">
               <Archive className="h-16 w-16 mx-auto text-muted-foreground" />
               <div>
-                <h3 className="text-xl font-semibold mb-2 arabic-text">لا توجد أخبار مؤرشفة</h3>
-                <p className="text-muted-foreground arabic-text">
-                  يمكنك أرشفة الأخبار من الصفحة الرئيسية للوصول إليها لاحقاً
+                <h3 className="text-xl font-semibold mb-2">{lang === "ar" ? "لا توجد أخبار مؤرشفة" : lang === "sv" ? "Inga arkiverade nyheter" : "No archived news"}</h3>
+                <p className="text-muted-foreground">
+                  {lang === "ar" ? "يمكنك أرشفة الأخبار من الصفحة الرئيسية للوصول إليها لاحقاً" : lang === "sv" ? "Du kan arkivera nyheter från startsidan" : "You can archive news from the home page"}
                 </p>
               </div>
               <Link href="/">
                 <Button className="gap-2">
-                  <span className="arabic-text">تصفح الأخبار</span>
+                  <span>{lang === "ar" ? "تصفح الأخبار" : lang === "sv" ? "Bläddra nyheter" : "Browse News"}</span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -86,8 +92,8 @@ export default function ArchivePage() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-muted-foreground arabic-text">
-                {archivedNews.length} خبر مؤرشف
+              <p className="text-muted-foreground">
+                {archivedNews.length} {lang === "ar" ? "خبر مؤرشف" : lang === "sv" ? "arkiverade nyheter" : "archived news"}
               </p>
             </div>
 
@@ -142,20 +148,20 @@ export default function ArchivePage() {
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
-                                <span className="arabic-text">
-                                  {new Date(newsItem.publishedAt).toLocaleDateString("ar-EG")}
+                                <span>
+                                  {new Date(newsItem.publishedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : lang === "sv" ? "sv-SE" : "en-US")}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <Archive className="h-4 w-4" />
-                                <span className="arabic-text">
-                                  {new Date(item.archivedAt).toLocaleDateString("ar-EG")}
+                                <span>
+                                  {new Date(item.archivedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : lang === "sv" ? "sv-SE" : "en-US")}
                                 </span>
                               </div>
                             </div>
                             <Link href={`/news/${newsItem.id}`}>
                               <Button variant="outline" size="sm" className="gap-2">
-                                <span className="arabic-text">قراءة المزيد</span>
+                                <span>{lang === "ar" ? "قراءة المزيد" : lang === "sv" ? "Läs mer" : "Read More"}</span>
                                 <ExternalLink className="h-4 w-4" />
                               </Button>
                             </Link>

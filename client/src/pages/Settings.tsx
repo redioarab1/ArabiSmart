@@ -10,9 +10,12 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 import { Separator } from "@/components/ui/separator";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Settings() {
   const { user, loading, isAuthenticated } = useAuth();
+  const { t, lang } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -34,7 +37,7 @@ export default function Settings() {
     setIsSaving(true);
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success("تم حفظ التغييرات بنجاح");
+    toast.success(lang === "ar" ? "تم حفظ التغييرات بنجاح" : lang === "sv" ? "Ändringarna har sparats" : "Changes saved successfully");
     setIsSaving(false);
   };
 
@@ -61,14 +64,17 @@ export default function Settings() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <SettingsIcon className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl md:text-3xl font-bold arabic-text">إعدادات الحساب</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">{lang === "ar" ? "إعدادات الحساب" : lang === "sv" ? "Kontoinställningar" : "Account Settings"}</h1>
             </div>
-            <Link href="/">
-              <Button variant="outline" className="gap-2">
-                <Home className="h-4 w-4" />
-                <span className="arabic-text">الرئيسية</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <Link href="/">
+                <Button variant="outline" className="gap-2">
+                  <Home className="h-4 w-4" />
+                  <span>{t.home}</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -79,27 +85,27 @@ export default function Settings() {
           {/* Profile Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 arabic-text">
+              <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                المعلومات الشخصية
+                {lang === "ar" ? "المعلومات الشخصية" : lang === "sv" ? "Personlig information" : "Personal Information"}
               </CardTitle>
-              <CardDescription className="arabic-text">
-                قم بتحديث معلومات حسابك الشخصية
+              <CardDescription>
+                {lang === "ar" ? "قم بتحديث معلومات حسابك الشخصية" : lang === "sv" ? "Uppdatera dina kontoinställningar" : "Update your personal account information"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="arabic-text">الاسم</Label>
+                <Label htmlFor="name">{lang === "ar" ? "الاسم" : lang === "sv" ? "Namn" : "Name"}</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="أدخل اسمك"
-                  className="arabic-text"
+                  placeholder={lang === "ar" ? "أدخل اسمك" : lang === "sv" ? "Ange ditt namn" : "Enter your name"}
+                  dir={t.dir}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="arabic-text">البريد الإلكتروني</Label>
+                <Label htmlFor="email">{lang === "ar" ? "البريد الإلكتروني" : lang === "sv" ? "E-postadress" : "Email Address"}</Label>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <Input
@@ -116,8 +122,8 @@ export default function Settings() {
               <div className="flex justify-end">
                 <Button onClick={handleSave} disabled={isSaving} className="gap-2">
                   <Save className="h-4 w-4" />
-                  <span className="arabic-text">
-                    {isSaving ? "جاري الحفظ..." : "حفظ التغييرات"}
+                  <span>
+                    {isSaving ? (lang === "ar" ? "جاري الحفظ..." : lang === "sv" ? "Sparar..." : "Saving...") : (lang === "ar" ? "حفظ التغييرات" : lang === "sv" ? "Spara ändringar" : "Save Changes")}
                   </span>
                 </Button>
               </div>
@@ -127,12 +133,12 @@ export default function Settings() {
           {/* Profile Picture */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 arabic-text">
+              <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                الصورة الشخصية
+                {lang === "ar" ? "الصورة الشخصية" : lang === "sv" ? "Profilbild" : "Profile Picture"}
               </CardTitle>
-              <CardDescription className="arabic-text">
-                قم بتحميل صورة شخصية لحسابك
+              <CardDescription>
+                {lang === "ar" ? "قم بتحميل صورة شخصية لحسابك" : lang === "sv" ? "Ladda upp en profilbild" : "Upload a profile picture for your account"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -143,10 +149,10 @@ export default function Settings() {
                 <div className="space-y-2">
                   <Button variant="outline" className="gap-2">
                     <Upload className="h-4 w-4" />
-                    <span className="arabic-text">تحميل صورة</span>
+                    <span>{lang === "ar" ? "تحميل صورة" : lang === "sv" ? "Ladda upp bild" : "Upload Image"}</span>
                   </Button>
-                  <p className="text-sm text-muted-foreground arabic-text">
-                    JPG, PNG أو GIF (الحد الأقصى 2MB)
+                  <p className="text-sm text-muted-foreground">
+                    JPG, PNG {lang === "ar" ? "أو" : lang === "sv" ? "eller" : "or"} GIF ({lang === "ar" ? "الحد الأقصى 2MB" : lang === "sv" ? "Max 2MB" : "Max 2MB"})
                   </p>
                 </div>
               </div>
@@ -156,33 +162,33 @@ export default function Settings() {
           {/* Privacy Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="arabic-text">إعدادات الخصوصية</CardTitle>
-              <CardDescription className="arabic-text">
-                تحكم في خصوصية حسابك وبياناتك
+              <CardTitle>{lang === "ar" ? "إعدادات الخصوصية" : lang === "sv" ? "Sekretessinställningar" : "Privacy Settings"}</CardTitle>
+              <CardDescription>
+                {lang === "ar" ? "تحكم في خصوصية حسابك وبياناتك" : lang === "sv" ? "Kontrollera din kontos sekretess" : "Control your account privacy and data"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium arabic-text">إظهار الملف الشخصي</p>
-                  <p className="text-sm text-muted-foreground arabic-text">
-                    السماح للآخرين برؤية ملفك الشخصي
+                  <p className="font-medium">{lang === "ar" ? "إظهار الملف الشخصي" : lang === "sv" ? "Visa profil" : "Show Profile"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {lang === "ar" ? "السماح للآخرين برؤية ملفك الشخصي" : lang === "sv" ? "Tillåt andra att se din profil" : "Allow others to see your profile"}
                   </p>
                 </div>
                 <Button variant="outline" size="sm">
-                  <span className="arabic-text">تفعيل</span>
+                  <span>{lang === "ar" ? "تفعيل" : lang === "sv" ? "Aktivera" : "Enable"}</span>
                 </Button>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium arabic-text">إظهار النشاط</p>
-                  <p className="text-sm text-muted-foreground arabic-text">
-                    السماح للآخرين برؤية نشاطك (التعليقات، التقييمات)
+                  <p className="font-medium">{lang === "ar" ? "إظهار النشاط" : lang === "sv" ? "Visa aktivitet" : "Show Activity"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {lang === "ar" ? "السماح للآخرين برؤية نشاطك" : lang === "sv" ? "Tillåt andra att se din aktivitet" : "Allow others to see your activity"}
                   </p>
                 </div>
                 <Button variant="outline" size="sm">
-                  <span className="arabic-text">تفعيل</span>
+                  <span>{lang === "ar" ? "تفعيل" : lang === "sv" ? "Aktivera" : "Enable"}</span>
                 </Button>
               </div>
             </CardContent>
@@ -191,9 +197,9 @@ export default function Settings() {
           {/* Danger Zone */}
           <Card className="border-destructive">
             <CardHeader>
-              <CardTitle className="text-destructive arabic-text">منطقة الخطر</CardTitle>
-              <CardDescription className="arabic-text">
-                إجراءات لا يمكن التراجع عنها
+              <CardTitle className="text-destructive">{lang === "ar" ? "منطقة الخطر" : lang === "sv" ? "Farlig zon" : "Danger Zone"}</CardTitle>
+              <CardDescription>
+                {lang === "ar" ? "إجراءات لا يمكن التراجع عنها" : lang === "sv" ? "Åtgärder som inte kan ångras" : "Actions that cannot be undone"}
               </CardDescription>
             </CardHeader>
             <CardContent>
