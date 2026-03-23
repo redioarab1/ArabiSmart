@@ -812,3 +812,9 @@
 - [x] تطبيق useLanguage على Profile.tsx
 - [x] تطبيق useLanguage على Settings.tsx
 - [x] تطبيق useLanguage على NotificationSettings.tsx
+
+## إصلاح خاصية الترجمة للزوار (مكتمل)
+- [x] تحويل endpoint الترجمة من protectedProcedure إلى publicProcedure
+- [x] تحديث enum اللغة في newsTranslations ليشمل العربية (ar)
+- [x] تحديث LLM prompt لدعم الترجمة للعربية والإنجليزية والسويدية
+- [x] تطبيق migration SQL لتحديث قاعدة البيانات

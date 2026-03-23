@@ -926,11 +926,11 @@ export const appRouter = router({
 
   // News Translation router - translate news to EN/SV and cache in DB
   newsTranslation: router({
-    // Translate a specific news article to EN or SV
-    translate: protectedProcedure
+    // Translate a specific news article to EN or SV - available to all visitors
+    translate: publicProcedure
       .input(z.object({
         newsId: z.number(),
-        language: z.enum(["en", "sv"]),
+        language: z.enum(["en", "sv", "ar"]),
       }))
       .mutation(async ({ input }) => {
         const db = await import("./db").then((m) => m.getDb());
@@ -955,14 +955,14 @@ export const appRouter = router({
 
         // Translate using LLM for better quality
         const { invokeLLM } = await import("./_core/llm");
-        const langName = input.language === "en" ? "English" : "Swedish";
+        const langName = input.language === "en" ? "English" : input.language === "sv" ? "Swedish" : "Arabic";
         const textToTranslate = `Title: ${article.title}\n\nDescription: ${article.description || ""}`;
 
         const llmResponse = await invokeLLM({
           messages: [
             {
               role: "system",
-              content: `You are a professional news translator. Translate the following Arabic news article to ${langName}. Keep the translation natural, accurate, and suitable for news media. Return ONLY a JSON object with keys: title, description.`,
+              content: `You are a professional news translator. Translate the following news article to ${langName}. Keep the translation natural, accurate, and suitable for news media. Return ONLY a JSON object with keys: title, description.`,
             },
             { role: "user", content: textToTranslate },
           ],

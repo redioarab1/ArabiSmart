@@ -120,6 +120,13 @@
       "when": 1774281585537,
       "tag": "0016_thankful_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1774284233798,
+      "tag": "0017_faithful_retro_girl",
+      "breakpoints": true
     }
   ]
 }

@@ -292,7 +292,7 @@ export type InsertLiveChannel = typeof liveChannels.$inferInsert;
 export const newsTranslations = mysqlTable("newsTranslations", {
   id: int("id").autoincrement().primaryKey(),
   newsId: int("newsId").notNull(),
-  language: mysqlEnum("language", ["en", "sv"]).notNull(),
+  language: mysqlEnum("language", ["en", "sv", "ar"]).notNull(),
   title: text("title").notNull(),
   description: text("description"),
   translatedAt: timestamp("translatedAt").defaultNow().notNull(),

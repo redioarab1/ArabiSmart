@@ -1,0 +1,1 @@
+ALTER TABLE `newsTranslations` MODIFY COLUMN `language` enum('en','sv','ar') NOT NULL;
