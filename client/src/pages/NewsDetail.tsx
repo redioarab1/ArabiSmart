@@ -475,6 +475,7 @@ export default function NewsDetail() {
                 description={news.description || ""}
                 source={news.source}
                 publishedAt={news.publishedAt.toISOString()}
+                imageUrl={news.image || undefined}
               />
             </CardContent>
           </Card>
