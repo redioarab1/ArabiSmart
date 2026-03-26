@@ -782,6 +782,70 @@ export const appRouter = router({
           statistics: summary.statistics ? JSON.parse(summary.statistics) : {},
         };
       }),
+
+    // Translate daily summary to another language using LLM
+    translate: publicProcedure
+      .input(z.object({
+        summaryId: z.number(),
+        targetLanguage: z.enum(["en", "sv"]),
+      }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const { dailySummaries } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [row] = await db.select().from(dailySummaries).where(eq(dailySummaries.id, input.summaryId)).limit(1);
+        if (!row) throw new Error("Summary not found");
+
+        const { invokeLLM } = await import("./_core/llm");
+        const langName = input.targetLanguage === "en" ? "English" : "Swedish";
+        const result = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `You are a professional news translator. Translate the following Arabic daily news summary to ${langName}. Keep the same structure and tone. Return only the translated text without any additional commentary.`,
+            },
+            {
+              role: "user",
+              content: row.summary || "",
+            },
+          ],
+        });
+        const translatedText = result.choices?.[0]?.message?.content || "";
+        return { translatedText, language: input.targetLanguage };
+      }),
+
+    // Generate podcast script (text-optimized for TTS) from daily summary
+    generatePodcastScript: publicProcedure
+      .input(z.object({ summaryId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const { dailySummaries } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [row] = await db.select().from(dailySummaries).where(eq(dailySummaries.id, input.summaryId)).limit(1);
+        if (!row) throw new Error("Summary not found");
+
+        const { invokeLLM } = await import("./_core/llm");
+        const dateStr = new Date(row.date).toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+        const result = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `أنت مذيع أخبار محترف. حوّل ملخص الأخبار التالي إلى نص بودكاست صوتي بأسلوب إذاعي احترافي باللغة العربية. ابدأ بتحية المستمعين وذكر التاريخ، ثم قدم الأخبار بأسلوب سلس ومناسب للاستماع. لا تستخدم رموزاً أو تنسيقاً خاصاً، فقط نص عادي مناسب للقراءة الصوتية. الحد الأقصى 500 كلمة.`,
+            },
+            {
+              role: "user",
+              content: `التاريخ: ${dateStr}\n\n${row.summary || ""}`,
+            },
+          ],
+        });
+        const rawContent = result.choices?.[0]?.message?.content;
+        const script = typeof rawContent === "string" ? rawContent : "";
+        return { script, date: row.date };
+      }),
   }),
   // Archive routerr
   archive: router({

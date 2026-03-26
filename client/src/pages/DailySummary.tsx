@@ -1,9 +1,15 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Sparkles,
   TrendingUp,
@@ -28,6 +34,14 @@ import {
   FileText,
   Hash,
   Send,
+  Mic,
+  MicOff,
+  Play,
+  Pause,
+  Square,
+  Languages,
+  ImageIcon,
+  Volume2,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -35,6 +49,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { StoryGenerator } from "@/components/StoryGenerator";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SummaryStats = {
@@ -104,6 +119,267 @@ function SummaryPageSkeleton() {
   );
 }
 
+// ─── Podcast Player Component ─────────────────────────────────────────────────
+function PodcastPanel({ summary }: { summary: Summary }) {
+  const [script, setScript] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  const generateScriptMutation = trpc.dailySummary.generatePodcastScript.useMutation({
+    onSuccess: (data) => {
+      setScript(typeof data.script === "string" ? data.script : "");
+      setIsGenerating(false);
+      toast.success("تم توليد نص البودكاست! اضغط تشغيل للاستماع.");
+    },
+    onError: (err) => {
+      setIsGenerating(false);
+      toast.error("فشل توليد البودكاست: " + err.message);
+    },
+  });
+
+  const handleGenerate = () => {
+    setIsGenerating(true);
+    generateScriptMutation.mutate({ summaryId: summary.id });
+  };
+
+  const handlePlay = () => {
+    if (!script) return;
+    if (!("speechSynthesis" in window)) {
+      toast.error("متصفحك لا يدعم قراءة النصوص صوتياً");
+      return;
+    }
+
+    if (isPaused && utteranceRef.current) {
+      window.speechSynthesis.resume();
+      setIsPlaying(true);
+      setIsPaused(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(script);
+    utterance.lang = "ar-SA";
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+
+    // Try to find an Arabic voice
+    const voices = window.speechSynthesis.getVoices();
+    const arabicVoice = voices.find(v => v.lang.startsWith("ar"));
+    if (arabicVoice) utterance.voice = arabicVoice;
+
+    utterance.onstart = () => { setIsPlaying(true); setIsPaused(false); };
+    utterance.onend = () => { setIsPlaying(false); setIsPaused(false); };
+    utterance.onerror = () => { setIsPlaying(false); setIsPaused(false); };
+
+    utteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handlePause = () => {
+    window.speechSynthesis.pause();
+    setIsPlaying(false);
+    setIsPaused(true);
+  };
+
+  const handleStop = () => {
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    setIsPaused(false);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { window.speechSynthesis.cancel(); };
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      {!script ? (
+        <div className="flex flex-col items-center gap-4 py-6">
+          <div className="w-16 h-16 rounded-2xl bg-purple-500/15 flex items-center justify-center">
+            <Mic className="h-8 w-8 text-purple-500" />
+          </div>
+          <div className="text-center">
+            <p className="font-semibold arabic-text">بودكاست الملخص اليومي</p>
+            <p className="text-sm text-muted-foreground arabic-text mt-1">
+              يُولَّد نص إذاعي احترافي بالذكاء الاصطناعي ويُشغَّل صوتياً في المتصفح
+            </p>
+          </div>
+          <Button
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="gap-2 bg-purple-600 hover:bg-purple-700"
+          >
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {isGenerating ? "جاري توليد النص..." : "توليد البودكاست"}
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Player Controls */}
+          <div className="flex items-center justify-center gap-3 py-4">
+            <button
+              onClick={handleStop}
+              disabled={!isPlaying && !isPaused}
+              className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 disabled:opacity-40 transition-colors"
+            >
+              <Square className="h-4 w-4" />
+            </button>
+            {isPlaying ? (
+              <button
+                onClick={handlePause}
+                className="w-14 h-14 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center shadow-lg transition-colors"
+              >
+                <Pause className="h-6 w-6 text-white" />
+              </button>
+            ) : (
+              <button
+                onClick={handlePlay}
+                className="w-14 h-14 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center shadow-lg transition-colors"
+              >
+                <Play className="h-6 w-6 text-white mr-0.5" />
+              </button>
+            )}
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <Volume2 className={`h-4 w-4 ${isPlaying ? "text-purple-500 animate-pulse" : "text-muted-foreground"}`} />
+            </div>
+          </div>
+
+          {/* Status */}
+          <div className="text-center">
+            {isPlaying && <p className="text-sm text-purple-500 arabic-text animate-pulse">🎙️ جاري التشغيل...</p>}
+            {isPaused && <p className="text-sm text-amber-500 arabic-text">⏸ متوقف مؤقتاً</p>}
+            {!isPlaying && !isPaused && <p className="text-sm text-muted-foreground arabic-text">اضغط تشغيل للاستماع</p>}
+          </div>
+
+          {/* Script Preview */}
+          <div className="rounded-xl border bg-muted/30 p-4 max-h-48 overflow-y-auto">
+            <p className="text-sm arabic-text leading-7 text-foreground/80 whitespace-pre-line">{script}</p>
+          </div>
+
+          {/* Regenerate */}
+          <button
+            onClick={() => { setScript(null); handleStop(); }}
+            className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+          >
+            إعادة توليد النص
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Translation Panel Component ──────────────────────────────────────────────
+function TranslationPanel({ summary }: { summary: Summary }) {
+  const [targetLang, setTargetLang] = useState<"en" | "sv" | null>(null);
+  const [translatedText, setTranslatedText] = useState<string | null>(null);
+  const [translatedLang, setTranslatedLang] = useState<"en" | "sv" | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const translateMutation = trpc.dailySummary.translate.useMutation({
+    onSuccess: (data) => {
+      setTranslatedText(typeof data.translatedText === "string" ? data.translatedText : "");
+      setTranslatedLang(data.language as "en" | "sv");
+      toast.success("تمت الترجمة بنجاح!");
+    },
+    onError: (err) => {
+      toast.error("فشلت الترجمة: " + err.message);
+    },
+  });
+
+  const handleTranslate = (lang: "en" | "sv") => {
+    setTargetLang(lang);
+    setTranslatedText(null);
+    translateMutation.mutate({ summaryId: summary.id, targetLanguage: lang });
+  };
+
+  const handleCopy = async () => {
+    if (!translatedText) return;
+    await navigator.clipboard.writeText(translatedText);
+    setCopied(true);
+    toast.success("تم نسخ الترجمة!");
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Language Buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => handleTranslate("en")}
+          disabled={translateMutation.isPending && targetLang === "en"}
+          className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+            translatedLang === "en"
+              ? "border-blue-500 bg-blue-500/10"
+              : "border-border hover:border-blue-500/50"
+          }`}
+        >
+          <span className="text-xl">🇬🇧</span>
+          <div className="text-right">
+            <p className="font-medium text-sm">English</p>
+            <p className="text-xs text-muted-foreground">ترجمة إلى الإنجليزية</p>
+          </div>
+          {translateMutation.isPending && targetLang === "en" && (
+            <Loader2 className="h-4 w-4 animate-spin mr-auto" />
+          )}
+        </button>
+        <button
+          onClick={() => handleTranslate("sv")}
+          disabled={translateMutation.isPending && targetLang === "sv"}
+          className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+            translatedLang === "sv"
+              ? "border-blue-500 bg-blue-500/10"
+              : "border-border hover:border-blue-500/50"
+          }`}
+        >
+          <span className="text-xl">🇸🇪</span>
+          <div className="text-right">
+            <p className="font-medium text-sm">Svenska</p>
+            <p className="text-xs text-muted-foreground">ترجمة إلى السويدية</p>
+          </div>
+          {translateMutation.isPending && targetLang === "sv" && (
+            <Loader2 className="h-4 w-4 animate-spin mr-auto" />
+          )}
+        </button>
+      </div>
+
+      {/* Loading */}
+      {translateMutation.isPending && (
+        <div className="flex items-center justify-center gap-3 py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+          <p className="text-sm text-muted-foreground arabic-text">جاري الترجمة بالذكاء الاصطناعي...</p>
+        </div>
+      )}
+
+      {/* Translated Text */}
+      {translatedText && !translateMutation.isPending && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Badge variant="secondary" className="text-xs">
+              {translatedLang === "en" ? "🇬🇧 English" : "🇸🇪 Svenska"}
+            </Badge>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? "تم النسخ!" : "نسخ"}
+            </button>
+          </div>
+          <div className="rounded-xl border bg-muted/30 p-4 max-h-64 overflow-y-auto">
+            <p className="text-sm leading-7 text-foreground/90 whitespace-pre-line" dir="ltr">
+              {translatedText}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function DailySummary() {
   const { isAuthenticated } = useAuth();
@@ -118,6 +394,11 @@ export default function DailySummary() {
     () => new Date().toISOString().split("T")[0]
   );
 
+  // Modal states
+  const [showPodcastModal, setShowPodcastModal] = useState(false);
+  const [showTranslateModal, setShowTranslateModal] = useState(false);
+  const [showStoryModal, setShowStoryModal] = useState(false);
+
   const isToday = selectedDate === new Date().toISOString().split("T")[0];
 
   // Fetch latest
@@ -131,8 +412,6 @@ export default function DailySummary() {
   // Archive list
   const { data: summaryList } = trpc.dailySummary.list.useQuery({ limit: 30 });
 
-  // When isToday: prefer summaryByDate if found, otherwise fall back to latestSummary
-  // summaryByDate can be null (not found) or undefined (loading) - only fallback if null/undefined
   const activeSummary: Summary | null | undefined = isToday
     ? (summaryByDate || latestSummary)
     : summaryByDate;
@@ -204,7 +483,6 @@ export default function DailySummary() {
       }
       const data = await response.json();
       setPngUrl(data.url);
-      // Auto-download
       const link = document.createElement("a");
       link.href = data.url;
       link.download = data.filename;
@@ -438,6 +716,51 @@ export default function DailySummary() {
               </div>
             </div>
 
+            {/* ── NEW: Quick Action Buttons (Podcast / Translate / Story) ── */}
+            <div className="grid grid-cols-3 gap-3">
+              {/* Podcast Button */}
+              <button
+                onClick={() => setShowPodcastModal(true)}
+                className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 border-purple-200 dark:border-purple-900/40 bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 hover:border-purple-400 transition-all duration-200"
+              >
+                <div className="w-12 h-12 rounded-xl bg-purple-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                  <Mic className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-sm text-purple-700 dark:text-purple-400 arabic-text">بودكاست</p>
+                  <p className="text-xs text-muted-foreground arabic-text hidden sm:block">استمع للملخص</p>
+                </div>
+              </button>
+
+              {/* Translate Button */}
+              <button
+                onClick={() => setShowTranslateModal(true)}
+                className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 border-teal-200 dark:border-teal-900/40 bg-teal-50 dark:bg-teal-950/20 hover:bg-teal-100 dark:hover:bg-teal-950/40 hover:border-teal-400 transition-all duration-200"
+              >
+                <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                  <Languages className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-sm text-teal-700 dark:text-teal-400 arabic-text">ترجمة</p>
+                  <p className="text-xs text-muted-foreground arabic-text hidden sm:block">EN / SV</p>
+                </div>
+              </button>
+
+              {/* Story Button */}
+              <button
+                onClick={() => setShowStoryModal(true)}
+                className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 border-pink-200 dark:border-pink-900/40 bg-pink-50 dark:bg-pink-950/20 hover:bg-pink-100 dark:hover:bg-pink-950/40 hover:border-pink-400 transition-all duration-200"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                  <ImageIcon className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-sm text-pink-700 dark:text-pink-400 arabic-text">Story</p>
+                  <p className="text-xs text-muted-foreground arabic-text hidden sm:block">تحميل صورة</p>
+                </div>
+              </button>
+            </div>
+
             {/* Stats */}
             {activeSummary.statistics && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -491,16 +814,14 @@ export default function DailySummary() {
                 <div className="divide-y">
                   {topNewsItems.map((item, i) => (
                     <div key={item.id} className="flex items-start gap-4 px-5 py-4 hover:bg-muted/20 transition-colors">
-                      {/* رقم الخبر */}
                       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm ${
                         i === 0 ? "bg-gradient-to-br from-yellow-400 to-orange-500" :
-                        i === 1 ? "bg-gradient-to-br from-slate-400 to-slate-600" :
-                        i === 2 ? "bg-gradient-to-br from-amber-600 to-amber-800" :
+                        i === 1 ? "bg-gradient-to-br from-slate-400 to-slate-500" :
+                        i === 2 ? "bg-gradient-to-br from-amber-600 to-amber-700" :
                         "bg-gradient-to-br from-blue-500 to-indigo-600"
                       }`}>
                         {i + 1}
                       </div>
-                      {/* محتوى الخبر */}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm arabic-text leading-6 text-foreground">{item.title}</p>
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -551,7 +872,7 @@ export default function DailySummary() {
                 <Share2 className="h-4 w-4 text-blue-500" />
                 <h3 className="font-semibold arabic-text">مشاركة وتصدير الملخص</h3>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
 
                 {/* PDF */}
                 <button
@@ -617,7 +938,6 @@ export default function DailySummary() {
                   className="group flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl border-2 border-blue-200 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/40 hover:border-blue-400 transition-all duration-200 cursor-pointer"
                 >
                   <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
-                    {/* Facebook icon SVG */}
                     <svg className="h-5 w-5 text-white fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
@@ -655,7 +975,7 @@ export default function DailySummary() {
                   </span>
                 </button>
 
-                {/* PNG Direct Link Row - shows after PNG is generated */}
+                {/* PNG Direct Link Row */}
                 {pngUrl && (
                   <div className="flex items-center gap-2 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20">
                     <div className="flex-1 min-w-0">
@@ -722,6 +1042,52 @@ export default function DailySummary() {
         )}
 
       </div>
+
+      {/* ── Podcast Modal ── */}
+      <Dialog open={showPodcastModal} onOpenChange={setShowPodcastModal}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mic className="h-5 w-5 text-purple-500" />
+              بودكاست الملخص اليومي
+            </DialogTitle>
+          </DialogHeader>
+          {activeSummary && <PodcastPanel summary={activeSummary} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Translation Modal ── */}
+      <Dialog open={showTranslateModal} onOpenChange={setShowTranslateModal}>
+        <DialogContent className="max-w-lg" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Languages className="h-5 w-5 text-teal-500" />
+              ترجمة الملخص اليومي
+            </DialogTitle>
+          </DialogHeader>
+          {activeSummary && <TranslationPanel summary={activeSummary} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Story Modal ── */}
+      <Dialog open={showStoryModal} onOpenChange={setShowStoryModal}>
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5 text-pink-500" />
+              إنشاء صورة Story للملخص
+            </DialogTitle>
+          </DialogHeader>
+          {activeSummary && (
+            <StoryGenerator
+              title={`ملخص أخبار ${formatDateShort(activeSummary.date)}`}
+              description={activeSummary.summary?.slice(0, 200) || ""}
+              source="ArabiSmart News"
+              publishedAt={activeSummary.date.toString()}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

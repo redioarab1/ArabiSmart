@@ -1,0 +1,22 @@
+{
+  "query": "SHOW TABLES LIKE '%live%'; SHOW TABLES LIKE '%channel%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SHOW TABLES LIKE '%live%'; SHOW TABLES LIKE '%channel%';",
+  "rows": [
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (%live%)": "liveChannels"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (%live%)": "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (%channel%)"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (%live%)": "liveChannels"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (%live%)": "youtubeChannels"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA (%live%)\nliveChannels\nTables_in_CYisMZJ5WxxAv8Cz8dg9ZA (%channel%)\nliveChannels\nyoutubeChannels\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}
