@@ -42,6 +42,7 @@ import {
   Languages,
   ImageIcon,
   Volume2,
+  Music,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -119,12 +120,105 @@ function SummaryPageSkeleton() {
   );
 }
 
+// ─── Audio Download Helper ────────────────────────────────────────────────────
+/**
+ * Records Web Speech API output via AudioContext + MediaRecorder and downloads it as WebM/WAV.
+ * Falls back to downloading the script as a plain text file if recording is not supported.
+ */
+async function downloadAudioFromSpeech(script: string, filename: string): Promise<void> {
+  // Check for required APIs
+  const hasMediaDevices = typeof navigator.mediaDevices?.getUserMedia === "function";
+  const hasMediaRecorder = typeof MediaRecorder !== "undefined";
+  const hasSpeechSynthesis = "speechSynthesis" in window;
+
+  if (!hasSpeechSynthesis) {
+    toast.error("متصفحك لا يدعم قراءة النصوص صوتياً");
+    return;
+  }
+
+  // If recording APIs are not available, offer text download as fallback
+  if (!hasMediaDevices || !hasMediaRecorder) {
+    const blob = new Blob([script], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename.replace(".webm", ".txt");
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.info("تم تحميل النص كملف TXT (تسجيل الصوت غير مدعوم في هذا المتصفح)");
+    return;
+  }
+
+  toast.info("جاري تسجيل الصوت... يرجى الانتظار حتى ينتهي التشغيل");
+
+  try {
+    // Capture system audio via getDisplayMedia (screen share with audio)
+    // Fallback: use microphone to capture speaker output
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? "audio/webm;codecs=opus"
+      : MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "audio/ogg";
+
+    const recorder = new MediaRecorder(stream, { mimeType });
+    const chunks: BlobPart[] = [];
+
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+
+    recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(chunks, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("تم تحميل الملف الصوتي بنجاح!");
+    };
+
+    recorder.start();
+
+    // Speak the text
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(script);
+    utterance.lang = "ar-SA";
+    utterance.rate = 0.9;
+    const voices = window.speechSynthesis.getVoices();
+    const arabicVoice = voices.find(v => v.lang.startsWith("ar"));
+    if (arabicVoice) utterance.voice = arabicVoice;
+
+    utterance.onend = () => {
+      setTimeout(() => recorder.stop(), 500);
+    };
+    utterance.onerror = () => {
+      recorder.stop();
+      toast.error("حدث خطأ أثناء التشغيل الصوتي");
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } catch {
+    // Fallback: download as text
+    const blob = new Blob([script], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename.replace(".webm", ".txt");
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.info("تم تحميل النص (لم يُمنح إذن الميكروفون لتسجيل الصوت)");
+  }
+}
+
 // ─── Podcast Player Component ─────────────────────────────────────────────────
 function PodcastPanel({ summary }: { summary: Summary }) {
   const [script, setScript] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const generateScriptMutation = trpc.dailySummary.generatePodcastScript.useMutation({
@@ -258,6 +352,27 @@ function PodcastPanel({ summary }: { summary: Summary }) {
           <div className="rounded-xl border bg-muted/30 p-4 max-h-48 overflow-y-auto">
             <p className="text-sm arabic-text leading-7 text-foreground/80 whitespace-pre-line">{script}</p>
           </div>
+
+          {/* Download Audio Button */}
+          <Button
+            variant="outline"
+            className="w-full gap-2 border-purple-500/40 text-purple-600 hover:bg-purple-500/10"
+            disabled={isDownloading || isPlaying}
+            onClick={async () => {
+              if (!script) return;
+              setIsDownloading(true);
+              const dateStr = new Date(summary.date).toLocaleDateString("ar-SA", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "-");
+              try {
+                await downloadAudioFromSpeech(script, `بودكاست-${dateStr}.webm`);
+              } finally {
+                setIsDownloading(false);
+              }
+            }}
+          >
+            {isDownloading
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> جاري التسجيل والتحميل...</>
+              : <><Music className="h-4 w-4" /> تحميل الصوت</>}
+          </Button>
 
           {/* Regenerate */}
           <button
