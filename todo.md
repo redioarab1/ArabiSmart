@@ -854,3 +854,27 @@
 - [x] إضافة زر "تحميل الصوت" في واجهة البودكاست (تسجيل عبر MediaRecorder + Web Speech API وتحميل WebM)
 - [x] إضافة آلية احتياطية: تحميل النص كملف TXT إذا لم يُمنح إذن الميكروفون
 - [x] كتابة اختبارات vitest والتحقق من نجاحها (4/4 اختبارات ناجحة)
+
+## نظام المصادقة المستقل (Local Auth)
+- [ ] إضافة حقول password_hash و reset_token و reset_token_expires إلى جدول users
+- [ ] تثبيت bcryptjs و nodemailer
+- [ ] إنشاء server/localAuth.ts (تسجيل + دخول + استعادة كلمة السر)
+- [ ] إضافة procedures: auth.register, auth.localLogin, auth.forgotPassword, auth.resetPassword
+- [ ] إنشاء صفحة تسجيل الدخول المستقلة (client/src/pages/Login.tsx)
+- [ ] إنشاء صفحة إنشاء حساب جديد (client/src/pages/Register.tsx)
+- [ ] إنشاء صفحة استعادة كلمة السر (client/src/pages/ForgotPassword.tsx)
+- [ ] إنشاء صفحة تغيير كلمة السر (client/src/pages/ResetPassword.tsx)
+- [ ] تحديث App.tsx بالمسارات الجديدة
+- [ ] كتابة اختبارات Vitest لنظام المصادقة
+
+## نظام المصادقة المستقل (Local Auth) - مكتمل
+- [x] تحديث schema.ts: إضافة حقول username, passwordHash, resetToken, resetTokenExpires, isLocalAuth
+- [x] تطبيق migration SQL على قاعدة البيانات
+- [x] إنشاء server/localAuth.ts: hashPassword, verifyPassword, registerLocalUser, loginLocalUser, forgotPassword, resetPassword
+- [x] إضافة procedures في routers.ts: auth.register, auth.localLogin, auth.forgotPassword, auth.validateResetToken, auth.resetPassword
+- [x] إنشاء صفحة /login مع نموذج تسجيل الدخول (بريد/اسم مستخدم + كلمة سر)
+- [x] إنشاء صفحة /register مع نموذج إنشاء حساب جديد
+- [x] إنشاء صفحة /forgot-password مع إرسال رابط الاستعادة بالبريد
+- [x] إنشاء صفحة /reset-password مع نموذج تعيين كلمة سر جديدة
+- [x] تحديث زر تسجيل الدخول في Home.tsx ليشير إلى /login و /register
+- [x] كتابة 6 اختبارات Vitest (6/6 ناجحة)

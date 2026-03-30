@@ -473,12 +473,19 @@ export default function Home() {
               
               {/* Login/Signup Button */}
               {!isAuthenticated && (
-                <a href={getLoginUrl()}>
-                  <Button className="gap-2 rounded-full">
-                    <LogIn className="h-5 w-5" />
-                    <span className="arabic-text hidden md:inline">{t.login}</span>
-                  </Button>
-                </a>
+                <div className="flex items-center gap-2">
+                  <Link href="/login">
+                    <Button className="gap-2 rounded-full">
+                      <LogIn className="h-5 w-5" />
+                      <span className="arabic-text hidden md:inline">{t.login}</span>
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button variant="outline" className="gap-2 rounded-full hidden md:flex">
+                      <span className="arabic-text text-sm">إنشاء حساب</span>
+                    </Button>
+                  </Link>
+                </div>
               )}
               
               {/* Font Size Controls */}

@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, tinyint, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -20,6 +20,12 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  // Local auth fields
+  username: varchar("username", { length: 64 }).unique(),
+  passwordHash: text("passwordHash"),
+  resetToken: varchar("resetToken", { length: 128 }),
+  resetTokenExpires: timestamp("resetTokenExpires"),
+  isLocalAuth: tinyint("isLocalAuth").default(0).notNull(),
 });
 
 export type User = typeof users.$inferSelect;

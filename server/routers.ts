@@ -12,10 +12,90 @@ export const appRouter = router({
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
+
+    // ─── Local Auth procedures ────────────────────────────────────────────────────────────
+    register: publicProcedure
+      .input(z.object({
+        username: z.string().min(3).max(32).regex(/^[a-zA-Z0-9_؀-ۿ]+$/, "اسم المستخدم يجب أن يحتوي على حروف وأرقام فقط"),
+        email: z.string().email("بريد إلكتروني غير صالح"),
+        password: z.string().min(8, "كلمة السر يجب أن تكون 8 أحرف على الأقل"),
+        name: z.string().min(1).max(64).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { registerLocalUser } = await import("./localAuth");
+        const { sdk } = await import("./_core/sdk");
+        const { getSessionCookieOptions } = await import("./_core/cookies");
+        const { COOKIE_NAME } = await import("@shared/const");
+        const result = await registerLocalUser(input);
+        if (!result.success) {
+          const { TRPCError } = await import("@trpc/server");
+          throw new TRPCError({ code: "BAD_REQUEST", message: result.error });
+        }
+        // Auto-login after registration
+        const { loginLocalUser } = await import("./localAuth");
+        const loginResult = await loginLocalUser({ identifier: input.username, password: input.password });
+        if (loginResult.user) {
+          const token = await sdk.createSessionToken(loginResult.user.openId, { name: loginResult.user.name || input.username });
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+        }
+        return { success: true };
+      }),
+
+    localLogin: publicProcedure
+      .input(z.object({
+        identifier: z.string().min(1, "اسم المستخدم أو البريد مطلوب"),
+        password: z.string().min(1, "كلمة السر مطلوبة"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { loginLocalUser } = await import("./localAuth");
+        const { sdk } = await import("./_core/sdk");
+        const { getSessionCookieOptions } = await import("./_core/cookies");
+        const { COOKIE_NAME } = await import("@shared/const");
+        const { TRPCError } = await import("@trpc/server");
+        const result = await loginLocalUser(input);
+        if (!result.user) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: result.error || "بيانات الدخول غير صحيحة" });
+        }
+        const token = await sdk.createSessionToken(result.user.openId, { name: result.user.name || result.user.username || "" });
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+        return { success: true, user: { id: result.user.id, name: result.user.name, username: result.user.username, email: result.user.email, role: result.user.role } };
+      }),
+
+    forgotPassword: publicProcedure
+      .input(z.object({ email: z.string().email("بريد إلكتروني غير صالح") }))
+      .mutation(async ({ input }) => {
+        const { forgotPassword } = await import("./localAuth");
+        return await forgotPassword(input.email);
+      }),
+
+    validateResetToken: publicProcedure
+      .input(z.object({ token: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const { getUserByResetToken } = await import("./localAuth");
+        const user = await getUserByResetToken(input.token);
+        if (!user || !user.resetTokenExpires) return { valid: false };
+        if (new Date() > user.resetTokenExpires) return { valid: false };
+        return { valid: true, name: user.name };
+      }),
+
+    resetPassword: publicProcedure
+      .input(z.object({
+        token: z.string().min(1),
+        newPassword: z.string().min(8, "كلمة السر يجب أن تكون 8 أحرف على الأقل"),
+      }))
+      .mutation(async ({ input }) => {
+        const { resetPassword } = await import("./localAuth");
+        const { TRPCError } = await import("@trpc/server");
+        const result = await resetPassword(input);
+        if (!result.success) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: result.error });
+        }
+        return { success: true };
+      }),
   }),
 
   news: router({
