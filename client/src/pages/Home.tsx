@@ -25,6 +25,7 @@ import {
   Archive,
   Settings as SettingsIcon,
   LogIn,
+  UserPlus,
   Zap,
   Sparkles,
   FolderOpen,
@@ -471,18 +472,29 @@ export default function Home() {
                 </Link>
               )}
               
-              {/* Login/Signup Button */}
+              {/* Login/Signup Buttons */}
               {!isAuthenticated && (
                 <div className="flex items-center gap-2">
+                  {/* زر تسجيل الدخول */}
                   <Link href="/login">
-                    <Button className="gap-2 rounded-full">
-                      <LogIn className="h-5 w-5" />
-                      <span className="arabic-text hidden md:inline">{t.login}</span>
+                    <Button
+                      size="sm"
+                      className="gap-1.5 rounded-full px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 border border-primary/20"
+                      title="تسجيل الدخول"
+                    >
+                      <LogIn className="h-4 w-4 flex-shrink-0" />
+                      <span className="arabic-text text-xs font-semibold hidden sm:inline">دخول</span>
                     </Button>
                   </Link>
+                  {/* زر الانضمام */}
                   <Link href="/register">
-                    <Button variant="outline" className="gap-2 rounded-full hidden md:flex">
-                      <span className="arabic-text text-sm">إنشاء حساب</span>
+                    <Button
+                      size="sm"
+                      className="gap-1.5 rounded-full px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 border border-emerald-400/30"
+                      title="إنشاء حساب جديد"
+                    >
+                      <UserPlus className="h-4 w-4 flex-shrink-0" />
+                      <span className="arabic-text text-xs font-semibold hidden sm:inline">انضمام</span>
                     </Button>
                   </Link>
                 </div>
