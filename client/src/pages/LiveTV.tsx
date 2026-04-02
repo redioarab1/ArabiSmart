@@ -300,7 +300,7 @@ export default function LiveTV() {
                           ? "bg-blue-500/10 text-blue-400"
                           : "bg-red-500/10 text-red-400"
                       }`}>
-                        {channel.streamType === "m3u8" ? "M3U8" : "YouTube"}
+                        {channel.streamType === "m3u8" ? "بث مباشر" : "YouTube"}
                       </span>
                     </div>
                     {selectedChannel.id === channel.id && (
@@ -391,7 +391,7 @@ export default function LiveTV() {
                     <span>{channel.logo}</span>
                     <span>{channel.name}</span>
                     {channel.streamType === "m3u8" && (
-                      <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1 rounded">M3U8</span>
+                      <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1 rounded">بث مباشر</span>
                     )}
                   </button>
                 ))}
