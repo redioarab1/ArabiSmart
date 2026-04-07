@@ -1,4 +1,5 @@
 import { useState, ReactNode } from "react";
+import { BreakingNewsTicker } from "@/components/BreakingNewsTicker";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -339,6 +340,8 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
           </div>
         </header>
 
+        {/* Breaking News Ticker */}
+        <BreakingNewsTicker />
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-slate-900 p-4 md:p-6">
           {children}
