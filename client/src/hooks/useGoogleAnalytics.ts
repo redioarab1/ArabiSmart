@@ -13,38 +13,19 @@ declare global {
  * إذا كان VITE_GA_MEASUREMENT_ID محدداً في متغيرات البيئة.
  * يتتبع تغييرات المسار (SPA navigation) تلقائياً.
  */
+const GA_ID = "G-Q9N7SX7GD5";
+
 export function useGoogleAnalytics() {
   const [location] = useLocation();
-  const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
 
-  // تحميل سكريبت GA مرة واحدة عند بدء التطبيق
+  // تتبع تغييرات الصفحة (SPA page_view events)
+  // السكريبت محمّل مسبقاً من index.html
   useEffect(() => {
-    if (!gaId || typeof window === "undefined") return;
-
-    // تجنب التحميل المزدوج
-    if (window.gtag) return;
-
-    // إنشاء dataLayer
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function (...args: unknown[]) {
-      window.dataLayer!.push(args);
-    };
-    window.gtag("js", new Date());
-    window.gtag("config", gaId, { send_page_view: false });
-
-    // تحميل سكريبت gtag.js
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-    document.head.appendChild(script);
-  }, [gaId]);
-
-  // تتبع تغييرات الصفحة (SPA)
-  useEffect(() => {
-    if (!gaId || !window.gtag) return;
+    if (typeof window === "undefined" || !window.gtag) return;
     window.gtag("event", "page_view", {
       page_path: location,
       page_title: document.title,
+      send_to: GA_ID,
     });
-  }, [location, gaId]);
+  }, [location]);
 }
