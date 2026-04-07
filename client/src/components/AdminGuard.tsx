@@ -11,21 +11,23 @@ interface AdminGuardProps {
  * AdminGuard - يحمي مسارات /admin بالتحقق من:
  * 1. أن المستخدم مسجل الدخول
  * 2. أن دور المستخدم هو "admin"
- * إذا لم يكن مسجلاً أو ليس مشرفاً، يعيد التوجيه إلى /admin/login
+ * 3. أن المستخدم مسجّل عبر النظام المحلي (isLocalAuth=1) وليس OAuth
+ * إذا لم يستوفِ أي شرط، يعيد التوجيه إلى /admin/login
  */
 export default function AdminGuard({ children }: AdminGuardProps) {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
 
+  // التحقق من صلاحية الدخول: admin + isLocalAuth
+  const isLocalAdmin = user?.role === "admin" && (user as any)?.isLocalAuth === 1;
+
   useEffect(() => {
     if (!loading) {
-      if (!user) {
-        navigate("/admin/login");
-      } else if (user.role !== "admin") {
+      if (!user || !isLocalAdmin) {
         navigate("/admin/login");
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isLocalAdmin]);
 
   if (loading) {
     return (
@@ -43,7 +45,7 @@ export default function AdminGuard({ children }: AdminGuardProps) {
     );
   }
 
-  if (!user || user.role !== "admin") {
+  if (!user || !isLocalAdmin) {
     return null;
   }
 

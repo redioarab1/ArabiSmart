@@ -9,7 +9,15 @@ export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      const user = opts.ctx.user;
+      if (!user) return null;
+      // إرجاع isLocalAuth ضمن بيانات المستخدم لاستخدامها في AdminGuard
+      return {
+        ...user,
+        isLocalAuth: user.isLocalAuth === 1 ? 1 : 0,
+      };
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -59,6 +67,14 @@ export const appRouter = router({
         const result = await loginLocalUser(input);
         if (!result.user) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: result.error || "بيانات الدخول غير صحيحة" });
+        }
+        // منع مستخدمي OAuth من الدخول إلى لوحة التحكم - يجب أن يكون isLocalAuth=1
+        if (!result.user.isLocalAuth) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "هذا الحساب مسجّل عبر خدمة خارجية. لوحة التحكم تتطلب حساباً محلياً فقط." });
+        }
+        // التحقق من صلاحية admin
+        if (result.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "ليس لديك صلاحية الوصول إلى لوحة التحكم." });
         }
         const token = await sdk.createSessionToken(result.user.openId, { name: result.user.name || result.user.username || "" });
         const cookieOptions = getSessionCookieOptions(ctx.req);
