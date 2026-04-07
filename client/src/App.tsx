@@ -34,6 +34,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLiveTV from "./pages/admin/AdminLiveTV";
 import AdminDailySummary from "./pages/admin/AdminDailySummary";
+import AdminBreakingNews from "./pages/admin/AdminBreakingNews";
 
 function Router() {
   return (
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/admin/settings" component={AdminSettings} />
       <Route path="/admin/live" component={AdminLiveTV} />
       <Route path="/admin/daily-summary" component={AdminDailySummary} />
+      <Route path="/admin/breaking-news" component={AdminBreakingNews} />
 
       {/* Fallback */}
       <Route path={"/404"} component={NotFound} />

@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -1308,26 +1309,93 @@ export const appRouter = router({
     }),
   }),
 
-  // Breaking News - Fetch RSS immediately
+  // Breaking News Ticker - managed manually from admin panel
   breakingNews: router({
+    // Public: get all active breaking news items for the ticker
+    list: publicProcedure.query(async () => {
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return [];
+      const { breakingNews } = await import("../drizzle/schema");
+      const { eq, asc } = await import("drizzle-orm");
+      return await db
+        .select()
+        .from(breakingNews)
+        .where(eq(breakingNews.isActive, 1))
+        .orderBy(asc(breakingNews.sortOrder), asc(breakingNews.createdAt));
+    }),
+
+    // Admin: get all breaking news items (active + inactive)
+    listAll: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      const db = await import("./db").then((m) => m.getDb());
+      if (!db) return [];
+      const { breakingNews } = await import("../drizzle/schema");
+      const { asc } = await import("drizzle-orm");
+      return await db
+        .select()
+        .from(breakingNews)
+        .orderBy(asc(breakingNews.sortOrder), asc(breakingNews.createdAt));
+    }),
+
+    // Admin: add a new breaking news item
+    add: protectedProcedure
+      .input(z.object({
+        text: z.string().min(1).max(500),
+        url: z.string().optional(),
+        sortOrder: z.number().int().default(0),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { breakingNews } = await import("../drizzle/schema");
+        await db.insert(breakingNews).values({
+          text: input.text,
+          url: input.url || null,
+          sortOrder: input.sortOrder,
+          isActive: 1,
+        });
+        return { success: true };
+      }),
+
+    // Admin: delete a breaking news item
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { breakingNews } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(breakingNews).where(eq(breakingNews.id, input.id));
+        return { success: true };
+      }),
+
+    // Admin: toggle active/inactive
+    toggle: protectedProcedure
+      .input(z.object({ id: z.number().int(), isActive: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { breakingNews } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.update(breakingNews)
+          .set({ isActive: input.isActive ? 1 : 0 })
+          .where(eq(breakingNews.id, input.id));
+        return { success: true };
+      }),
+
+    // Keep fetchNow for manual RSS trigger
     fetchNow: publicProcedure
       .mutation(async () => {
         const { fetchAllRSS } = await import("./rssFetcher");
-        
         try {
-          // Trigger RSS fetch immediately
           await fetchAllRSS();
-          
-          return {
-            success: true,
-            message: "تم جلب الأخبار بنجاح",
-          };
+          return { success: true, message: "تم جلب الأخبار بنجاح" };
         } catch (error) {
           console.error("[Breaking News] Error fetching RSS:", error);
-          return {
-            success: false,
-            message: "فشل جلب الأخبار",
-          };
+          return { success: false, message: "فشل جلب الأخبار" };
         }
       }),
   }),

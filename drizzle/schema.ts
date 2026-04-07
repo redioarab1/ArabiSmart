@@ -321,3 +321,18 @@ export const autoArchiveLogs = mysqlTable("autoArchiveLogs", {
 });
 export type AutoArchiveLog = typeof autoArchiveLogs.$inferSelect;
 export type InsertAutoArchiveLog = typeof autoArchiveLogs.$inferInsert;
+
+/**
+ * Breaking news ticker table - stores manually managed breaking news items
+ */
+export const breakingNews = mysqlTable("breakingNews", {
+  id: int("id").autoincrement().primaryKey(),
+  text: text("text").notNull(),
+  url: text("url"),
+  isActive: int("isActive").default(1).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type BreakingNews = typeof breakingNews.$inferSelect;
+export type InsertBreakingNews = typeof breakingNews.$inferInsert;

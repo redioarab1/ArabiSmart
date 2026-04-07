@@ -8,7 +8,7 @@ import {
   Newspaper, Video, Users, Rss, TrendingUp, Eye,
   RefreshCw, ArrowUpRight, ArrowDownRight, Clock,
   Activity, Globe, BarChart3, Calendar, CheckCircle2,
-  AlertCircle, Loader2
+  AlertCircle, Loader2, Zap
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -138,6 +138,12 @@ export default function AdminHome() {
           <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-2">
             <Rss className="w-4 h-4" />
             <span className="arabic-text">مصادر RSS</span>
+          </Button>
+        </Link>
+        <Link href="/admin/breaking-news">
+          <Button size="sm" variant="outline" className="border-red-600/50 text-red-400 hover:bg-red-900/30 gap-2">
+            <Zap className="w-4 h-4 fill-red-400" />
+            <span className="arabic-text">أخبار عاجلة</span>
           </Button>
         </Link>
       </div>
