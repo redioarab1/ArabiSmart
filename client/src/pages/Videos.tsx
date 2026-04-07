@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { BreakingNewsTicker } from "@/components/BreakingNewsTicker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -145,6 +146,11 @@ export default function Videos() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Breaking News Ticker */}
+      <div className="sticky top-[73px] z-[45]">
+        <BreakingNewsTicker />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">

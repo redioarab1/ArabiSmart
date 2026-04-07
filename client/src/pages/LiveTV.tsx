@@ -8,6 +8,7 @@ import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import ScrollToTop from "@/components/ScrollToTop";
 import Hls from "hls.js";
+import { BreakingNewsTicker } from "@/components/BreakingNewsTicker";
 
 type LiveChannel = {
   id: number;
@@ -260,6 +261,11 @@ export default function LiveTV() {
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* Breaking News Ticker */}
+      <div className="sticky top-[73px] z-[45]">
+        <BreakingNewsTicker />
       </div>
 
       {/* Main Content */}

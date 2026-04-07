@@ -345,12 +345,8 @@ export default function Home() {
         description="تابع آخر الأخبار العربية والسويدية والعالمية في مكان واحد. أخبار عاجلة من أكثر من 20 مصدراً موثوقاً مع ملخصات يومية بالذكاء الاصطناعي."
         url="/"
       />
-      {/* Breaking News Ticker - above header */}
-      <div className="sticky top-0 z-[60]">
-        <BreakingNewsTicker />
-      </div>
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-9 z-50 shadow-sm">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -545,6 +541,11 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Breaking News Ticker - below header */}
+      <div className="sticky top-[73px] z-[45]">
+        <BreakingNewsTicker />
+      </div>
 
       {/* Category Tabs - Sliding Navigation */}
       <section 
