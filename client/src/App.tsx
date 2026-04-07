@@ -25,6 +25,8 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
+import MobileBottomNav from "./components/MobileBottomNav";
+
 // Admin Pages
 import AdminHome from "./pages/admin/AdminHome";
 import AdminNews from "./pages/admin/AdminNews";
@@ -89,6 +91,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <MobileBottomNav />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
