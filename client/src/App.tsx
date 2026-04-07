@@ -26,8 +26,12 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
 import MobileBottomNav from "./components/MobileBottomNav";
+import AdminGuard from "./components/AdminGuard";
+import { usePageTracking } from "./hooks/usePageTracking";
+import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
 
 // Admin Pages
+import AdminLogin from "./pages/admin/AdminLogin";
 import AdminHome from "./pages/admin/AdminHome";
 import AdminNews from "./pages/admin/AdminNews";
 import AdminVideos from "./pages/admin/AdminVideos";
@@ -37,8 +41,12 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLiveTV from "./pages/admin/AdminLiveTV";
 import AdminDailySummary from "./pages/admin/AdminDailySummary";
 import AdminBreakingNews from "./pages/admin/AdminBreakingNews";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminActivityLog from "./pages/admin/AdminActivityLog";
 
 function Router() {
+  usePageTracking();
+  useGoogleAnalytics();
   return (
     <Switch>
       {/* Public Routes */}
@@ -63,16 +71,43 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
 
-      {/* Admin Routes */}
-      <Route path="/admin" component={AdminHome} />
-      <Route path="/admin/news" component={AdminNews} />
-      <Route path="/admin/videos" component={AdminVideos} />
-      <Route path="/admin/sources" component={AdminSources} />
-      <Route path="/admin/users" component={AdminUsers} />
-      <Route path="/admin/settings" component={AdminSettings} />
-      <Route path="/admin/live" component={AdminLiveTV} />
-      <Route path="/admin/daily-summary" component={AdminDailySummary} />
-      <Route path="/admin/breaking-news" component={AdminBreakingNews} />
+      {/* Admin Login - Public */}
+      <Route path="/admin/login" component={AdminLogin} />
+
+      {/* Admin Routes - Protected */}
+      <Route path="/admin">
+        {() => <AdminGuard><AdminHome /></AdminGuard>}
+      </Route>
+      <Route path="/admin/news">
+        {() => <AdminGuard><AdminNews /></AdminGuard>}
+      </Route>
+      <Route path="/admin/videos">
+        {() => <AdminGuard><AdminVideos /></AdminGuard>}
+      </Route>
+      <Route path="/admin/sources">
+        {() => <AdminGuard><AdminSources /></AdminGuard>}
+      </Route>
+      <Route path="/admin/users">
+        {() => <AdminGuard><AdminUsers /></AdminGuard>}
+      </Route>
+      <Route path="/admin/settings">
+        {() => <AdminGuard><AdminSettings /></AdminGuard>}
+      </Route>
+      <Route path="/admin/live">
+        {() => <AdminGuard><AdminLiveTV /></AdminGuard>}
+      </Route>
+      <Route path="/admin/daily-summary">
+        {() => <AdminGuard><AdminDailySummary /></AdminGuard>}
+      </Route>
+      <Route path="/admin/breaking-news">
+        {() => <AdminGuard><AdminBreakingNews /></AdminGuard>}
+      </Route>
+      <Route path="/admin/analytics">
+        {() => <AdminGuard><AdminAnalytics /></AdminGuard>}
+      </Route>
+      <Route path="/admin/activity-log">
+        {() => <AdminGuard><AdminActivityLog /></AdminGuard>}
+      </Route>
 
       {/* Fallback */}
       <Route path={"/404"} component={NotFound} />

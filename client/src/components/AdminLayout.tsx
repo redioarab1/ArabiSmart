@@ -95,6 +95,11 @@ const navItems = [
     href: "/admin/analytics",
   },
   {
+    label: "سجل النشاط",
+    icon: FileText,
+    href: "/admin/activity-log",
+  },
+  {
     label: "الإعدادات",
     icon: Settings,
     href: "/admin/settings",

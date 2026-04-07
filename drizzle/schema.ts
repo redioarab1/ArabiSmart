@@ -336,3 +336,38 @@ export const breakingNews = mysqlTable("breakingNews", {
 });
 export type BreakingNews = typeof breakingNews.$inferSelect;
 export type InsertBreakingNews = typeof breakingNews.$inferInsert;
+
+/**
+ * Page views table - tracks visitor statistics per page
+ */
+export const pageViews = mysqlTable("pageViews", {
+  id: int("id").autoincrement().primaryKey(),
+  page: varchar("page", { length: 255 }).notNull(), // e.g. "/", "/news/123", "/live"
+  referrer: varchar("referrer", { length: 512 }),
+  userAgent: varchar("userAgent", { length: 512 }),
+  ip: varchar("ip", { length: 64 }),
+  country: varchar("country", { length: 64 }),
+  userId: int("userId"), // null for anonymous visitors
+  sessionId: varchar("sessionId", { length: 128 }), // anonymous session tracking
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type PageView = typeof pageViews.$inferSelect;
+export type InsertPageView = typeof pageViews.$inferInsert;
+
+/**
+ * Activity logs table - tracks admin and user actions
+ */
+export const activityLogs = mysqlTable("activityLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"), // null for system actions
+  userName: varchar("userName", { length: 128 }),
+  action: varchar("action", { length: 128 }).notNull(), // e.g. "create_news", "delete_user", "login"
+  entity: varchar("entity", { length: 64 }), // e.g. "news", "user", "source"
+  entityId: int("entityId"), // ID of the affected entity
+  details: text("details"), // JSON with extra info
+  ip: varchar("ip", { length: 64 }),
+  status: mysqlEnum("status", ["success", "error"]).default("success").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ActivityLog = typeof activityLogs.$inferSelect;
+export type InsertActivityLog = typeof activityLogs.$inferInsert;

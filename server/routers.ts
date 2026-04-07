@@ -1504,5 +1504,300 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ─── Analytics Router ────────────────────────────────────────────────────────
+  analytics: router({
+    // Track a page view (called from frontend on each page load)
+    trackPageView: publicProcedure
+      .input(z.object({
+        page: z.string(),
+        referrer: z.string().optional(),
+        sessionId: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { success: false };
+        const { pageViews } = await import("../drizzle/schema");
+        const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+          ctx.req.socket?.remoteAddress || null;
+        const userAgent = ctx.req.headers["user-agent"] || null;
+        await db.insert(pageViews).values({
+          page: input.page,
+          referrer: input.referrer || null,
+          sessionId: input.sessionId || null,
+          userId: ctx.user?.id || null,
+          ip: ip ? ip.substring(0, 64) : null,
+          userAgent: userAgent ? userAgent.substring(0, 512) : null,
+        });
+        return { success: true };
+      }),
+
+    // Get visitor stats (admin only)
+    getStats: protectedProcedure
+      .input(z.object({ days: z.number().min(1).max(90).default(30) }).optional())
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { totalViews: 0, uniqueSessions: 0, topPages: [], dailyViews: [], trafficSources: [] };
+        const { pageViews } = await import("../drizzle/schema");
+        const { sql, gte, desc } = await import("drizzle-orm");
+
+        const days = input?.days ?? 30;
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+
+        // Total views
+        const [totalResult] = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(pageViews)
+          .where(gte(pageViews.createdAt, since));
+
+        // Unique sessions
+        const [uniqueResult] = await db
+          .select({ count: sql<number>`COUNT(DISTINCT COALESCE(sessionId, ip, 'anon'))` })
+          .from(pageViews)
+          .where(gte(pageViews.createdAt, since));
+
+        // Top pages
+        const topPages = await db
+          .select({
+            page: pageViews.page,
+            count: sql<number>`COUNT(*) as count`,
+          })
+          .from(pageViews)
+          .where(gte(pageViews.createdAt, since))
+          .groupBy(pageViews.page)
+          .orderBy(desc(sql`count`))
+          .limit(10);
+
+        // Daily views (last N days)
+        const dailyViews = await db
+          .select({
+            date: sql<string>`DATE(createdAt)`,
+            count: sql<number>`COUNT(*) as count`,
+          })
+          .from(pageViews)
+          .where(gte(pageViews.createdAt, since))
+          .groupBy(sql`DATE(createdAt)`)
+          .orderBy(sql`DATE(createdAt)`);
+
+        // Traffic sources (referrer domains)
+        const trafficSources = await db
+          .select({
+            source: sql<string>`COALESCE(
+              CASE
+                WHEN referrer IS NULL OR referrer = '' THEN 'مباشر'
+                WHEN referrer LIKE '%google%' THEN 'Google'
+                WHEN referrer LIKE '%facebook%' THEN 'Facebook'
+                WHEN referrer LIKE '%twitter%' OR referrer LIKE '%t.co%' THEN 'Twitter/X'
+                WHEN referrer LIKE '%whatsapp%' THEN 'WhatsApp'
+                WHEN referrer LIKE '%telegram%' THEN 'Telegram'
+                ELSE 'أخرى'
+              END, 'مباشر'
+            )`,
+            count: sql<number>`COUNT(*) as count`,
+          })
+          .from(pageViews)
+          .where(gte(pageViews.createdAt, since))
+          .groupBy(sql`COALESCE(
+              CASE
+                WHEN referrer IS NULL OR referrer = '' THEN 'مباشر'
+                WHEN referrer LIKE '%google%' THEN 'Google'
+                WHEN referrer LIKE '%facebook%' THEN 'Facebook'
+                WHEN referrer LIKE '%twitter%' OR referrer LIKE '%t.co%' THEN 'Twitter/X'
+                WHEN referrer LIKE '%whatsapp%' THEN 'WhatsApp'
+                WHEN referrer LIKE '%telegram%' THEN 'Telegram'
+                ELSE 'أخرى'
+              END, 'مباشر'
+            )`)
+          .orderBy(desc(sql`count`));
+
+        return {
+          totalViews: Number(totalResult?.count || 0),
+          uniqueSessions: Number(uniqueResult?.count || 0),
+          topPages,
+          dailyViews,
+          trafficSources,
+        };
+      }),
+
+    // New vs returning visitors
+    visitorTypes: protectedProcedure
+      .input(z.object({ days: z.number().min(1).max(90).default(30) }).optional())
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { newVisitors: 0, returningVisitors: 0 };
+        const { pageViews } = await import("../drizzle/schema");
+        const { sql, gte, lt } = await import("drizzle-orm");
+
+        const days = input?.days ?? 30;
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+        const prevPeriod = new Date();
+        prevPeriod.setDate(prevPeriod.getDate() - days * 2);
+
+        // Sessions in current period
+        const currentSessions = await db
+          .select({ sessionId: sql<string>`COALESCE(sessionId, ip, 'anon')` })
+          .from(pageViews)
+          .where(gte(pageViews.createdAt, since));
+
+        // Sessions that also appeared in previous period (returning)
+        const prevSessions = await db
+          .select({ sessionId: sql<string>`COALESCE(sessionId, ip, 'anon')` })
+          .from(pageViews)
+          .where(sql`createdAt >= ${prevPeriod} AND createdAt < ${since}`);
+
+        const prevSet = new Set(prevSessions.map((s: any) => s.sessionId));
+        const currentSet = new Set(currentSessions.map((s: any) => s.sessionId));
+
+        let returning = 0;
+        currentSet.forEach(id => { if (prevSet.has(id)) returning++; });
+        const newVisitors = currentSet.size - returning;
+
+        return { newVisitors, returningVisitors: returning };
+      }),
+  }),
+
+  // ─── Activity Log Router ─────────────────────────────────────────────────────
+  activityLog: router({
+    // Log an action (internal use from other procedures)
+    log: protectedProcedure
+      .input(z.object({
+        action: z.string(),
+        entity: z.string().optional(),
+        entityId: z.number().optional(),
+        details: z.string().optional(),
+        status: z.enum(["success", "error"]).default("success"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { success: false };
+        const { activityLogs } = await import("../drizzle/schema");
+        const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+          ctx.req.socket?.remoteAddress || null;
+        await db.insert(activityLogs).values({
+          userId: ctx.user.id,
+          userName: ctx.user.name || ctx.user.username || "مستخدم",
+          action: input.action,
+          entity: input.entity || null,
+          entityId: input.entityId || null,
+          details: input.details || null,
+          ip: ip ? ip.substring(0, 64) : null,
+          status: input.status,
+        });
+        return { success: true };
+      }),
+
+    // Get activity logs (admin only)
+    list: protectedProcedure
+      .input(z.object({
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(100).default(50),
+        action: z.string().optional(),
+        userId: z.number().optional(),
+        entity: z.string().optional(),
+        days: z.number().min(1).max(365).default(30),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { logs: [], total: 0 };
+        const { activityLogs } = await import("../drizzle/schema");
+        const { sql, gte, eq, and, desc } = await import("drizzle-orm");
+
+        const page = input?.page ?? 1;
+        const limit = input?.limit ?? 50;
+        const offset = (page - 1) * limit;
+        const days = input?.days ?? 30;
+
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+
+        const conditions: any[] = [gte(activityLogs.createdAt, since)];
+        if (input?.action) conditions.push(eq(activityLogs.action, input.action));
+        if (input?.userId) conditions.push(eq(activityLogs.userId, input.userId));
+        if (input?.entity) conditions.push(eq(activityLogs.entity, input.entity));
+
+        const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+        const [countResult] = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(activityLogs)
+          .where(where);
+
+        const logs = await db
+          .select()
+          .from(activityLogs)
+          .where(where)
+          .orderBy(desc(activityLogs.createdAt))
+          .limit(limit)
+          .offset(offset);
+
+        return {
+          logs,
+          total: Number(countResult?.count || 0),
+        };
+      }),
+
+    // Get summary stats for activity log
+    summary: protectedProcedure
+      .input(z.object({ days: z.number().min(1).max(90).default(7) }).optional())
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const db = await import("./db").then((m) => m.getDb());
+        if (!db) return { topActions: [], topUsers: [], errorRate: 0 };
+        const { activityLogs } = await import("../drizzle/schema");
+        const { sql, gte, desc } = await import("drizzle-orm");
+
+        const days = input?.days ?? 7;
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+
+        const topActions = await db
+          .select({
+            action: activityLogs.action,
+            count: sql<number>`COUNT(*) as count`,
+          })
+          .from(activityLogs)
+          .where(gte(activityLogs.createdAt, since))
+          .groupBy(activityLogs.action)
+          .orderBy(desc(sql`count`))
+          .limit(10);
+
+        const topUsers = await db
+          .select({
+            userName: activityLogs.userName,
+            count: sql<number>`COUNT(*) as count`,
+          })
+          .from(activityLogs)
+          .where(gte(activityLogs.createdAt, since))
+          .groupBy(activityLogs.userName)
+          .orderBy(desc(sql`count`))
+          .limit(5);
+
+        const [totalResult] = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(activityLogs)
+          .where(gte(activityLogs.createdAt, since));
+
+        const [errorResult] = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(activityLogs)
+          .where(sql`createdAt >= ${since} AND status = 'error'`);
+
+        const total = Number(totalResult?.count || 0);
+        const errors = Number(errorResult?.count || 0);
+
+        return {
+          topActions,
+          topUsers,
+          errorRate: total > 0 ? Math.round((errors / total) * 100) : 0,
+          total,
+          errors,
+        };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;
