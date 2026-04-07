@@ -63,6 +63,19 @@ export const appRouter = router({
         const token = await sdk.createSessionToken(result.user.openId, { name: result.user.name || result.user.username || "" });
         const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+        // تسجيل عملية تسجيل الدخول في سجل النشاط
+        if (result.user.role === "admin") {
+          const { logActivity } = await import("./activityLogger");
+          await logActivity({
+            userId: result.user.id,
+            userName: result.user.name ?? result.user.username ?? null,
+            action: "admin_login",
+            entity: "user",
+            entityId: result.user.id,
+            details: JSON.stringify({ username: result.user.username, role: result.user.role }),
+            ip: ctx.req?.ip ?? null,
+          });
+        }
         return { success: true, user: { id: result.user.id, name: result.user.name, username: result.user.username, email: result.user.email, role: result.user.role } };
       }),
 
@@ -300,15 +313,26 @@ export const appRouter = router({
           publishedAt: z.date().optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { news } = await import("../drizzle/schema");
         
-        await db.insert(news).values({
+        const result = await db.insert(news).values({
           ...input,
           publishedAt: input.publishedAt || new Date(),
           isManual: 1,
+        });
+        
+        const { logActivity } = await import("./activityLogger");
+        await logActivity({
+          userId: ctx.user?.id ?? null,
+          userName: ctx.user?.name ?? ctx.user?.username ?? null,
+          action: "create_news",
+          entity: "news",
+          entityId: (result as any).insertId ?? null,
+          details: JSON.stringify({ title: input.title, source: input.source, category: input.category }),
+          ip: ctx.req?.ip ?? null,
         });
         
         return { success: true };
@@ -327,7 +351,7 @@ export const appRouter = router({
           language: z.enum(["ar", "sv", "en"]).optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { news } = await import("../drizzle/schema");
@@ -336,18 +360,42 @@ export const appRouter = router({
         const { id, ...updateData } = input;
         await db.update(news).set(updateData).where(eq(news.id, id));
         
+        const { logActivity } = await import("./activityLogger");
+        await logActivity({
+          userId: ctx.user?.id ?? null,
+          userName: ctx.user?.name ?? ctx.user?.username ?? null,
+          action: "update_news",
+          entity: "news",
+          entityId: id,
+          details: JSON.stringify(updateData),
+          ip: ctx.req?.ip ?? null,
+        });
+        
         return { success: true };
       }),
 
     deleteNews: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { news } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
         
+        // جلب عنوان الخبر قبل الحذف
+        const [deletedItem] = await db.select({ title: news.title, source: news.source }).from(news).where(eq(news.id, input.id)).limit(1);
         await db.delete(news).where(eq(news.id, input.id));
+        
+        const { logActivity } = await import("./activityLogger");
+        await logActivity({
+          userId: ctx.user?.id ?? null,
+          userName: ctx.user?.name ?? ctx.user?.username ?? null,
+          action: "delete_news",
+          entity: "news",
+          entityId: input.id,
+          details: deletedItem ? JSON.stringify({ title: deletedItem.title, source: deletedItem.source }) : null,
+          ip: ctx.req?.ip ?? null,
+        });
         
         return { success: true };
       }),
@@ -364,15 +412,26 @@ export const appRouter = router({
           image: z.string().optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { news } = await import("../drizzle/schema");
         
-        await db.insert(news).values({
+        const result = await db.insert(news).values({
           ...input,
           publishedAt: new Date(),
           isManual: 1,
+        });
+        
+        const { logActivity } = await import("./activityLogger");
+        await logActivity({
+          userId: ctx.user?.id ?? null,
+          userName: ctx.user?.name ?? ctx.user?.username ?? null,
+          action: "create_news_manual",
+          entity: "news",
+          entityId: (result as any).insertId ?? null,
+          details: JSON.stringify({ title: input.title, source: input.source, category: input.category }),
+          ip: ctx.req?.ip ?? null,
         });
         
         return { success: true };
@@ -409,9 +468,18 @@ export const appRouter = router({
       return results;
     }),
 
-    fetchNews: protectedProcedure.mutation(async () => {
+    fetchNews: protectedProcedure.mutation(async ({ ctx }) => {
       const { fetchAllRSS } = await import("./rssFetcher");
       await fetchAllRSS();
+      const { logActivity } = await import("./activityLogger");
+      await logActivity({
+        userId: ctx.user?.id ?? null,
+        userName: ctx.user?.name ?? ctx.user?.username ?? null,
+        action: "fetch_rss_manual",
+        entity: "rssSource",
+        details: "جلب يدوي للأخبار من جميع المصادر",
+        ip: ctx.req?.ip ?? null,
+      });
       return { success: true, newItemsCount: 0 };
     }),
     addSource: protectedProcedure
@@ -421,11 +489,21 @@ export const appRouter = router({
         category: z.enum(["SE", "عربية"]),
         language: z.enum(["ar", "sv", "en"]),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { rssSources } = await import("../drizzle/schema");
-        await db.insert(rssSources).values({ ...input, isActive: 1 });
+        const result = await db.insert(rssSources).values({ ...input, isActive: 1 });
+        const { logActivity } = await import("./activityLogger");
+        await logActivity({
+          userId: ctx.user?.id ?? null,
+          userName: ctx.user?.name ?? ctx.user?.username ?? null,
+          action: "create_rss_source",
+          entity: "rssSource",
+          entityId: (result as any).insertId ?? null,
+          details: JSON.stringify({ name: input.name, url: input.url, category: input.category }),
+          ip: ctx.req?.ip ?? null,
+        });
         return { success: true };
       }),
     updateSource: protectedProcedure
@@ -447,12 +525,24 @@ export const appRouter = router({
       }),
     deleteSource: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { rssSources } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
+        // جلب اسم المصدر قبل الحذف
+        const [src] = await db.select({ name: rssSources.name, url: rssSources.url }).from(rssSources).where(eq(rssSources.id, input.id)).limit(1);
         await db.delete(rssSources).where(eq(rssSources.id, input.id));
+        const { logActivity } = await import("./activityLogger");
+        await logActivity({
+          userId: ctx.user?.id ?? null,
+          userName: ctx.user?.name ?? ctx.user?.username ?? null,
+          action: "delete_rss_source",
+          entity: "rssSource",
+          entityId: input.id,
+          details: src ? JSON.stringify({ name: src.name, url: src.url }) : null,
+          ip: ctx.req?.ip ?? null,
+        });
         return { success: true };
       }),
     toggleSource: protectedProcedure
