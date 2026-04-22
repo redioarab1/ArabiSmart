@@ -947,3 +947,15 @@
 - [x] تعديل localLogin router لرفض المستخدمين الذين isLocalAuth=0
 - [x] تعديل AdminGuard للتحقق من isLocalAuth قبل السماح بالدخول
 - [x] تعديل auth.me لإرجاع isLocalAuth للواجهة الأمامية
+
+## تجهيز المشروع للنقل إلى Hetzner - مكتمل
+- [x] استبدال Manus S3 بـ MinIO في server/storage.ts (تبديل تلقائي بناءً على S3_ENDPOINT)
+- [x] استبدال Forge LLM بـ OpenAI في server/_core/llm.ts (تبديل تلقائي بناءً على OPENAI_API_KEY)
+- [x] تحديث getLoginUrl لدعم بيئة بدون Manus OAuth
+- [x] إضافة متغيرات OpenAI وS3 وFrontend URL إلى server/_core/env.ts
+- [x] إنشاء Dockerfile للمشروع
+- [x] إنشاء docker-compose.yml (MySQL + MinIO + Backend + Nginx + Certbot)
+- [x] إنشاء nginx.conf (SSL + Proxy + MinIO files)
+- [x] إنشاء .env.hetzner كقالب لمتغيرات البيئة
+- [x] إنشاء scripts/export-db.mjs لتصدير قاعدة البيانات
+- [x] إنشاء HETZNER_MIGRATION.md دليل النقل الكامل

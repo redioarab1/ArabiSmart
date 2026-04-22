@@ -1,20 +1,70 @@
-// Preconfigured storage helpers for Manus WebDev templates
-// Uses the Biz-provided storage proxy (Authorization: Bearer <token>)
-
+/**
+ * Storage helpers - يدعم:
+ * 1. Manus Forge proxy (بيئة Manus الحالية)
+ * 2. MinIO / AWS S3 المتوافق (بيئة Hetzner)
+ *
+ * التبديل تلقائي: إذا وُجد S3_ENDPOINT → MinIO/S3، وإلا → Manus Forge
+ */
 import { ENV } from './_core/env';
 
-type StorageConfig = { baseUrl: string; apiKey: string };
+// ─── وضع التخزين ──────────────────────────────────────────────────────────────
+function isS3Mode(): boolean {
+  return !!process.env.S3_ENDPOINT;
+}
 
+// ─── MinIO / S3 ───────────────────────────────────────────────────────────────
+async function s3Put(
+  relKey: string,
+  data: Buffer | Uint8Array | string,
+  contentType = "application/octet-stream"
+): Promise<{ key: string; url: string }> {
+  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+  const endpoint = process.env.S3_ENDPOINT!;
+  const bucket = process.env.S3_BUCKET || "arabismart";
+  const accessKey = process.env.S3_ACCESS_KEY || "minioadmin";
+  const secretKey = process.env.S3_SECRET_KEY || "";
+  const publicUrl = process.env.S3_PUBLIC_URL || endpoint;
+  const client = new S3Client({
+    endpoint,
+    region: process.env.S3_REGION || "us-east-1",
+    credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
+    forcePathStyle: true,
+  });
+  const key = relKey.replace(/^\/+/, "");
+  const body = typeof data === "string" ? Buffer.from(data) : Buffer.from(data as any);
+  await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }));
+  const url = `${publicUrl.replace(/\/$/, "")}/${bucket}/${key}`;
+  return { key, url };
+}
+
+async function s3Get(relKey: string): Promise<{ key: string; url: string }> {
+  const { S3Client, GetObjectCommand } = await import("@aws-sdk/client-s3");
+  const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
+  const endpoint = process.env.S3_ENDPOINT!;
+  const bucket = process.env.S3_BUCKET || "arabismart";
+  const accessKey = process.env.S3_ACCESS_KEY || "minioadmin";
+  const secretKey = process.env.S3_SECRET_KEY || "";
+  const client = new S3Client({
+    endpoint,
+    region: process.env.S3_REGION || "us-east-1",
+    credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
+    forcePathStyle: true,
+  });
+  const key = relKey.replace(/^\/+/, "");
+  const url = await getSignedUrl(client, new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn: 3600 });
+  return { key, url };
+}
+
+// ─── Manus Forge proxy ────────────────────────────────────────────────────────
+type StorageConfig = { baseUrl: string; apiKey: string };
 function getStorageConfig(): StorageConfig {
   const baseUrl = ENV.forgeApiUrl;
   const apiKey = ENV.forgeApiKey;
-
   if (!baseUrl || !apiKey) {
     throw new Error(
       "Storage proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
     );
   }
-
   return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
 }
 
@@ -72,6 +122,8 @@ export async function storagePut(
   data: Buffer | Uint8Array | string,
   contentType = "application/octet-stream"
 ): Promise<{ key: string; url: string }> {
+  if (isS3Mode()) return s3Put(relKey, data, contentType);
+  // Manus Forge proxy
   const { baseUrl, apiKey } = getStorageConfig();
   const key = normalizeKey(relKey);
   const uploadUrl = buildUploadUrl(baseUrl, key);
@@ -81,7 +133,6 @@ export async function storagePut(
     headers: buildAuthHeaders(apiKey),
     body: formData,
   });
-
   if (!response.ok) {
     const message = await response.text().catch(() => response.statusText);
     throw new Error(
@@ -92,7 +143,9 @@ export async function storagePut(
   return { key, url };
 }
 
-export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
+export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {
+  if (isS3Mode()) return s3Get(relKey);
+  // Manus Forge proxy
   const { baseUrl, apiKey } = getStorageConfig();
   const key = normalizeKey(relKey);
   return {
