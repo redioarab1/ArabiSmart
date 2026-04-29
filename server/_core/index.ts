@@ -9,6 +9,26 @@ import { createContext } from "./context";
 import { generateSitemap } from "../sitemap";
 import { serveStatic, setupVite } from "./vite";
 import { initializeCronJobs } from "../cronJobs";
+import rateLimit from "express-rate-limit";
+
+// Rate limiter for login endpoint - 10 attempts per 15 minutes
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "عدد محاولات تسجيل الدخول تجاوز الحد المسموح. حاول مجدداً بعد 15 دقيقة." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// General API rate limiter - 200 requests per minute
+const apiRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  message: { error: "طلبات كثيرة جداً. حاول مجدداً بعد دقيقة." },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path.includes("auth.me") || req.path.includes("news.getAll"),
+});
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,30 +59,6 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Sitemap
   app.get("/sitemap.xml", generateSitemap);
-
-  // ── Tools Check (temporary debug endpoint) ──
-  app.get("/api/debug/tools", async (req, res) => {
-    const { execFile } = await import("child_process");
-    const { promisify } = await import("util");
-    const execAsync = promisify(execFile);
-    const results: Record<string, string> = {};
-    const checks = [
-      { name: "weasyprint", cmd: "weasyprint", args: ["--version"] },
-      { name: "python3", cmd: "python3", args: ["-c", "import weasyprint; print(weasyprint.__version__)"] },
-      { name: "pdftoppm", cmd: "pdftoppm", args: ["-v"] },
-      { name: "chromium", cmd: "chromium-browser", args: ["--version"] },
-      { name: "google-chrome", cmd: "google-chrome", args: ["--version"] },
-    ];
-    for (const c of checks) {
-      try {
-        const r = await execAsync(c.cmd, c.args, { timeout: 5000 });
-        results[c.name] = (r.stdout || r.stderr || "ok").trim().slice(0, 100);
-      } catch (e: any) {
-        results[c.name] = "NOT FOUND: " + (e.message || "").slice(0, 80);
-      }
-    }
-    res.json(results);
-  });
 
   // ── Newspaper PDF Generator ──
   app.get("/api/daily-summary/pdf", async (req, res) => {
@@ -313,7 +309,10 @@ async function startServer() {
     }
   });
 
-  // tRPC API
+  // tRPC API with rate limiting
+  app.use("/api/trpc", apiRateLimiter);
+  // Extra strict rate limiting for login endpoint
+  app.use("/api/trpc/auth.localLogin", loginRateLimiter);
   app.use(
     "/api/trpc",
     createExpressMiddleware({
