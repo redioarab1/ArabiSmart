@@ -959,3 +959,12 @@
 - [x] إنشاء .env.hetzner كقالب لمتغيرات البيئة
 - [x] إنشاء scripts/export-db.mjs لتصدير قاعدة البيانات
 - [x] إنشاء HETZNER_MIGRATION.md دليل النقل الكامل
+
+## إصلاحات الأمان - تعزيز مستوى الحماية - مكتمل
+- [x] إزالة passwordHash وresetToken وopenId من استجابة auth.me
+- [x] تأمين endpoint رفع الشعار بفحص admin session + magic bytes لنوع الملف
+- [x] تثبيت Helmet وإضافة Security Headers (CSP, X-Frame-Options, HSTS, Referrer-Policy)
+- [x] تقليص مدة الجلسة من سنة إلى 30 يوماً
+- [x] تعديل SameSite من none إلى lax على HTTPS
+- [x] تحديث axios وjspdf لإصلاح الثغرات
+- [x] إضافة التحقق من magic bytes لنوع الملف المرفوع (PNG/JPEG فقط)

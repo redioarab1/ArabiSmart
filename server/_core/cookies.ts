@@ -39,10 +39,13 @@ export function getSessionCookieOptions(
   //       ? hostname
   //       : undefined;
 
+  const isSecure = isSecureRequest(req);
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    // SameSite=lax: يمنع CSRF مع السماح بالتنقل الطبيعي من روابط خارجية
+    // نستخدم none فقط على HTTP للتطوير المحلي
+    sameSite: isSecure ? "lax" : "none",
+    secure: isSecure,
   };
 }

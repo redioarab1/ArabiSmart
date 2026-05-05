@@ -12,9 +12,10 @@ export const appRouter = router({
     me: publicProcedure.query(opts => {
       const user = opts.ctx.user;
       if (!user) return null;
-      // إرجاع isLocalAuth ضمن بيانات المستخدم لاستخدامها في AdminGuard
+      // إرجاع بيانات المستخدم مع استبعاد الحقول الحساسة صراحةً
+      const { passwordHash: _ph, resetToken: _rt, resetTokenExpires: _rte, openId: _oi, ...safeUser } = user as any;
       return {
-        ...user,
+        ...safeUser,
         isLocalAuth: user.isLocalAuth === 1 ? 1 : 0,
       };
     }),
@@ -62,7 +63,7 @@ export const appRouter = router({
         const { loginLocalUser } = await import("./localAuth");
         const { sdk } = await import("./_core/sdk");
         const { getSessionCookieOptions } = await import("./_core/cookies");
-        const { COOKIE_NAME } = await import("@shared/const");
+        const { COOKIE_NAME, SESSION_DURATION_MS } = await import("@shared/const");
         const { TRPCError } = await import("@trpc/server");
         const result = await loginLocalUser(input);
         if (!result.user) {
@@ -76,9 +77,10 @@ export const appRouter = router({
         if (result.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "ليس لديك صلاحية الوصول إلى لوحة التحكم." });
         }
-        const token = await sdk.createSessionToken(result.user.openId, { name: result.user.name || result.user.username || "" });
+        // مدة جلسة آمنة: 30 يوماً
+        const token = await sdk.createSessionToken(result.user.openId, { name: result.user.name || result.user.username || "", expiresInMs: SESSION_DURATION_MS });
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+        ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: SESSION_DURATION_MS });
         // تسجيل عملية تسجيل الدخول في سجل النشاط
         if (result.user.role === "admin") {
           const { logActivity } = await import("./activityLogger");

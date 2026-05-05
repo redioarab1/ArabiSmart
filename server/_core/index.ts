@@ -10,6 +10,9 @@ import { generateSitemap } from "../sitemap";
 import { serveStatic, setupVite } from "./vite";
 import { initializeCronJobs } from "../cronJobs";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import { sdk } from "./sdk";
+import { COOKIE_NAME } from "@shared/const";
 
 // Rate limiter for login endpoint - 10 attempts per 15 minutes
 const loginRateLimiter = rateLimit({
@@ -52,6 +55,52 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // ── Security Headers (Helmet) ──
+  app.use(helmet({
+    // تفعيل X-Frame-Options لمنع Clickjacking
+    frameguard: { action: "deny" },
+    // تفعيل X-Content-Type-Options لمنع MIME sniffing
+    noSniff: true,
+    // تفعيل X-XSS-Protection
+    xssFilter: true,
+    // تفعيل Referrer-Policy
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    // تفعيل HSTS على HTTPS
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    // Content Security Policy مرن يسمح بالموارد الضرورية
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",  // Vite HMR وReact
+          "https://www.googletagmanager.com",
+          "https://www.google-analytics.com",
+          "https://maps.googleapis.com",
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        connectSrc: [
+          "'self'",
+          "https://www.google-analytics.com",
+          "https://analytics.google.com",
+          "wss:",  // WebSocket لـ Vite HMR
+          "ws:",
+        ],
+        mediaSrc: ["'self'", "https:", "blob:"],
+        frameSrc: ["'self'", "https://www.youtube.com", "https://player.vimeo.com"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+  }));
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -267,9 +316,22 @@ async function startServer() {
     }
   });
 
-  // ── Channel Logo Upload ──
+  // ── Channel Logo Upload (requires admin auth) ──
   app.post("/api/live-channel/upload-logo", async (req, res) => {
     try {
+      // فحص المصادقة أولاً - يجب أن يكون المستخدم admin
+      let authedUser: any = null;
+      try {
+        authedUser = await sdk.authenticateRequest(req as any);
+      } catch {
+        res.status(401).json({ error: "Unauthorized: login required" });
+        return;
+      }
+      if (!authedUser || authedUser.role !== "admin") {
+        res.status(403).json({ error: "Forbidden: admin access required" });
+        return;
+      }
+
       const contentType = req.headers["content-type"] || "";
       if (!contentType.includes("multipart/form-data")) {
         res.status(400).json({ error: "Expected multipart/form-data" });
@@ -298,10 +360,18 @@ async function startServer() {
         res.status(400).json({ error: "No file uploaded" });
         return;
       }
-      const ext = mimeType.includes("png") ? "png" : "jpg";
-      const key = `live-channels/logos/channel-${channelId}-${Date.now()}.${ext}`;
+      // التحقق من magic bytes للتأكد من نوع الملف الفعلي (PNG أو JPEG)
+      const isPng = fileBuffer[0] === 0x89 && fileBuffer[1] === 0x50 && fileBuffer[2] === 0x4E && fileBuffer[3] === 0x47;
+      const isJpeg = fileBuffer[0] === 0xFF && fileBuffer[1] === 0xD8;
+      if (!isPng && !isJpeg) {
+        res.status(400).json({ error: "Invalid file type: only PNG and JPEG images are allowed" });
+        return;
+      }
+      const ext = isPng ? "png" : "jpg";
+      const safeChannelId = channelId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 50);
+      const key = `live-channels/logos/channel-${safeChannelId}-${Date.now()}.${ext}`;
       const { storagePut } = await import("../storage");
-      const { url } = await storagePut(key, fileBuffer, mimeType);
+      const { url } = await storagePut(key, fileBuffer, isPng ? "image/png" : "image/jpeg");
       res.json({ success: true, url });
     } catch (err: any) {
       console.error("[Logo Upload] Error:", err?.message);
