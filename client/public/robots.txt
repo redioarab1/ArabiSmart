@@ -9,6 +9,11 @@ Disallow: /api/
 # Sitemaps
 Sitemap: https://arabismart.vip/sitemap.xml
 
+# RSS/Atom Feeds (for feed aggregators)
+Allow: /feed.xml
+Allow: /rss.xml
+Allow: /atom.xml
+
 # Allow major search engine bots
 User-agent: Googlebot
 Allow: /
