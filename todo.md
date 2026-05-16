@@ -997,3 +997,6 @@
 - [x] التحقق من عدم وجود أحرف خاصة غير مُهرَّبة في XML
 - [x] إضافة feed autodiscovery في client/index.html (RSS + Atom)
 - [x] تحديث robots.txt لإضافة Allow صريح لروابط الـ feeds
+
+## إضافة رابط فيسبوك - مكتمل
+- [x] إضافة رابط فيسبوك https://www.facebook.com/share/1Dr2tHQcKM/ في Footer الصفحة الرئيسية مع أيقونة فيسبوك
