@@ -37,6 +37,7 @@ import SEOHead from "@/components/SEOHead";
 import { AddToFolderButton } from "@/components/AddToFolderButton";
 import { getLoginUrl } from "@/const";
 import ScrollToTop from "@/components/ScrollToTop";
+import MostViewedSidebar from "@/components/MostViewedSidebar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
@@ -693,6 +694,8 @@ export default function Home() {
       {/* News Grid */}
       <section className="py-8 md:py-12">
         <div className="container">
+          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex-1 min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -884,11 +887,16 @@ export default function Home() {
               </p>
             </div>
           )}
+          </div>
+          {/* Sidebar - Most Viewed & RSS */}
+          <div className="lg:w-72 xl:w-80 flex-shrink-0">
+            <MostViewedSidebar />
+          </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-8 bg-muted/30 mt-12">
+      {/* Footer */}     <footer className="border-t py-8 bg-muted/30 mt-12">
         <div className="container text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Globe className="h-5 w-5 text-primary" />

@@ -32,6 +32,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MobileBottomNav = lazy(() => import("./components/MobileBottomNav"));
+const PWAInstallButton = lazy(() => import("./components/PWAInstallButton"));
 
 // ── Lazy-loaded Admin Pages ───────────────────────────────────────────────────
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
@@ -142,6 +143,9 @@ function App() {
           <Router />
           <Suspense fallback={null}>
             <MobileBottomNav />
+          </Suspense>
+          <Suspense fallback={null}>
+            <PWAInstallButton />
           </Suspense>
         </TooltipProvider>
       </ThemeProvider>

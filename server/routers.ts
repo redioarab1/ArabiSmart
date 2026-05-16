@@ -1729,6 +1729,14 @@ export const appRouter = router({
         };
       }),
 
+    // Get most viewed news (public)
+    getMostViewed: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).default(10) }).optional())
+      .query(async ({ input }) => {
+        const { getMostViewedNews } = await import("./db");
+        return getMostViewedNews(input?.limit ?? 10);
+      }),
+
     // New vs returning visitors
     visitorTypes: protectedProcedure
       .input(z.object({ days: z.number().min(1).max(90).default(30) }).optional())

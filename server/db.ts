@@ -935,6 +935,52 @@ export async function getAllNewsForSitemap() {
 }
 
 /**
+ * Get recent news for RSS/Atom feed with full metadata
+ */
+export async function getNewsForFeed(limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: news.id,
+      title: news.title,
+      description: news.description,
+      image: news.image,
+      source: news.source,
+      category: news.category,
+      publishedAt: news.publishedAt,
+    })
+    .from(news)
+    .orderBy(desc(news.publishedAt))
+    .limit(limit);
+}
+
+/**
+ * Get most viewed news articles based on pageViews table
+ */
+export async function getMostViewedNews(limit = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  const { pageViews } = await import("../drizzle/schema");
+  const result = await db
+    .select({
+      id: news.id,
+      title: news.title,
+      image: news.image,
+      source: news.source,
+      category: news.category,
+      publishedAt: news.publishedAt,
+      viewCount: sql<number>`count(${pageViews.id})`,
+    })
+    .from(news)
+    .innerJoin(pageViews, sql`${pageViews.page} = CONCAT('/news/', ${news.id})`)
+    .groupBy(news.id)
+    .orderBy(sql`count(${pageViews.id}) DESC`)
+    .limit(limit);
+  return result;
+}
+
+/**
  * Get all active categories ordered by display order
  */
 export async function getAllCategories(): Promise<Category[]> {

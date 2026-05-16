@@ -968,3 +968,13 @@
 - [x] تعديل SameSite من none إلى lax على HTTPS
 - [x] تحديث axios وjspdf لإصلاح الثغرات
 - [x] إضافة التحقق من magic bytes لنوع الملف المرفوع (PNG/JPEG فقط)
+
+## تحسينات زيادة عدد الزوار - مكتمل
+- [x] إضافة RSS feed للموقع (/feed.xml) بصيغة RSS 2.0 مع الصور والتصنيفات
+- [x] إضافة Atom feed (/atom.xml) لمتوافقية أوسع مع تطبيقات القراءة
+- [x] إضافة دالة getNewsForFeed وgetMostViewedNews في db.ts
+- [x] إضافة analytics.getMostViewed procedure (public) في routers.ts
+- [x] إنشاء مكون MostViewedSidebar - قسم الأكثر قراءة في الصفحة الرئيسية
+- [x] تحديث layout الصفحة الرئيسية: عمودان (أخبار + sidebar)
+- [x] إنشاء مكون PWAInstallButton - يظهر بعد 30 ثانية ويتيح تثبيت الموقع كتطبيق
+- [x] TypeScript: 0 أخطاء - الاختبارات: 32/32 ناجحة

@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { generateSitemap } from "../sitemap";
+import { generateRSSFeed, generateAtomFeed } from "../rssFeed";
 import { serveStatic, setupVite } from "./vite";
 import { initializeCronJobs } from "../cronJobs";
 import rateLimit from "express-rate-limit";
@@ -106,8 +107,11 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
-  // Sitemap
+  // Sitemap & Feeds
   app.get("/sitemap.xml", generateSitemap);
+  app.get("/feed.xml", generateRSSFeed);
+  app.get("/rss.xml", generateRSSFeed);
+  app.get("/atom.xml", generateAtomFeed);
 
   // ── Newspaper PDF Generator ──
   app.get("/api/daily-summary/pdf", async (req, res) => {
