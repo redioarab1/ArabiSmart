@@ -38,6 +38,7 @@ import { AddToFolderButton } from "@/components/AddToFolderButton";
 import { getLoginUrl } from "@/const";
 import ScrollToTop from "@/components/ScrollToTop";
 import MostViewedSidebar from "@/components/MostViewedSidebar";
+import QuickAccessPanel from "@/components/QuickAccessPanel";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
@@ -394,90 +395,10 @@ export default function Home() {
                   <Search className="h-5 w-5" />
                 </Button>
               </Link>
-              
-              {/* Daily Summary Icon - أيقونة الملخص اليومي */}
-              <Link href="/daily-summary">
-                <div className="relative group">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 hover:from-blue-500/25 hover:to-indigo-500/25 hover:border-blue-500 transition-all duration-300 shadow-sm hover:shadow-blue-500/25 hover:shadow-lg"
-                  >
-                    <Sparkles className="h-[18px] w-[18px] text-blue-500" />
-                  </Button>
-                  {/* Tooltip */}
-                  <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900 dark:bg-slate-800 text-white text-xs px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-xl border border-slate-700/50 arabic-text z-50">
-                    {t.dailySummary}
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 dark:bg-slate-800 rotate-45 border-l border-t border-slate-700/50" />
-                  </div>
-                  {/* Live pulse dot */}
-                  <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500 border-2 border-background" />
-                  </span>
-                </div>
-              </Link>
 
-              {/* Notifications Link */}
-              <Link href="/notifications">
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <Bell className="h-5 w-5" />
-                </Button>
-              </Link>
-              
-              {/* Favorites Link */}
-              <Link href="/favorites">
-                <Button variant="outline" size="icon" className="rounded-full relative">
-                  <Heart className="h-5 w-5" />
-                  {favorites.size > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {favorites.size}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-              
-              {/* Archive Link */}
-              {isAuthenticated && (
-                <Link href="/archive">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="relative rounded-full border-2 border-amber-400/60 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-800/30 hover:border-amber-500 transition-all shadow-sm"
-                    title="أرشيف الأخبار المحفوظة"
-                  >
-                    <Archive className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                    {archived.size > 0 && (
-                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow">
-                        {archived.size > 9 ? "9+" : archived.size}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              )}
-              
-              {/* Profile Link */}
-              {isAuthenticated && (
-                <Link href="/profile">
-                  <Button variant="outline" size="icon" className="rounded-full">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
-              )}
-              
-              {/* Settings Link */}
-              {isAuthenticated && (
-                <Link href="/settings">
-                  <Button variant="outline" size="icon" className="rounded-full">
-                    <SettingsIcon className="h-5 w-5" />
-                  </Button>
-                </Link>
-              )}
-              
               {/* Login/Signup Buttons */}
               {!isAuthenticated && (
                 <div className="flex items-center gap-2">
-                  {/* زر تسجيل الدخول */}
                   <Link href="/login">
                     <Button
                       size="sm"
@@ -488,7 +409,6 @@ export default function Home() {
                       <span className="arabic-text text-xs font-semibold hidden sm:inline">دخول</span>
                     </Button>
                   </Link>
-                  {/* زر الانضمام */}
                   <Link href="/register">
                     <Button
                       size="sm"
@@ -501,43 +421,17 @@ export default function Home() {
                   </Link>
                 </div>
               )}
-              
-              {/* Font Size Controls */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="rounded-full">
-                    <span className="text-lg font-bold">A</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => setFontSize('small')} className="arabic-text">
-                    <span className={fontSize === 'small' ? 'font-bold' : ''}>{t.fontSmall}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFontSize('medium')} className="arabic-text">
-                    <span className={fontSize === 'medium' ? 'font-bold' : ''}>{t.fontMedium}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFontSize('large')} className="arabic-text">
-                    <span className={fontSize === 'large' ? 'font-bold' : ''}>{t.fontLarge}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              
+
               {/* Language Switcher */}
               <LanguageSwitcher />
 
-              {/* Theme Toggle */}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={toggleTheme}
-                className="rounded-full"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+              {/* Quick Access Panel - replaces individual icons */}
+              <QuickAccessPanel
+                favorites={favorites.size}
+                archived={archived.size}
+                fontSize={fontSize}
+                onFontSizeChange={setFontSize}
+              />
             </div>
           </div>
         </div>
