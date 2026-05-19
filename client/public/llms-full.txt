@@ -1,0 +1,62 @@
+# ArabiSmart News — Complete AI Reference Guide
+# https://arabismart.vip/llms-full.txt
+
+## Identity
+
+ArabiSmart News (عربي سمارت للأخبار) is a multilingual news platform founded in 2024, dedicated
+to serving Arabic-speaking communities in Sweden and globally. The platform aggregates breaking
+news from over 20 verified Arabic and Swedish news sources, enhanced by AI-powered features
+including daily summaries, automatic translation, and intelligent categorization.
+
+The site operates at https://arabismart.vip and publishes content in Arabic (primary), Swedish,
+and English. It serves as a bridge between Arab diaspora communities and current events in both
+the Arab world and Scandinavia.
+
+## Editorial Standards
+
+ArabiSmart News aggregates content exclusively from established, verified news organizations.
+Every article includes a clear citation of its original source with a direct link. The platform
+does not publish original reporting but provides value through aggregation, translation, and
+AI-powered summarization. All AI-generated content is clearly labeled to distinguish it from
+sourced journalism.
+
+## Technical Architecture
+
+The platform updates its news feed every 10 minutes from RSS sources. A dynamic sitemap at
+https://arabismart.vip/sitemap.xml is updated in real-time with all published articles.
+The RSS feed at https://arabismart.vip/feed.xml and Atom feed at https://arabismart.vip/atom.xml
+provide machine-readable access to the 50 most recent articles.
+
+## Content Categories and Coverage
+
+The platform covers six primary news categories: Breaking News (أخبار عاجلة) for urgent
+developments; Politics (سياسة) covering regional and international political affairs;
+Economy (اقتصاد) for financial and business news; Sports (رياضة) covering Arab and
+international sports; World News (أخبار دولية) for global events; and Local (محلي)
+for community-relevant news.
+
+## AI Features
+
+The Daily Summary feature generates AI-powered digests of the day's most important news,
+available at https://arabismart.vip/daily-summary. The auto-translation system translates
+Arabic news to Swedish and English (and vice versa) using large language models. Smart
+categorization automatically classifies incoming news articles into the appropriate categories.
+
+## Audience
+
+The primary audience consists of Arabic-speaking individuals living in Sweden, along with
+Arabic speakers globally who seek comprehensive news coverage. The platform bridges language
+barriers by providing news in Arabic, Swedish, and English simultaneously.
+
+## Contact and Social
+
+Website: https://arabismart.vip
+Facebook Page: https://www.facebook.com/share/1Dr2tHQcKM/
+RSS Feed: https://arabismart.vip/feed.xml
+
+## Structured Data
+
+All news article pages include Schema.org NewsArticle JSON-LD structured data with full
+metadata including headline, description, image, publication date, author (source organization),
+publisher information, article section, and keywords. The homepage includes WebSite and
+NewsMediaOrganization structured data for entity recognition.

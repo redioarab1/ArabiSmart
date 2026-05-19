@@ -928,6 +928,10 @@ export async function getAllNewsForSitemap() {
       id: news.id,
       title: news.title,
       publishedAt: news.publishedAt,
+      image: news.image,
+      category: news.category,
+      source: news.source,
+      language: news.language,
     })
     .from(news)
     .orderBy(desc(news.publishedAt))

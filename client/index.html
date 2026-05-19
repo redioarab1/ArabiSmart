@@ -83,29 +83,42 @@
     }
     </script>
     
-    <!-- Structured Data: NewsMediaOrganization -->
+    <!-- Structured Data: NewsMediaOrganization (GEO-enhanced) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "NewsMediaOrganization",
       "name": "ArabiSmart News",
-      "alternateName": "عربي سمارت للأخبار",
+      "alternateName": ["عربي سمارت للأخبار", "ArabiSmart", "عربي سمارت"],
       "url": "https://arabismart.vip/",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://arabismart.vip/icon-512x512.png"
+        "url": "https://arabismart.vip/icon-512x512.png",
+        "width": 512,
+        "height": 512
       },
       "description": "موقع أخبار عربية وسويدية يخدم الجالية العربية في السويد والعالم",
       "foundingDate": "2024",
-      "areaServed": ["SE", "SA", "AE", "EG"],
+      "areaServed": ["SE", "SA", "AE", "EG", "JO", "IQ", "SY", "LB"],
       "knowsLanguage": ["ar", "sv", "en"],
+      "sameAs": [
+        "https://www.facebook.com/share/1Dr2tHQcKM/"
+      ],
       "contactPoint": {
         "@type": "ContactPoint",
         "email": "info@arabismart.vip",
-        "contactType": "editorial"
-      }
+        "contactType": "editorial",
+        "availableLanguage": ["Arabic", "Swedish", "English"]
+      },
+      "publishingPrinciples": "https://arabismart.vip/about",
+      "verificationFactCheckingPolicy": "https://arabismart.vip/about",
+      "masthead": "https://arabismart.vip/about"
     }
     </script>
+
+    <!-- GEO: AI Reference Files -->
+    <link rel="ai-reference" href="https://arabismart.vip/llms.txt" />
+    <link rel="ai-reference-full" href="https://arabismart.vip/llms-full.txt" />
     
     <!-- RSS/Atom Feed Autodiscovery -->
     <link rel="alternate" type="application/rss+xml" title="ArabiSmart News - عربي سمارت (RSS)" href="https://arabismart.vip/feed.xml" />

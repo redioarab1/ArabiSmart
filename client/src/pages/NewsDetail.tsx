@@ -211,39 +211,70 @@ export default function NewsDetail() {
     ? new Date(news.publishedAt).toISOString()
     : new Date(news.createdAt).toISOString();
 
-  // NewsArticle JSON-LD structured data
+  // NewsArticle JSON-LD structured data (SEO + GEO optimized)
+  const articleLang = news.language || "ar";
   const newsArticleJsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: news.title,
     description: metaDescription,
     image: news.image
-      ? [news.image]
-      : ["https://arabismart.vip/icon-512x512.png"],
+      ? [
+          {
+            "@type": "ImageObject",
+            url: news.image,
+            width: 1200,
+            height: 630,
+          },
+        ]
+      : [
+          {
+            "@type": "ImageObject",
+            url: "https://arabismart.vip/icon-512x512.png",
+            width: 512,
+            height: 512,
+          },
+        ],
     datePublished: publishedISO,
     dateModified: publishedISO,
     author: {
       "@type": "Organization",
       name: news.source || "ArabiSmart News",
+      url: "https://arabismart.vip",
     },
     publisher: {
-      "@type": "Organization",
-      name: "ArabiSmart News",
+      "@type": "NewsMediaOrganization",
+      name: "ArabiSmart News - عربي سمارت",
+      url: "https://arabismart.vip",
       logo: {
         "@type": "ImageObject",
         url: "https://arabismart.vip/icon-512x512.png",
+        width: 512,
+        height: 512,
       },
+      sameAs: [
+        "https://www.facebook.com/share/1Dr2tHQcKM/",
+      ],
     },
     url: `https://arabismart.vip/news/${news.id}`,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `https://arabismart.vip/news/${news.id}`,
     },
-    inLanguage: "ar",
+    inLanguage: articleLang,
     articleSection: news.category || "أخبار",
-    keywords: [news.source, news.category, "أخبار عربية", "ArabiSmart"]
+    keywords: [news.source, news.category, "أخبار عربية", "عربي سمارت", "ArabiSmart", "أخبار"]
       .filter(Boolean)
       .join(", "),
+    // GEO: speakable for AI voice assistants & answer engines
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: [".news-headline", ".news-description"],
+    },
+    // GEO: isAccessibleForFree signals trustworthiness to AI
+    isAccessibleForFree: true,
+    // GEO: license signals open content
+    license: "https://creativecommons.org/licenses/by/4.0/",
   };
 
   return (
@@ -390,12 +421,12 @@ export default function NewsDetail() {
                 </div>
               </div>
               
-              <CardTitle className="text-3xl arabic-text text-right leading-relaxed">
+              <CardTitle className="text-3xl arabic-text text-right leading-relaxed news-headline">
                 {displayTitle}
               </CardTitle>
               
               {displayDescription && (
-                <p className="text-lg text-muted-foreground arabic-text text-right leading-relaxed whitespace-pre-wrap">
+                <p className="text-lg text-muted-foreground arabic-text text-right leading-relaxed whitespace-pre-wrap news-description">
                   {displayDescription}
                 </p>
               )}

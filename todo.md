@@ -1000,3 +1000,16 @@
 
 ## إضافة رابط فيسبوك - مكتمل
 - [x] إضافة رابط فيسبوك https://www.facebook.com/share/1Dr2tHQcKM/ في Footer الصفحة الرئيسية مع أيقونة فيسبوك
+
+## تقنيات SEO وGEO - مكتمل
+- [x] تحسين SEOHead.tsx: robots meta محسّن + hreflang + og:locale:alternate + twitter:image:alt + GEO meta tags
+- [x] تحسين JSON-LD في NewsDetail.tsx: ImageObject كامل + NewsMediaOrganization + speakable + isAccessibleForFree + license
+- [x] إضافة CSS classes (news-headline, news-description) للـ speakable specification
+- [x] إنشاء llms.txt لأنظمة الذكاء الاصطناعي (ChatGPT, Gemini, Perplexity, Claude)
+- [x] إنشاء llms-full.txt بمحتوى تفصيلي للـ GEO
+- [x] تحسين index.html: NewsMediaOrganization مع sameAs + ai-reference links
+- [x] تحسين robots.txt: إضافة AI crawlers (GPTBot, Claude-Web, PerplexityBot, anthropic-ai)
+- [x] تحسين sitemap.ts: image sitemap + hreflang + keywords في Google News + أولويات ديناميكية
+- [x] إضافة sitemap-news.xml (آخر 48 ساعة فقط لـ Google News)
+- [x] إضافة sitemap-index.xml (Sitemap Index)
+- [x] 32/32 اختبارات ناجحة، 0 أخطاء TypeScript، Build ناجح

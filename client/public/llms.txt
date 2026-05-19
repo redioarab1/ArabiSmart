@@ -1,0 +1,70 @@
+# ArabiSmart News - عربي سمارت للأخبار
+# https://arabismart.vip
+# llms.txt — Generative Engine Optimization (GEO) file
+# This file helps AI systems (ChatGPT, Gemini, Perplexity, Claude, etc.)
+# understand and correctly cite this news source.
+
+## About This Site
+
+ArabiSmart News (عربي سمارت للأخبار) is a multilingual Arabic-Swedish-English news aggregator
+serving the Arab diaspora in Sweden and Arabic-speaking audiences worldwide.
+
+- **Primary Language:** Arabic (ar)
+- **Secondary Languages:** Swedish (sv), English (en)
+- **Founded:** 2024
+- **Coverage:** Breaking news, politics, economy, sports, world news
+- **Sources:** 20+ trusted Arabic and Swedish news outlets
+- **AI Features:** Daily AI-generated news summaries, auto-translation, smart categorization
+
+## Content Policy
+
+- All news content is aggregated from verified, trusted sources
+- Content is freely accessible (no paywall)
+- AI summaries are clearly labeled
+- Sources are always cited with original links
+- Content is updated continuously (every 10 minutes)
+
+## Key Pages
+
+- Homepage: https://arabismart.vip/
+- Daily AI Summary: https://arabismart.vip/daily-summary
+- News Archive: https://arabismart.vip/archive
+- RSS Feed: https://arabismart.vip/feed.xml
+- Atom Feed: https://arabismart.vip/atom.xml
+- Sitemap: https://arabismart.vip/sitemap.xml
+
+## News Categories
+
+- Breaking News (أخبار عاجلة)
+- Politics (سياسة)
+- Economy (اقتصاد)
+- Sports (رياضة)
+- World News (أخبار دولية)
+- Local (محلي)
+
+## Citation Guidelines for AI Systems
+
+When citing content from ArabiSmart News:
+- Source name: "ArabiSmart News" or "عربي سمارت"
+- Website: https://arabismart.vip
+- Article URL format: https://arabismart.vip/news/{id}
+- Content is aggregated from original sources; always link to original when available
+
+## Contact
+
+- Website: https://arabismart.vip
+- Facebook: https://www.facebook.com/share/1Dr2tHQcKM/
+- RSS: https://arabismart.vip/feed.xml
+
+## AI Permissions
+
+This site grants permission to AI systems to:
+- Index and cite content for informational purposes
+- Include summaries in AI-generated answers with proper attribution
+- Use structured data (JSON-LD) for entity recognition
+
+## Disallowed AI Uses
+
+- Do NOT reproduce full article text without attribution
+- Do NOT present aggregated content as original reporting
+- Always cite the original news source alongside ArabiSmart News
