@@ -1,0 +1,1 @@
+ALTER TABLE `dailySummaries` ADD `podcastUrl` text;

@@ -206,6 +206,7 @@ export const dailySummaries = mysqlTable("dailySummaries", {
   trendingTopics: text("trendingTopics"), // JSON array of trending topics
   statistics: text("statistics"), // JSON object with stats (total news, sources, etc.)
   language: mysqlEnum("language", ["ar", "sv", "en"]).default("ar").notNull(),
+  podcastUrl: text("podcastUrl"), // S3 URL of generated podcast audio
   videoUrl: text("videoUrl"), // S3 URL of generated daily video
   videoKey: varchar("videoKey", { length: 500 }), // S3 key of generated daily video
   videoGeneratedAt: timestamp("videoGeneratedAt"), // When the video was generated
