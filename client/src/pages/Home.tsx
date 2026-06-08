@@ -813,6 +813,8 @@ export default function Home() {
             <span>•</span>
             <Link href="/privacy"><span className="hover:text-foreground cursor-pointer transition-colors">{t.privacy}</span></Link>
             <span>•</span>
+            <Link href="/terms"><span className="hover:text-foreground cursor-pointer transition-colors">بنود الخدمة</span></Link>
+            <span>•</span>
             <Link href="/daily-summary"><span className="hover:text-foreground cursor-pointer transition-colors">{t.dailySummary}</span></Link>
           </div>
           <div className="flex items-center justify-center gap-3">
