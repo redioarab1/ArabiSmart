@@ -1,5 +1,6 @@
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { withCache, CacheKeys } from "./cache";
 import { favorites, InsertUser, news, rssSources, users, fetchLogs, News, RssSource, FetchLog, comments, ratings, archivedNews, podcasts, InsertPodcast, Podcast, folders, folderItems, Folder, InsertFolder, FolderItem, InsertFolderItem, dailySummaries, DailySummary, InsertDailySummary, categories, Category, newsCategories } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -94,7 +95,7 @@ const eqOp = eq;
 /**
  * Get paginated news with optional filters
  */
-export async function getNews(params: {
+async function _getNewsFromDb(params: {
   page?: number;
   limit?: number;
   category?: string;
@@ -108,7 +109,6 @@ export async function getNews(params: {
   const { page = 1, limit = 20, category, source, search, categoryId } = params;
   const offset = (page - 1) * limit;
 
-  // If categoryId is provided, use JOIN with newsCategories
   if (categoryId) {
     const items = await db
       .select({
@@ -137,11 +137,9 @@ export async function getNews(params: {
       .where(eqOp(newsCategories.categoryId, categoryId));
 
     const total = Number(totalResult[0]?.count || 0);
-
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  // Original logic for non-categoryId filters
   let conditions = [];
   if (category) conditions.push(eqOp(news.category, category as any));
   if (source) conditions.push(eqOp(news.source, source));
@@ -163,58 +161,77 @@ export async function getNews(params: {
     .where(whereClause);
 
   const total = Number(totalResult[0]?.count || 0);
-
   return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getNews(params: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  source?: string;
+  search?: string;
+  categoryId?: number;
+}) {
+  // Don't cache search queries (dynamic, low repeat rate)
+  if (params.search) {
+    return _getNewsFromDb(params);
+  }
+  const cacheKey = CacheKeys.newsList(params);
+  return withCache(cacheKey, 60, () => _getNewsFromDb(params));
 }
 
 /**
  * Get single news by ID
  */
 export async function getNewsById(id: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-
-  const result = await db.select().from(news).where(eqOp(news.id, id)).limit(1);
-  return result[0];
+  return withCache(CacheKeys.newsItem(id), 300, async () => {
+    const db = await getDb();
+    if (!db) return undefined;
+    const result = await db.select().from(news).where(eqOp(news.id, id)).limit(1);
+    return result[0];
+  });
 }
 
 /**
  * Get all RSS sources
  */
 export async function getAllRssSources() {
-  const db = await getDb();
-  if (!db) return [];
-
-  return await db.select().from(rssSources).orderBy(rssSources.name);
+  return withCache(CacheKeys.newsSources(), 300, async () => {
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(rssSources).orderBy(rssSources.name);
+  });
 }
 
 /**
  * Get news statistics
  */
 export async function getNewsStats() {
-  const db = await getDb();
-  if (!db) return { totalNews: 0, activeSources: 0, lastUpdate: null };
+  return withCache(CacheKeys.newsStats(), 120, async () => {
+    const db = await getDb();
+    if (!db) return { totalNews: 0, activeSources: 0, lastUpdate: null };
 
-  const totalNewsResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(news);
+    const totalNewsResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(news);
 
-  const activeSourcesResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(rssSources)
-    .where(eqOp(rssSources.isActive, 1));
+    const activeSourcesResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(rssSources)
+      .where(eqOp(rssSources.isActive, 1));
 
-  const lastUpdateResult = await db
-    .select({ lastUpdate: news.createdAt })
-    .from(news)
-    .orderBy(desc(news.createdAt))
-    .limit(1);
+    const lastUpdateResult = await db
+      .select({ lastUpdate: news.createdAt })
+      .from(news)
+      .orderBy(desc(news.createdAt))
+      .limit(1);
 
-  return {
-    totalNews: Number(totalNewsResult[0]?.count || 0),
-    activeSources: Number(activeSourcesResult[0]?.count || 0),
-    lastUpdate: lastUpdateResult[0]?.lastUpdate || null,
-  };
+    return {
+      totalNews: Number(totalNewsResult[0]?.count || 0),
+      activeSources: Number(activeSourcesResult[0]?.count || 0),
+      lastUpdate: lastUpdateResult[0]?.lastUpdate || null,
+    };
+  });
 }
 
 /**
@@ -942,62 +959,66 @@ export async function getAllNewsForSitemap() {
  * Get recent news for RSS/Atom feed with full metadata
  */
 export async function getNewsForFeed(limit = 50) {
-  const db = await getDb();
-  if (!db) return [];
-  return db
-    .select({
-      id: news.id,
-      title: news.title,
-      description: news.description,
-      image: news.image,
-      source: news.source,
-      category: news.category,
-      publishedAt: news.publishedAt,
-    })
-    .from(news)
-    .orderBy(desc(news.publishedAt))
-    .limit(limit);
+  return withCache(`news:feed-data:${limit}`, 120, async () => {
+    const db = await getDb();
+    if (!db) return [];
+    return db
+      .select({
+        id: news.id,
+        title: news.title,
+        description: news.description,
+        image: news.image,
+        source: news.source,
+        category: news.category,
+        publishedAt: news.publishedAt,
+      })
+      .from(news)
+      .orderBy(desc(news.publishedAt))
+      .limit(limit);
+  });
 }
 
 /**
  * Get most viewed news articles based on pageViews table
  */
 export async function getMostViewedNews(limit = 10) {
-  const db = await getDb();
-  if (!db) return [];
-  const { pageViews } = await import("../drizzle/schema");
-  const result = await db
-    .select({
-      id: news.id,
-      title: news.title,
-      image: news.image,
-      source: news.source,
-      category: news.category,
-      publishedAt: news.publishedAt,
-      viewCount: sql<number>`count(${pageViews.id})`,
-    })
-    .from(news)
-    .innerJoin(pageViews, sql`${pageViews.page} = CONCAT('/news/', ${news.id})`)
-    .groupBy(news.id)
-    .orderBy(sql`count(${pageViews.id}) DESC`)
-    .limit(limit);
-  return result;
+  return withCache(CacheKeys.newsMostViewed(limit), 180, async () => {
+    const db = await getDb();
+    if (!db) return [];
+    const { pageViews } = await import("../drizzle/schema");
+    const result = await db
+      .select({
+        id: news.id,
+        title: news.title,
+        image: news.image,
+        source: news.source,
+        category: news.category,
+        publishedAt: news.publishedAt,
+        viewCount: sql<number>`count(${pageViews.id})`,
+      })
+      .from(news)
+      .innerJoin(pageViews, sql`${pageViews.page} = CONCAT('/news/', ${news.id})`)
+      .groupBy(news.id)
+      .orderBy(sql`count(${pageViews.id}) DESC`)
+      .limit(limit);
+    return result;
+  });
 }
 
 /**
  * Get all active categories ordered by display order
  */
 export async function getAllCategories(): Promise<Category[]> {
-  const db = await getDb();
-  if (!db) return [];
-
-  const result = await db
-    .select()
-    .from(categories)
-    .where(eq(categories.isActive, 1))
-    .orderBy(categories.order);
-
-  return result;
+  return withCache("news:categories", 300, async () => {
+    const db = await getDb();
+    if (!db) return [];
+    const result = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.isActive, 1))
+      .orderBy(categories.order);
+    return result;
+  });
 }
 
 /**

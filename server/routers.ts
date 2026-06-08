@@ -379,6 +379,10 @@ export const appRouter = router({
         const { id, ...updateData } = input;
         await db.update(news).set(updateData).where(eq(news.id, id));
         
+        // Invalidate cache
+        const { invalidateNewsItem } = await import("./cache");
+        await invalidateNewsItem(id);
+        
         const { logActivity } = await import("./activityLogger");
         await logActivity({
           userId: ctx.user?.id ?? null,
@@ -405,6 +409,10 @@ export const appRouter = router({
         // جلب عنوان الخبر قبل الحذف
         const [deletedItem] = await db.select({ title: news.title, source: news.source }).from(news).where(eq(news.id, input.id)).limit(1);
         await db.delete(news).where(eq(news.id, input.id));
+        
+        // Invalidate cache
+        const { invalidateNewsItem } = await import("./cache");
+        await invalidateNewsItem(input.id);
         
         const { logActivity } = await import("./activityLogger");
         await logActivity({
@@ -443,6 +451,10 @@ export const appRouter = router({
           publishedAt: new Date(),
           isManual: 1,
         });
+        
+        // Invalidate news list cache so new article appears immediately
+        const { invalidateNewsCache } = await import("./cache");
+        await invalidateNewsCache();
         
         const { logActivity } = await import("./activityLogger");
         await logActivity({

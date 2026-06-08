@@ -1020,3 +1020,15 @@
 - [x] أداء: إضافة 5 indexes على جدول news (publishedAt, category, language, source, category+language) وتطبيقها على قاعدة البيانات
 - [x] واجهة: إضافة onError fallback للصور في Home.tsx وNewsDetail.tsx لمنع ظهور صور مكسورة
 - [x] بناء المشروع من جديد لتضمين جميع الإصلاحات في dist/index.js
+
+## Redis Caching - مكتمل
+- [x] إنشاء server/cache.ts — نظام caching ذكي (in-memory + Redis-ready)
+- [x] تطبيق withCache على getNews (60 ثانية TTL)
+- [x] تطبيق withCache على getNewsById (300 ثانية TTL)
+- [x] تطبيق withCache على getAllRssSources (300 ثانية TTL)
+- [x] تطبيق withCache على getNewsStats (120 ثانية TTL)
+- [x] تطبيق withCache على getMostViewedNews (180 ثانية TTL)
+- [x] تطبيق withCache على getNewsForFeed (120 ثانية TTL)
+- [x] تطبيق withCache على getAllCategories (300 ثانية TTL)
+- [x] Cache Invalidation عند updateNews وdeleteNews وaddManualNews
+- [x] 32/32 اختبارات ناجحة بعد التغييرات
