@@ -7,7 +7,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { generateSitemap, generateNewsSitemap, generateSitemapIndex } from "../sitemap";
+import { generateSitemap, generateNewsSitemap, generateSitemapIndex, generateImagesSitemap } from "../sitemap";
 import { generateRSSFeed, generateAtomFeed } from "../rssFeed";
 import { serveStatic, setupVite } from "./vite";
 import { initializeCronJobs } from "../cronJobs";
@@ -130,6 +130,7 @@ async function startServer() {
   app.get("/sitemap.xml", generateSitemap);
   app.get("/sitemap-news.xml", generateNewsSitemap);
   app.get("/sitemap-index.xml", generateSitemapIndex);
+  app.get("/sitemap-images.xml", generateImagesSitemap);
   app.get("/feed.xml", generateRSSFeed);
   app.get("/rss.xml", generateRSSFeed);
   app.get("/atom.xml", generateAtomFeed);

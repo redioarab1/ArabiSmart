@@ -4,6 +4,7 @@ import { news, rssSources, fetchLogs } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { scrapeAlkompis } from "./alkompis-scraper";
 import { classifyAndLinkNews } from "./newsClassifier";
+import { pingGoogleSitemap } from "./sitemap";
 
 const parser = new Parser({
   customFields: {
@@ -256,6 +257,10 @@ export async function fetchAllRSS() {
     }
 
     console.log(`[RSS Fetcher] ✨ Fetch cycle completed: ${totalFetched} total new items`);
+    // Ping Google to re-crawl news sitemap when new articles are published
+    if (totalFetched > 0) {
+      pingGoogleSitemap().catch(() => {}); // fire-and-forget
+    }
   } catch (error: any) {
     console.error("[RSS Fetcher] Error in fetch cycle:", error.message);
   }

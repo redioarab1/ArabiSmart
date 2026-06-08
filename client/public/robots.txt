@@ -1,6 +1,6 @@
 # robots.txt for ArabiSmart News
 # https://arabismart.vip
-# Updated: 2026-05-19
+# Updated: 2026-06-08
 
 # ── Default: allow all crawlers ──
 User-agent: *
@@ -10,6 +10,8 @@ Allow: /rss.xml
 Allow: /atom.xml
 Allow: /llms.txt
 Allow: /llms-full.txt
+Allow: /sitemap-news.xml
+Allow: /sitemap-images.xml
 Disallow: /admin/
 Disallow: /api/
 Disallow: /api/trpc/
@@ -18,6 +20,7 @@ Crawl-delay: 2
 # ── Google ──
 User-agent: Googlebot
 Allow: /
+Allow: /news/
 Disallow: /admin/
 Disallow: /api/
 
@@ -25,10 +28,12 @@ User-agent: Googlebot-News
 Allow: /
 Allow: /news/
 Allow: /feed.xml
-Allow: /sitemap.xml
+Allow: /sitemap-news.xml
+Allow: /sitemap-index.xml
 
 User-agent: Googlebot-Image
 Allow: /
+Allow: /sitemap-images.xml
 
 # ── Bing ──
 User-agent: Bingbot
@@ -83,7 +88,11 @@ Allow: /
 Allow: /llms.txt
 
 # ── Sitemaps ──
+# Primary: submit sitemap-index.xml to Google Search Console
+Sitemap: https://arabismart.vip/sitemap-index.xml
 Sitemap: https://arabismart.vip/sitemap.xml
+Sitemap: https://arabismart.vip/sitemap-news.xml
+Sitemap: https://arabismart.vip/sitemap-images.xml
 Sitemap: https://arabismart.vip/feed.xml
 
 # ── GEO Reference ──
