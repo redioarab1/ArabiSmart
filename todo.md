@@ -1062,3 +1062,11 @@
 - [x] إضافة tRPC procedures: generateVideo وgetVideoStatus في dailySummary router
 - [x] إضافة cron job لتوليد الفيديو اليومي تلقائياً بعد توليد الملخص
 - [x] 32/32 اختبارات ناجحة، 0 أخطاء TypeScript، Build ناجح
+
+## إصلاح نظام توليد الفيديو - مكتمل
+- [x] تشخيص سبب الفشل: خطأ في drawtext filter (ih-35 غير مدعوم) + Remotion غير ضروري
+- [x] إعادة كتابة videoGenerator.ts باستخدام execFileSync + ffmpeg-static كـ fallback للإنتاج
+- [x] إصلاح drawtext filter: استخدام قيم ثابتة (690, 670) بدلاً من ih-35
+- [x] إضافة ffmpeg-static كـ dependency لضمان عمل FFmpeg في Cloud Run
+- [x] اختبار ناجح: فيديو مولَّد ومرفوع على S3 بنجاح
+- [x] 32/32 اختبارات ناجحة بعد الإصلاح

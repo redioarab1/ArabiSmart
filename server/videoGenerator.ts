@@ -1,13 +1,13 @@
 /**
  * videoGenerator.ts
- * Generates a daily podcast video using Remotion renderer.
- * Falls back to a simple FFmpeg-based video if Remotion fails (e.g. in production).
+ * Generates a daily news video using FFmpeg (via ffmpeg-static for production compatibility).
+ * Uses ffmpeg-static binary when system ffmpeg is not available (e.g. Cloud Run).
  */
 
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 import { storagePut } from "./storage";
 import { getDailySummaryByDate } from "./db";
 
@@ -16,7 +16,7 @@ export type VideoGenerationResult = {
   videoUrl?: string;
   videoKey?: string;
   error?: string;
-  method: "remotion" | "ffmpeg" | "none";
+  method: "ffmpeg" | "ffmpeg-static" | "none";
 };
 
 export type VideoInput = {
@@ -28,158 +28,135 @@ export type VideoInput = {
   language: "ar" | "sv" | "en";
 };
 
-// ─── Remotion-based generation ────────────────────────────────────────────────
-async function generateWithRemotion(
-  input: VideoInput,
-  outputPath: string
-): Promise<boolean> {
+// ─── Resolve FFmpeg binary ─────────────────────────────────────────────────────
+function getFfmpegPath(): { path: string; isStatic: boolean } {
+  // 1. Try system ffmpeg first
   try {
-    const { bundle } = await import("@remotion/bundler");
-    const { renderMedia, selectComposition } = await import("@remotion/renderer");
-
-    // Bundle the composition
-    const compositionPath = path.join(
-      __dirname,
-      "videoComposition",
-      "index.tsx"
-    );
-
-    if (!fs.existsSync(compositionPath)) {
-      console.error("[VideoGenerator] Composition file not found:", compositionPath);
-      return false;
-    }
-
-    console.log("[VideoGenerator] Bundling Remotion composition...");
-    const bundleLocation = await bundle({
-      entryPoint: compositionPath,
-      webpackOverride: (config: unknown) => config as ReturnType<typeof config extends (...args: unknown[]) => infer R ? (...args: unknown[]) => R : never>,
-    });
-
-    const composition = await selectComposition({
-      serveUrl: bundleLocation,
-      id: "DailyPodcastVideo",
-      inputProps: {
-        summary: input.summary,
-        date: input.date,
-        topNews: input.topNews,
-        trendingTopics: input.trendingTopics,
-        audioUrl: input.audioUrl,
-        language: input.language,
-        siteName: "ArabiSmart News",
-        siteUrl: "arabismart.vip",
-      },
-    });
-
-    console.log("[VideoGenerator] Rendering video with Remotion...");
-    await renderMedia({
-      composition,
-      serveUrl: bundleLocation,
-      codec: "h264",
-      outputLocation: outputPath,
-      inputProps: {
-        summary: input.summary,
-        date: input.date,
-        topNews: input.topNews,
-        trendingTopics: input.trendingTopics,
-        audioUrl: input.audioUrl,
-        language: input.language,
-        siteName: "ArabiSmart News",
-        siteUrl: "arabismart.vip",
-      },
-      chromiumOptions: {
-        disableWebSecurity: true,
-        headless: true,
-      },
-      concurrency: 1,
-      timeoutInMilliseconds: 120000,
-    });
-
-    return fs.existsSync(outputPath);
-  } catch (err) {
-    console.error("[VideoGenerator] Remotion failed:", err);
-    return false;
+    execSync("ffmpeg -version", { stdio: "pipe", timeout: 5000 });
+    return { path: "ffmpeg", isStatic: false };
+  } catch {
+    // System ffmpeg not available
   }
+
+  // 2. Try ffmpeg-static
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ffmpegStatic = require("ffmpeg-static") as string | null;
+    if (ffmpegStatic && fs.existsSync(ffmpegStatic)) {
+      return { path: ffmpegStatic, isStatic: true };
+    }
+  } catch {
+    // ffmpeg-static not installed
+  }
+
+  throw new Error("FFmpeg not found. Install ffmpeg or ffmpeg-static.");
 }
 
-// ─── FFmpeg-based fallback generation ────────────────────────────────────────
+// ─── Sanitize text for FFmpeg drawtext ────────────────────────────────────────
+function sanitizeForFFmpeg(text: string, maxLen = 60): string {
+  return text
+    .replace(/[\\:'"[\]{}()|&;<>!]/g, " ")
+    .replace(/\n/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLen);
+}
+
+// ─── Build FFmpeg drawtext filter chain ───────────────────────────────────────
+function buildVideoFilter(input: VideoInput): string {
+  const accentColor = "0x38bdf8";
+  const textColor = "white";
+  const dimColor = "0xa0aec0";
+
+  const title = sanitizeForFFmpeg(
+    input.language === "ar"
+      ? `Daily Summary - ${input.date}`
+      : input.language === "sv"
+      ? `Daglig sammanfattning - ${input.date}`
+      : `Daily Summary - ${input.date}`,
+    55
+  );
+
+  const news1 = sanitizeForFFmpeg(input.topNews[0]?.title || "", 55);
+  const news2 = sanitizeForFFmpeg(input.topNews[1]?.title || "", 55);
+  const news3 = sanitizeForFFmpeg(input.topNews[2]?.title || "", 55);
+  const topicsStr = sanitizeForFFmpeg(
+    input.trendingTopics.slice(0, 4).join("  |  "),
+    70
+  );
+  const summaryShort = sanitizeForFFmpeg(input.summary, 70);
+
+  const filters: string[] = [
+    // ── Background gradient overlay (dark blue)
+    `drawbox=x=0:y=0:w=iw:h=ih:color=0x0f172a@1.0:t=fill`,
+
+    // ── Top accent bar
+    `drawbox=x=0:y=0:w=iw:h=8:color=${accentColor}@1.0:t=fill`,
+
+    // ── Site name (always visible)
+    `drawtext=text='ArabiSmart News':fontcolor=${accentColor}:fontsize=48:x=(w-text_w)/2:y=40:enable='between(t,0,26)'`,
+
+    // ── Date line
+    `drawtext=text='${title}':fontcolor=${dimColor}:fontsize=28:x=(w-text_w)/2:y=110:enable='between(t,0,26)'`,
+
+    // ── Divider line
+    `drawbox=x=60:y=155:w=iw-120:h=2:color=${accentColor}@0.5:t=fill:enable='between(t,0,26)'`,
+
+    // ── Scene 1: Top headlines (t=0..13)
+    `drawtext=text='Top Headlines':fontcolor=${accentColor}:fontsize=32:x=60:y=185:enable='between(t,0,13)'`,
+    ...(news1 ? [`drawtext=text='1. ${news1}':fontcolor=${textColor}:fontsize=26:x=60:y=240:enable='between(t,1,13)'`] : []),
+    ...(news2 ? [`drawtext=text='2. ${news2}':fontcolor=${textColor}:fontsize=26:x=60:y=290:enable='between(t,2,13)'`] : []),
+    ...(news3 ? [`drawtext=text='3. ${news3}':fontcolor=${textColor}:fontsize=26:x=60:y=340:enable='between(t,3,13)'`] : []),
+
+    // ── Scene 2: Summary (t=13..22)
+    `drawtext=text='Summary':fontcolor=${accentColor}:fontsize=32:x=60:y=185:enable='between(t,13,22)'`,
+    `drawtext=text='${summaryShort}':fontcolor=${textColor}:fontsize=24:x=60:y=240:enable='between(t,13,22)'`,
+
+    // ── Scene 3: Trending topics (t=22..26)
+    `drawtext=text='Trending Topics':fontcolor=${accentColor}:fontsize=32:x=60:y=185:enable='between(t,22,26)'`,
+    `drawtext=text='${topicsStr}':fontcolor=${textColor}:fontsize=26:x=60:y=250:enable='between(t,22,26)'`,
+
+    // ── Bottom bar
+    `drawbox=x=0:y=670:w=1280:h=50:color=0x1e293b@1.0:t=fill`,
+    `drawtext=text='arabismart.vip':fontcolor=${accentColor}:fontsize=24:x=(w-text_w)/2:y=690:enable='between(t,0,26)'`,
+  ];
+
+  return filters.join(",");
+}
+
+// ─── Generate video using FFmpeg ──────────────────────────────────────────────
 async function generateWithFFmpeg(
   input: VideoInput,
   outputPath: string
-): Promise<boolean> {
-  try {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "arabismart-video-"));
+): Promise<{ success: boolean; method: "ffmpeg" | "ffmpeg-static" }> {
+  const { path: ffmpegBin, isStatic } = getFfmpegPath();
+  const method = isStatic ? "ffmpeg-static" : "ffmpeg";
 
-    // Create a simple text-based image using FFmpeg drawtext
-    const bgColor = "0x0f172a";
-    const accentColor = "0x38bdf8";
-    const textColor = "white";
+  const duration = 26;
+  const fps = 30;
+  const bgColor = "0x0f172a";
+  const vf = buildVideoFilter(input);
 
-    // Sanitize text for FFmpeg (escape special chars)
-    const sanitize = (t: string) =>
-      t
-        .replace(/[\\:'"]/g, " ")
-        .replace(/\n/g, " ")
-        .slice(0, 80);
+  const args = [
+    "-y",
+    "-f", "lavfi",
+    "-i", `color=c=${bgColor}:size=1280x720:rate=${fps}:duration=${duration}`,
+    "-vf", vf,
+    "-c:v", "libx264",
+    "-preset", "fast",
+    "-crf", "23",
+    "-movflags", "+faststart",
+    outputPath,
+  ];
 
-    const title = sanitize(
-      input.language === "ar"
-        ? `الملخص اليومي - ${input.date}`
-        : input.language === "sv"
-        ? `Daglig sammanfattning - ${input.date}`
-        : `Daily Summary - ${input.date}`
-    );
+  console.log(`[VideoGenerator] Generating video with ${method}...`);
 
-    const summaryShort = sanitize(input.summary);
-    const topicsStr = sanitize(input.trendingTopics.slice(0, 4).join("  |  "));
-    const news1 = sanitize(input.topNews[0]?.title || "");
-    const news2 = sanitize(input.topNews[1]?.title || "");
-    const news3 = sanitize(input.topNews[2]?.title || "");
+  execFileSync(ffmpegBin, args, {
+    timeout: 90000,
+    stdio: "pipe",
+  });
 
-    // Duration: 26 seconds
-    const duration = 26;
-    const fps = 30;
-
-    // Build FFmpeg command with animated text
-    const ffmpegCmd = [
-      "ffmpeg -y",
-      `-f lavfi -i color=c=${bgColor}:size=1280x720:rate=${fps}:duration=${duration}`,
-      input.audioUrl ? `-i "${input.audioUrl}"` : "",
-      `-vf "`,
-      // Site name
-      `drawtext=text='ArabiSmart News':fontcolor=${accentColor}:fontsize=52:x=(w-text_w)/2:y=80:enable='between(t,0,26)',`,
-      // Title
-      `drawtext=text='${title}':fontcolor=${textColor}:fontsize=40:x=(w-text_w)/2:y=180:enable='between(t,0,8)',`,
-      // Top news
-      `drawtext=text='${news1}':fontcolor=${textColor}:fontsize=28:x=80:y=280:enable='between(t,4,12)',`,
-      `drawtext=text='${news2}':fontcolor=${textColor}:fontsize=28:x=80:y=340:enable='between(t,4,12)',`,
-      `drawtext=text='${news3}':fontcolor=${textColor}:fontsize=28:x=80:y=400:enable='between(t,4,12)',`,
-      // Summary
-      `drawtext=text='${summaryShort}':fontcolor=${textColor}:fontsize=24:x=80:y=260:enable='between(t,12,22)':line_spacing=10,`,
-      // Trending
-      `drawtext=text='${topicsStr}':fontcolor=${accentColor}:fontsize=26:x=(w-text_w)/2:y=500:enable='between(t,12,22)',`,
-      // Outro
-      `drawtext=text='arabismart.vip':fontcolor=${accentColor}:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,22,26)'`,
-      `"`,
-      input.audioUrl
-        ? `-c:v libx264 -c:a aac -shortest`
-        : `-c:v libx264`,
-      `-preset fast -crf 23`,
-      `"${outputPath}"`,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    console.log("[VideoGenerator] Generating video with FFmpeg...");
-    execSync(ffmpegCmd, { timeout: 60000, stdio: "pipe" });
-
-    // Cleanup
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-
-    return fs.existsSync(outputPath);
-  } catch (err) {
-    console.error("[VideoGenerator] FFmpeg failed:", err);
-    return false;
-  }
+  return { success: fs.existsSync(outputPath), method };
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
@@ -188,32 +165,25 @@ export async function generateDailyPodcastVideo(
 ): Promise<VideoGenerationResult> {
   const tmpOutput = path.join(
     os.tmpdir(),
-    `arabismart-daily-${input.date}-${input.language}.mp4`
+    `arabismart-daily-${input.date}-${input.language}-${Date.now()}.mp4`
   );
 
   // Clean up previous temp file
   if (fs.existsSync(tmpOutput)) fs.unlinkSync(tmpOutput);
 
-  // Try Remotion first (better quality)
-  let success = false;
-  let method: "remotion" | "ffmpeg" | "none" = "none";
+  let method: "ffmpeg" | "ffmpeg-static" | "none" = "none";
 
-  // Only try Remotion in non-production or when explicitly enabled
-  const useRemotion = process.env.ENABLE_REMOTION === "true";
-
-  if (useRemotion) {
-    success = await generateWithRemotion(input, tmpOutput);
-    if (success) method = "remotion";
-  }
-
-  // Fallback to FFmpeg
-  if (!success) {
-    success = await generateWithFFmpeg(input, tmpOutput);
-    if (success) method = "ffmpeg";
-  }
-
-  if (!success) {
-    return { success: false, error: "Both Remotion and FFmpeg failed", method: "none" };
+  try {
+    const result = await generateWithFFmpeg(input, tmpOutput);
+    if (result.success) {
+      method = result.method;
+    } else {
+      return { success: false, error: "FFmpeg ran but output file not found", method: "none" };
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[VideoGenerator] FFmpeg failed:", msg);
+    return { success: false, error: `FFmpeg failed: ${msg}`, method: "none" };
   }
 
   // Upload to S3
@@ -223,15 +193,18 @@ export async function generateDailyPodcastVideo(
     const { url } = await storagePut(fileKey, videoBuffer, "video/mp4");
 
     // Cleanup temp file
-    fs.unlinkSync(tmpOutput);
+    try { fs.unlinkSync(tmpOutput); } catch {}
 
     console.log(`[VideoGenerator] ✅ Video uploaded: ${url} (method: ${method})`);
     return { success: true, videoUrl: url, videoKey: fileKey, method };
-  } catch (uploadErr) {
-    console.error("[VideoGenerator] Upload failed:", uploadErr);
+  } catch (uploadErr: unknown) {
+    const msg = uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
+    console.error("[VideoGenerator] Upload failed:", msg);
+    // Cleanup
+    try { fs.unlinkSync(tmpOutput); } catch {}
     return {
       success: false,
-      error: `Video generated but upload failed: ${uploadErr}`,
+      error: `Video generated but upload failed: ${msg}`,
       method,
     };
   }
@@ -247,7 +220,7 @@ export async function generateVideoFromDailySummary(
   if (!summaryRecord) {
     return {
       success: false,
-      error: `No daily summary found for ${date.toISOString().split("T")[0]} (${language})`,
+      error: `No daily summary found for ${date.toISOString().split("T")[0]}`,
       method: "none",
     };
   }
@@ -257,17 +230,17 @@ export async function generateVideoFromDailySummary(
 
   try {
     if (summaryRecord.topNews) {
-      const parsed = JSON.parse(summaryRecord.topNews);
+      const parsed = JSON.parse(summaryRecord.topNews as string);
       topNews = Array.isArray(parsed) ? parsed : [];
     }
-  } catch {}
+  } catch { /* ignore parse errors */ }
 
   try {
     if (summaryRecord.trendingTopics) {
-      const parsed = JSON.parse(summaryRecord.trendingTopics);
+      const parsed = JSON.parse(summaryRecord.trendingTopics as string);
       trendingTopics = Array.isArray(parsed) ? parsed : [];
     }
-  } catch {}
+  } catch { /* ignore parse errors */ }
 
   return generateDailyPodcastVideo({
     summary: summaryRecord.summary,
