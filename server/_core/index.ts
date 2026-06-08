@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import compression from "compression";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -102,11 +103,29 @@ async function startServer() {
     },
   }));
 
+  // ── HTTP Compression (gzip) ──
+  // Compress all text responses > 1KB; skip SSE and already-compressed formats
+  app.use(compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+      const ct = (res.getHeader("Content-Type") as string) || "";
+      if (ct.includes("text/event-stream")) return false;
+      return compression.filter(req, res);
+    },
+  }));
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // ── Image Proxy (WebP conversion + caching) ──
+  app.get("/api/img", async (req, res) => {
+    const { imageProxyHandler } = await import("../imageProxy");
+    return imageProxyHandler(req, res);
+  });
+
   // Sitemap & Feeds
   app.get("/sitemap.xml", generateSitemap);
   app.get("/sitemap-news.xml", generateNewsSitemap);

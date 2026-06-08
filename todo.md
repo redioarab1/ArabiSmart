@@ -1032,3 +1032,22 @@
 - [x] تطبيق withCache على getAllCategories (300 ثانية TTL)
 - [x] Cache Invalidation عند updateNews وdeleteNews وaddManualNews
 - [x] 32/32 اختبارات ناجحة بعد التغييرات
+
+## تحسينات الأداء المتقدمة - مرحلة جديدة
+- [ ] HTTP Compression: تفعيل compression middleware (gzip/brotli) على Express
+- [ ] CDN Cache Headers: إضافة Cache-Control headers محسّنة للـ static assets والـ API
+- [ ] React Code Splitting: تحويل جميع صفحات App.tsx إلى React.lazy + Suspense
+- [ ] Lazy Loading للمكونات الثقيلة (Charts, LiveTV, AdminDailySummary)
+- [ ] Image Optimization: إضافة WebP proxy endpoint على السيرفر
+- [ ] Image lazy loading محسّن مع IntersectionObserver
+- [ ] srcset للصور لدعم أحجام مختلفة
+- [ ] 32/32 اختبارات ناجحة بعد التغييرات
+
+## تحسينات الأداء الثلاثة - مكتمل
+- [x] HTTP Compression (gzip) على جميع الاستجابات > 1KB — Content-Encoding: gzip مُفعَّل
+- [x] CDN Cache Headers: /assets → 1 year immutable، static → 1 hour، index.html → no-cache
+- [x] Code Splitting + Lazy Loading: مُطبَّق بالفعل على جميع الصفحات في App.tsx
+- [x] Image Proxy WebP: /api/img?url=&w=&q= مع in-memory cache 10 دقائق (500 entry)
+- [x] استبدال img في Home.tsx وNewsDetail.tsx بـ WebP proxy مع graceful fallback
+- [x] LazyImage component جاهز للاستخدام في باقي الصفحات
+- [x] 32/32 اختبارات ناجحة بعد جميع التغييرات

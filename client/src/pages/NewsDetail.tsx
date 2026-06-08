@@ -361,10 +361,21 @@ export default function NewsDetail() {
             {news.image && (
               <div className="relative h-96 overflow-hidden">
                 <img
-                  src={news.image}
+                  src={`/api/img?url=${encodeURIComponent(news.image ?? '')}&w=900&q=85`}
                   alt={displayTitle}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                   className="w-full h-full object-cover"
-                  onError={(e) => { const t = e.target as HTMLImageElement; t.parentElement!.style.display = 'none'; }}
+                  onError={(e) => {
+                    const t = e.target as HTMLImageElement;
+                    if (!t.dataset.fallback) {
+                      t.dataset.fallback = '1';
+                      t.src = news.image ?? '';
+                    } else {
+                      t.parentElement!.style.display = 'none';
+                    }
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <Badge className="absolute top-4 right-4 arabic-text shadow-lg text-base px-4 py-2">

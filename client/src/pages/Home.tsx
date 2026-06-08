@@ -623,11 +623,20 @@ export default function Home() {
                       {item.image && (
                         <div className="relative h-48 overflow-hidden">
                           <img
-                            src={item.image}
+                            src={`/api/img?url=${encodeURIComponent(item.image)}&w=480&q=80`}
                             alt={displayTitle}
                             loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => { const t = e.target as HTMLImageElement; t.parentElement!.style.display = 'none'; }}
+                            onError={(e) => {
+                              const t = e.target as HTMLImageElement;
+                              if (!t.dataset.fallback) {
+                                t.dataset.fallback = '1';
+                                t.src = item.image;
+                              } else {
+                                t.parentElement!.style.display = 'none';
+                              }
+                            }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                           <Badge className="absolute top-3 right-3 arabic-text shadow-lg">
