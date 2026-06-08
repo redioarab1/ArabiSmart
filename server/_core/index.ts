@@ -126,6 +126,13 @@ async function startServer() {
     return imageProxyHandler(req, res);
   });
 
+  // ── Media Proxy (Video/Audio files via arabismart.vip) ──
+  // GET /media/:filename  →  streams file from S3/CloudFront
+  app.get("/media/:filename", async (req, res) => {
+    const { mediaProxyHandler } = await import("../mediaProxy");
+    return mediaProxyHandler(req, res);
+  });
+
   // Sitemap & Feeds
   app.get("/sitemap.xml", generateSitemap);
   app.get("/sitemap-news.xml", generateNewsSitemap);
