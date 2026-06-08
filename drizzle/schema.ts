@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, tinyint, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, tinyint, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -47,7 +47,14 @@ export const news = mysqlTable("news", {
   publishedAt: timestamp("publishedAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   isManual: int("isManual").default(0).notNull(), // 0 = auto, 1 = manual
-});
+}, (table) => ({
+  // تحسين أداء الاستعلامات الأكثر تكراراً
+  publishedAtIdx: index("idx_news_publishedAt").on(table.publishedAt),
+  categoryIdx: index("idx_news_category").on(table.category),
+  languageIdx: index("idx_news_language").on(table.language),
+  sourceIdx: index("idx_news_source").on(table.source),
+  categoryLangIdx: index("idx_news_category_lang").on(table.category, table.language),
+}));
 
 export type News = typeof news.$inferSelect;
 export type InsertNews = typeof news.$inferInsert;

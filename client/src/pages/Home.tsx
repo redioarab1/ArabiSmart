@@ -627,6 +627,7 @@ export default function Home() {
                             alt={displayTitle}
                             loading="lazy"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => { const t = e.target as HTMLImageElement; t.parentElement!.style.display = 'none'; }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                           <Badge className="absolute top-3 right-3 arabic-text shadow-lg">

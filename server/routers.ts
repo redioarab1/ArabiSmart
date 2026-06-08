@@ -370,6 +370,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "يتطلب صلاحية مسؤول" });
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { news } = await import("../drizzle/schema");
@@ -395,6 +396,7 @@ export const appRouter = router({
     deleteNews: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "يتطلب صلاحية مسؤول" });
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { news } = await import("../drizzle/schema");
@@ -431,6 +433,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "يتطلب صلاحية مسؤول" });
         const db = await import("./db").then((m) => m.getDb());
         if (!db) throw new Error("Database not available");
         const { news } = await import("../drizzle/schema");

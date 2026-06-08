@@ -1,0 +1,9 @@
+{
+  "query": "CREATE INDEX `idx_news_publishedAt` ON `news` (`publishedAt`);\nCREATE INDEX `idx_news_category` ON `news` (`category`);\nCREATE INDEX `idx_news_language` ON `news` (`language`);\nCREATE INDEX `idx_news_source` ON `news` (`source`);\nCREATE INDEX `idx_news_category_lang` ON `news` (`category`,`language`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute CREATE INDEX `idx_news_publishedAt` ON `news` (`publishedAt`);\nCREATE INDEX `idx_news_category` ON `news` (`category`);\nCREATE INDEX `idx_news_language` ON `news` (`language`);\nCREATE INDEX `idx_news_source` ON `news` (`source`);\nCREATE INDEX `idx_news_category_lang` ON `news` (`category`,`language`);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 95797
+}

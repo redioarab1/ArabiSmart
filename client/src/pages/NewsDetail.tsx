@@ -364,6 +364,7 @@ export default function NewsDetail() {
                   src={news.image}
                   alt={displayTitle}
                   className="w-full h-full object-cover"
+                  onError={(e) => { const t = e.target as HTMLImageElement; t.parentElement!.style.display = 'none'; }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <Badge className="absolute top-4 right-4 arabic-text shadow-lg text-base px-4 py-2">

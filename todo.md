@@ -1013,3 +1013,10 @@
 - [x] إضافة sitemap-news.xml (آخر 48 ساعة فقط لـ Google News)
 - [x] إضافة sitemap-index.xml (Sitemap Index)
 - [x] 32/32 اختبارات ناجحة، 0 أخطاء TypeScript، Build ناجح
+
+## مراجعة شاملة للكود - مكتملة
+- [x] TypeScript: 0 أخطاء، البناء ناجح، 32/32 اختبارات ناجحة
+- [x] أمان: إضافة admin check على updateNews وdeleteNews وaddManualNews (كانت تسمح لأي مستخدم مسجّل بتعديل/حذف الأخبار)
+- [x] أداء: إضافة 5 indexes على جدول news (publishedAt, category, language, source, category+language) وتطبيقها على قاعدة البيانات
+- [x] واجهة: إضافة onError fallback للصور في Home.tsx وNewsDetail.tsx لمنع ظهور صور مكسورة
+- [x] بناء المشروع من جديد لتضمين جميع الإصلاحات في dist/index.js
