@@ -162,6 +162,13 @@
       "when": 1780904821156,
       "tag": "0022_bouncy_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1780933172238,
+      "tag": "0023_white_anita_blake",
+      "breakpoints": true
     }
   ]
 }

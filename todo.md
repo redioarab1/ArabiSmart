@@ -1051,3 +1051,14 @@
 - [x] استبدال img في Home.tsx وNewsDetail.tsx بـ WebP proxy مع graceful fallback
 - [x] LazyImage component جاهز للاستخدام في باقي الصفحات
 - [x] 32/32 اختبارات ناجحة بعد جميع التغييرات
+
+## نظام الفيديو اليومي التلقائي - مكتمل
+- [x] إضافة Video icon في imports صفحة DailySummary
+- [x] إضافة state لـ showVideoModal وgenerateVideoMutation
+- [x] إضافة زر "فيديو" في Quick Action Buttons (رابع زر بجانب البودكاست والترجمة والـ Story)
+- [x] إضافة نقطة خضراء على زر الفيديو عند وجود فيديو مولَّد
+- [x] إضافة Video Modal مع مشغل فيديو HTML5 عند وجود فيديو
+- [x] إضافة واجهة توليد الفيديو عند عدم وجوده
+- [x] إضافة tRPC procedures: generateVideo وgetVideoStatus في dailySummary router
+- [x] إضافة cron job لتوليد الفيديو اليومي تلقائياً بعد توليد الملخص
+- [x] 32/32 اختبارات ناجحة، 0 أخطاء TypeScript، Build ناجح

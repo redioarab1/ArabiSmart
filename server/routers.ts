@@ -1050,6 +1050,49 @@ export const appRouter = router({
         const script = typeof rawContent === "string" ? rawContent : "";
         return { script, date: row.date };
       }),
+
+    // Generate daily video (admin only) using FFmpeg
+    generateVideo: protectedProcedure
+      .input(z.object({
+        summaryId: z.number(),
+        language: z.enum(["ar", "sv", "en"]).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const { generateVideoFromDailySummary } = await import("./videoGenerator");
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const { dailySummaries } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [summary] = await db.select().from(dailySummaries).where(eq(dailySummaries.id, input.summaryId)).limit(1);
+        if (!summary) throw new Error("Summary not found");
+        const lang = (input.language || summary.language || "ar") as "ar" | "sv" | "en";
+        const result = await generateVideoFromDailySummary(new Date(summary.date), lang);
+        if (result.success && result.videoUrl && result.videoKey) {
+          await db.update(dailySummaries)
+            .set({ videoUrl: result.videoUrl, videoKey: result.videoKey, videoGeneratedAt: new Date() })
+            .where(eq(dailySummaries.id, input.summaryId));
+        }
+        return result;
+      }),
+
+    // Get video status for a summary
+    getVideoStatus: publicProcedure
+      .input(z.object({ summaryId: z.number() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (!db) return null;
+        const { dailySummaries } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [row] = await db
+          .select({ videoUrl: dailySummaries.videoUrl, videoGeneratedAt: dailySummaries.videoGeneratedAt })
+          .from(dailySummaries)
+          .where(eq(dailySummaries.id, input.summaryId))
+          .limit(1);
+        return row || null;
+      }),
   }),
   // Archive routerr
   archive: router({

@@ -43,6 +43,7 @@ import {
   ImageIcon,
   Volume2,
   Music,
+  Video,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -513,6 +514,23 @@ export default function DailySummary() {
   const [showPodcastModal, setShowPodcastModal] = useState(false);
   const [showTranslateModal, setShowTranslateModal] = useState(false);
   const [showStoryModal, setShowStoryModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
+  // Video generation mutation (admin only)
+  const generateVideoMutation = trpc.dailySummary.generateVideo.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("تم توليد الفيديو بنجاح! يمكنك مشاهدته الآن.");
+        refetchLatest();
+        refetchByDate();
+      } else {
+        toast.error("فشل توليد الفيديو: " + (data.error || "خطأ غير معروف"));
+      }
+    },
+    onError: (err) => {
+      toast.error("فشل توليد الفيديو: " + err.message);
+    },
+  });
 
   const isToday = selectedDate === new Date().toISOString().split("T")[0];
 
@@ -831,8 +849,8 @@ export default function DailySummary() {
               </div>
             </div>
 
-            {/* ── NEW: Quick Action Buttons (Podcast / Translate / Story) ── */}
-            <div className="grid grid-cols-3 gap-3">
+            {/* ── NEW: Quick Action Buttons (Podcast / Translate / Story / Video) ── */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
               {/* Podcast Button */}
               <button
                 onClick={() => setShowPodcastModal(true)}
@@ -872,6 +890,25 @@ export default function DailySummary() {
                 <div className="text-center">
                   <p className="font-bold text-sm text-pink-700 dark:text-pink-400 arabic-text">Story</p>
                   <p className="text-xs text-muted-foreground arabic-text hidden sm:block">تحميل صورة</p>
+                </div>
+              </button>
+
+              {/* Video Button */}
+              <button
+                onClick={() => setShowVideoModal(true)}
+                className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 border-orange-200 dark:border-orange-900/40 bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-950/40 hover:border-orange-400 transition-all duration-200"
+              >
+                <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                  <Video className="h-6 w-6 text-white" />
+                  {(activeSummary as any).videoUrl && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-background" />
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-sm text-orange-700 dark:text-orange-400 arabic-text">فيديو</p>
+                  <p className="text-xs text-muted-foreground arabic-text hidden sm:block">
+                    {(activeSummary as any).videoUrl ? "مشاهدة" : "توليد"}
+                  </p>
                 </div>
               </button>
             </div>
@@ -1200,6 +1237,82 @@ export default function DailySummary() {
               source="ArabiSmart News"
               publishedAt={activeSummary.date.toString()}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Video Modal ── */}
+      <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>
+        <DialogContent className="max-w-lg" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5 text-orange-500" />
+              فيديو الملخص اليومي
+            </DialogTitle>
+          </DialogHeader>
+          {activeSummary && (
+            <div className="space-y-4">
+              {(activeSummary as any).videoUrl ? (
+                <div className="space-y-3">
+                  <video
+                    src={(activeSummary as any).videoUrl}
+                    controls
+                    className="w-full rounded-xl aspect-video bg-black"
+                    preload="metadata"
+                  />
+                  <p className="text-xs text-muted-foreground arabic-text text-center">
+                    تم التوليد: {(activeSummary as any).videoGeneratedAt
+                      ? new Date((activeSummary as any).videoGeneratedAt).toLocaleString("ar-EG", { calendar: "gregory" })
+                      : ""}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 gap-2 arabic-text"
+                      onClick={() => window.open((activeSummary as any).videoUrl, "_blank")}
+                    >
+                      <Download className="h-4 w-4" />
+                      تحميل الفيديو
+                    </Button>
+                    {(useAuth as any)?.user?.role === "admin" && (
+                      <Button
+                        variant="outline"
+                        className="gap-2 arabic-text"
+                        disabled={generateVideoMutation.isPending}
+                        onClick={() => generateVideoMutation.mutate({ summaryId: activeSummary.id })}
+                      >
+                        {generateVideoMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                        إعادة توليد
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-4 py-6">
+                  <div className="w-16 h-16 rounded-2xl bg-orange-500/15 flex items-center justify-center">
+                    <Video className="h-8 w-8 text-orange-500" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-semibold arabic-text">فيديو الملخص اليومي</p>
+                    <p className="text-sm text-muted-foreground arabic-text mt-1">
+                      يُولَّد فيديو MP4 تلقائياً يجمع ملخص الأخبار مع أبرز العناوين
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => generateVideoMutation.mutate({ summaryId: activeSummary.id })}
+                    disabled={generateVideoMutation.isPending}
+                    className="gap-2 bg-orange-600 hover:bg-orange-700 arabic-text"
+                  >
+                    {generateVideoMutation.isPending
+                      ? <><Loader2 className="h-4 w-4 animate-spin" />جاري التوليد...</>
+                      : <><Video className="h-4 w-4" />توليد الفيديو</>}
+                  </Button>
+                  {generateVideoMutation.isPending && (
+                    <p className="text-xs text-muted-foreground arabic-text">قد يستغرق التوليد 30-60 ثانية...</p>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>

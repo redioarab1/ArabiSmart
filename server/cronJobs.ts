@@ -74,6 +74,42 @@ export function initializeCronJobs() {
         language: "ar",
       });
       console.log("[Cron] ✅ Daily summary generated and saved successfully");
+
+      // ── Auto-generate daily video after summary (08:00 AM) ────────────────────────────────────────────────────────────────────────────────────
+      try {
+        const { generateVideoFromDailySummary } = await import("./videoGenerator");
+        const { getDb } = await import("./db");
+        const db = await getDb();
+        if (db) {
+          const { dailySummaries } = await import("../drizzle/schema");
+          const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0, 0));
+          const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59, 999));
+          const { sql: drizzleSql, and, eq: drizzleEq } = await import("drizzle-orm");
+          const [savedSummary] = await db.select({ id: dailySummaries.id })
+            .from(dailySummaries)
+            .where(
+              and(
+                drizzleSql`${dailySummaries.date} >= ${startOfDay}`,
+                drizzleSql`${dailySummaries.date} <= ${endOfDay}`
+              )
+            )
+            .limit(1);
+          if (savedSummary) {
+            console.log("[Cron] 🎬 Generating daily video...");
+            const videoResult = await generateVideoFromDailySummary(today, "ar");
+            if (videoResult.success && videoResult.videoUrl && videoResult.videoKey) {
+              await db.update(dailySummaries)
+                .set({ videoUrl: videoResult.videoUrl, videoKey: videoResult.videoKey, videoGeneratedAt: new Date() })
+                .where(drizzleEq(dailySummaries.id, savedSummary.id));
+              console.log(`[Cron] ✅ Daily video generated: ${videoResult.videoUrl} (method: ${videoResult.method})`);
+            } else {
+              console.error("[Cron] ❌ Daily video generation failed:", videoResult.error);
+            }
+          }
+        }
+      } catch (videoError) {
+        console.error("[Cron] ❌ Error generating daily video:", videoError);
+      }
     } catch (error) {
       console.error("[Cron] ❌ Error generating daily summary:", error);
     }
