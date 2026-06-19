@@ -211,18 +211,33 @@ const normalizeToolChoice = (
 
 // تحديد URL ومفتاح API:
 // - إذا وُجد OPENAI_API_KEY → يستخدم OpenAI
+// - إذا وُجد GROQ_API_KEY → يستخدم Groq (مجاني 14,400 طلب/يوم)
+// - إذا وُجد GEMINI_API_KEY → يستخدم Google Gemini (مجاني)
 // - وإلا → يستخدم Manus Forge
 const resolveApiUrl = () => {
   if (process.env.OPENAI_API_KEY) {
     return "https://api.openai.com/v1/chat/completions";
   }
+  if (process.env.GROQ_API_KEY) {
+    return "https://api.groq.com/openai/v1/chat/completions";
+  }
+  if (process.env.GEMINI_API_KEY) {
+    return "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+  }
   return ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
     ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
     : "https://forge.manus.im/v1/chat/completions";
 };
-
 const resolveApiKey = () =>
-  process.env.OPENAI_API_KEY || ENV.forgeApiKey;
+  process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY || ENV.forgeApiKey;
+
+const resolveModel = () => {
+  if (process.env.OPENAI_API_KEY) return "gpt-4o-mini";
+  // meta-llama/llama-4-scout-17b-16e-instruct يدعم json_schema في Groq
+  if (process.env.GROQ_API_KEY) return "meta-llama/llama-4-scout-17b-16e-instruct";
+  if (process.env.GEMINI_API_KEY) return "gemini-2.0-flash";
+  return "gemini-2.5-flash";
+};
 
 const assertApiKey = () => {
   if (!resolveApiKey()) {
@@ -290,7 +305,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   } = params;
 
   const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
+    model: resolveModel(),
     messages: messages.map(normalizeMessage),
   };
 
@@ -306,9 +321,11 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
+  // Groq يدعم max_tokens محدودة، Gemini/Forge يدعم 32768
+  payload.max_tokens = process.env.GROQ_API_KEY ? 8192 : 32768;
+  // حقل thinking مدعوم فقط في Manus Forge وليس في Groq/Gemini
+  if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+    payload.thinking = { budget_tokens: 128 };
   }
 
   const normalizedResponseFormat = normalizeResponseFormat({

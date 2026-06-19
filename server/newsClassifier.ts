@@ -24,30 +24,34 @@ export async function classifyNews(title: string, description: string): Promise<
 
 قم بإرجاع أرقام التصنيفات المناسبة فقط (مثال: [1, 2] أو [3] أو [4, 6])`;
 
+    // Groq يدعم json_object فقط، بينما Forge/Gemini يدعم json_schema
+    const useJsonObject = !!process.env.GROQ_API_KEY;
     const response = await invokeLLM({
       messages: [
-        { role: "system", content: "أنت نظام تصنيف أخبار. أرجع فقط array من أرقام التصنيفات بصيغة JSON." },
+        { role: "system", content: "أنت نظام تصنيف أخبار. أرجع فقط JSON بالشكل: {\"categories\": [1, 2]}" },
         { role: "user", content: prompt },
       ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "news_classification",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              categories: {
-                type: "array",
-                items: { type: "integer", minimum: 1, maximum: 6 },
-                description: "Array of category IDs (1-6)",
+      response_format: useJsonObject
+        ? { type: "json_object" }
+        : {
+            type: "json_schema",
+            json_schema: {
+              name: "news_classification",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  categories: {
+                    type: "array",
+                    items: { type: "integer", minimum: 1, maximum: 6 },
+                    description: "Array of category IDs (1-6)",
+                  },
+                },
+                required: ["categories"],
+                additionalProperties: false,
               },
             },
-            required: ["categories"],
-            additionalProperties: false,
           },
-        },
-      },
     });
 
     const message = response.choices[0]?.message;

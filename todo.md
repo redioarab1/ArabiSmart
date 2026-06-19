@@ -1079,3 +1079,8 @@
 - [x] إضافة رابط NotebookLM في التنقل الرئيسي (MobileBottomNav + footer)
 - [x] تسجيل notebook router في routers.ts الرئيسي
 - [x] 32/32 اختبارات ناجحة، 0 أخطاء TypeScript
+
+## تفعيل Google Gemini API
+- [ ] تعديل server/_core/llm.ts لدعم Gemini API
+- [ ] إضافة GEMINI_API_KEY كـ secret
+- [ ] اختبار Gemini مع Notebook وتصنيف الأخبار
