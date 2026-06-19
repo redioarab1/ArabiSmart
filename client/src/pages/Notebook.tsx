@@ -247,7 +247,7 @@ export default function Notebook() {
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-muted-foreground">محادثة ذكية مع الأخبار</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-medium">
-                  🦙 Llama 3.3 70B
+                  arabismart ai
                 </span>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function Notebook() {
               </div>
               <div className="text-right">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">Llama 3.3 70B</span>
+                  <span className="text-sm font-semibold">arabismart ai</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
                     مجاني
                   </span>
