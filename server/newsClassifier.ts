@@ -8,51 +8,21 @@ import { newsCategories } from "../drizzle/schema";
  */
 export async function classifyNews(title: string, description: string): Promise<number[]> {
   try {
-    const prompt = `أنت نظام تصنيف أخبار ذكي. قم بتصنيف الخبر التالي إلى واحد أو أكثر من التصنيفات التالية:
+    // تقليل حجم النص لتجنب تجاوز حدود الـ tokens
+    const shortTitle = title.slice(0, 150);
+    const shortDesc = (description || "").slice(0, 200);
+    const prompt = `صنّف: "${shortTitle}. ${shortDesc}"
+1=عاجل 2=محلي 3=رياضة 4=سياسة 5=اقتصاد 6=عالمي
+JSON: {"categories":[رقم]}`;
 
-التصنيفات المتاحة:
-1. عاجلة (breaking) - أخبار عاجلة وحوادث طارئة وأحداث مهمة
-2. محلية (local) - أخبار محلية سويدية
-3. رياضة (sports) - أخبار رياضية
-4. سياسة (politics) - أخبار سياسية
-5. اقتصاد (economy) - أخبار اقتصادية ومالية
-6. عالمية (world) - أخبار عالمية ودولية
-
-الخبر:
-العنوان: ${title}
-الوصف: ${description || "لا يوجد وصف"}
-
-قم بإرجاع أرقام التصنيفات المناسبة فقط (مثال: [1, 2] أو [3] أو [4, 6])`;
-
-    // Groq يدعم json_object فقط، بينما Forge/Gemini يدعم json_schema
-    const useJsonObject = !!process.env.GROQ_API_KEY;
+    // استخدام llama-3.3-70b-versatile للتصنيف (حد 100K token/دقيقة)
     const response = await invokeLLM({
-      model: DEFAULT_MODELS.classification, // llama-3.1-8b-instant - سريع ورخيص للتصنيف
+      model: "llama-3.3-70b-versatile",
       messages: [
-        { role: "system", content: "أنت نظام تصنيف أخبار. أرجع فقط JSON بالشكل: {\"categories\": [1, 2]}" },
+        { role: "system", content: 'Classify news. Return JSON: {"categories":[1]}' },
         { role: "user", content: prompt },
       ],
-      response_format: useJsonObject
-        ? { type: "json_object" }
-        : {
-            type: "json_schema",
-            json_schema: {
-              name: "news_classification",
-              strict: true,
-              schema: {
-                type: "object",
-                properties: {
-                  categories: {
-                    type: "array",
-                    items: { type: "integer", minimum: 1, maximum: 6 },
-                    description: "Array of category IDs (1-6)",
-                  },
-                },
-                required: ["categories"],
-                additionalProperties: false,
-              },
-            },
-          },
+      response_format: { type: "json_object" },
     });
 
     const message = response.choices[0]?.message;

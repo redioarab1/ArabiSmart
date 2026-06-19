@@ -71,34 +71,25 @@ async function searchRelevantNews(
     .map(({ score: _s, ...rest }) => rest);
 }
 
-/** Build system prompt with news context */
+//** Build system prompt with news context - compact version to stay within token limits */
 function buildSystemPrompt(
   contextNews: Array<{ id: number; title: string; description: string | null; source: string; publishedAt: Date }>,
   language: string
 ): string {
+  // تقليص الوصف إلى 100 حرف فقط لتجنب تجاوز حدود Groq
   const newsContext = contextNews
     .map((n, i) => {
       const date = new Date(n.publishedAt).toLocaleDateString("ar-SA");
-      return `[${i + 1}] العنوان: ${n.title}\nالمصدر: ${n.source} | التاريخ: ${date}\n${n.description ? `الوصف: ${n.description.slice(0, 300)}` : ""}`;
+      const desc = n.description ? n.description.slice(0, 100) : "";
+      return `[${i + 1}] ${n.title.slice(0, 100)} | ${n.source} | ${date}${desc ? " | " + desc : ""}`;
     })
-    .join("\n\n");
+    .join("\n");
 
   const lang = language === "ar" ? "العربية" : language === "sv" ? "السويدية" : "الإنجليزية";
 
-  return `أنت مساعد إخباري ذكي لموقع ArabiSmart News. مهمتك تحليل الأخبار والإجابة على أسئلة المستخدمين بناءً على الأخبار المتاحة.
-
-**قواعد مهمة:**
-1. أجب دائماً باللغة ${lang}
-2. استند إلى الأخبار المقدمة لك فقط — لا تخترع معلومات
-3. إذا لم تجد إجابة في الأخبار المتاحة، قل ذلك بوضوح
-4. اذكر المصدر والتاريخ عند الاقتباس من خبر معين
-5. كن موضوعياً ومحايداً في تحليلك
-6. يمكنك تلخيص وتحليل ومقارنة الأخبار
-
-**الأخبار المتاحة للرجوع إليها:**
-${newsContext || "لا توجد أخبار متاحة حالياً."}
-
-أجب على سؤال المستخدم بناءً على هذه الأخبار.`;
+  return `مساعد إخباري ArabiSmart. أجب باللغة ${lang} بناءً على الأخبار التالية فقط:
+${newsContext || "لا توجد أخبار."}
+اذكر المصدر عند الاقتباس. لا تخترع معلومات.`;
 }
 
 // ─── Router ───────────────────────────────────────────────────────────────────
