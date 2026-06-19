@@ -1,0 +1,230 @@
+{
+  "query": "SELECT r.id, r.name, r.url, r.category, r.language, r.isActive, r.lastFetchedAt, COUNT(n.id) as newsCount FROM rssSources r LEFT JOIN news n ON n.source = r.name GROUP BY r.id ORDER BY r.language, r.isActive DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT r.id, r.name, r.url, r.category, r.language, r.isActive, r.lastFetchedAt, COUNT(n.id) as newsCount FROM rssSources r LEFT JOIN news n ON n.source = r.name GROUP BY r.id ORDER BY r.language, r.isActive DESC;",
+  "rows": [
+    {
+      "id": "19",
+      "name": "دويتشه فيله (DW Arabic)",
+      "url": "https://rss.dw.com/rdf/rss-ar-all",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:42:49",
+      "newsCount": "2560"
+    },
+    {
+      "id": "30001",
+      "name": "راديو السويد (Sveriges Radio - Arabic)",
+      "url": "https://api.sr.se/api/rss/program/83?format=145",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:44:14",
+      "newsCount": "5900"
+    },
+    {
+      "id": "27",
+      "name": "بي بي سي عربي (BBC Arabic)",
+      "url": "https://feeds.bbci.co.uk/arabic/rss.xml",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:44:08",
+      "newsCount": "1564"
+    },
+    {
+      "id": "17",
+      "name": "فرانس 24 (France 24)",
+      "url": "https://www.france24.com/ar/rss",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:42:43",
+      "newsCount": "6481"
+    },
+    {
+      "id": "60001",
+      "name": "الكومبس",
+      "url": "https://alkompis.se/news/feed",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:42:53",
+      "newsCount": "23"
+    },
+    {
+      "id": "24",
+      "name": "عربي21 (Arabi21)",
+      "url": "https://arabi21.com/feed",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:43:49",
+      "newsCount": "13821"
+    },
+    {
+      "id": "14",
+      "name": "سكاي نيوز عربية",
+      "url": "https://www.skynewsarabia.com/rss.xml",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:59",
+      "newsCount": "9826"
+    },
+    {
+      "id": "13",
+      "name": "الجزيرة",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:42",
+      "newsCount": "15569"
+    },
+    {
+      "id": "16",
+      "name": "روسيا اليوم (RT Arabic)",
+      "url": "https://arabic.rt.com/rss",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:42:31",
+      "newsCount": "34227"
+    },
+    {
+      "id": "4",
+      "name": "Swed24",
+      "url": "https://www.swed24.se/feed",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:40:38",
+      "newsCount": "3023"
+    },
+    {
+      "id": "25",
+      "name": "الجزيرة نت (Al Jazeera)",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:43:49",
+      "newsCount": "6553"
+    },
+    {
+      "id": "23",
+      "name": "الشرق الأوسط (Asharq Al-Awsat)",
+      "url": "https://aawsat.com/feed",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:43:48",
+      "newsCount": "30448"
+    },
+    {
+      "id": "28",
+      "name": "العربي الجديد (The New Arab)",
+      "url": "https://www.alaraby.co.uk/rss",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 17:23:45",
+      "newsCount": "14462"
+    },
+    {
+      "id": "30",
+      "name": "الحرة (Alhurra)",
+      "url": "https://www.alhurra.com/rss",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:44:12",
+      "newsCount": "613"
+    },
+    {
+      "id": "26",
+      "name": "الشرق الأوسط - العالم العربي (Asharq Al-Awsat)",
+      "url": "https://aawsat.com/feed/arab-world",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:43:56",
+      "newsCount": "633"
+    },
+    {
+      "id": "30002",
+      "name": "المركز السويدي للمعلومات",
+      "url": "https://www.sinfo.org/feed/",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "0",
+      "lastFetchedAt": "NULL",
+      "newsCount": "0"
+    },
+    {
+      "id": "29",
+      "name": "صحيفة الوطن (Al Watan)",
+      "url": "https://alwatannews.net/rssFeed/0",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "0",
+      "lastFetchedAt": "2026-06-19 17:27:34",
+      "newsCount": "9193"
+    },
+    {
+      "id": "6",
+      "name": "Dagens Nyheter (DN)",
+      "url": "https://www.dn.se/rss",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:40:49",
+      "newsCount": "8582"
+    },
+    {
+      "id": "7",
+      "name": "Svenska Dagbladet (SvD)",
+      "url": "https://www.svd.se/feed/articles.rss",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:40:53",
+      "newsCount": "8338"
+    },
+    {
+      "id": "8",
+      "name": "SVT Nyheter",
+      "url": "https://www.svt.se/rss.xml",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:00",
+      "newsCount": "4712"
+    },
+    {
+      "id": "11",
+      "name": "Sydsvenskan",
+      "url": "https://www.sydsvenskan.se/feeds/feed.xml",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:24",
+      "newsCount": "11770"
+    },
+    {
+      "id": "9",
+      "name": "Expressen",
+      "url": "https://feeds.expressen.se/nyheter",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:07",
+      "newsCount": "7276"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\turl\tcategory\tlanguage\tisActive\tlastFetchedAt\tnewsCount\n19\tدويتشه فيله (DW Arabic)\thttps://rss.dw.com/rdf/rss-ar-all\tعربية\tar\t1\t2026-06-19 19:42:49\t2560\n30001\tراديو السويد (Sveriges Radio - Arabic)\thttps://api.sr.se/api/rss/program/83?format=145\tSE\tar\t1\t2026-06-19 19:44:14\t5900\n27\tبي بي سي عربي (BBC Arabic)\thttps://feeds.bbci.co.uk/arabic/rss.xml\tعربية\tar\t1\t2026-06-19 19:44:08\t1564\n17\tفرانس 24 (France 24)\thttps://www.france24.com/ar/rss\tعربية\tar\t1\t2026-06-19 19:42:43\t6481\n60001\tالكومبس\thttps://alkompis.se/news/feed\tSE\tar\t1\t2026-06-19 19:42:53\t23\n24\tعربي21 (Arabi21)\thttps://arabi21.com/feed\tعربية\tar\t1\t2026-06-19 19:43:49\t13821\n14\tسكاي نيوز عربية\thttps://www.skynewsarabia.com/rss.xml\tعربية\tar\t1\t2026-06-19 19:41:59\t9826\n13\tالجزيرة\thttps://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779\tعربية\tar\t1\t2026-06-19 19:41:42\t15569\n16\tروسيا اليوم (RT Arabic)\thttps://arabic.rt.com/rss\tعربية\tar\t1\t2026-06-19 19:42:31\t34227\n4\tSwed24\thttps://www.swed24.se/feed\tSE\tar\t1\t2026-06-19 19:40:38\t3023\n25\tالجزيرة نت (Al Jazeera)\thttps://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c\tعربية\tar\t1\t2026-06-19 19:43:49\t6553\n23\tالشرق الأوسط (Asharq Al-Awsat)\thttps://aawsat.com/feed\tعربية\tar\t1\t2026-06-19 19:43:48\t30448\n28\tالعربي الجديد (The New Arab)\thttps://www.alaraby.co.uk/rss\tعربية\tar\t1\t2026-06-19 17:23:45\t14462\n30\tالحرة (Alhurra)\thttps://www.alhurra.com/rss\tعربية\tar\t1\t2026-06-19 19:44:12\t613\n26\tالشرق الأوسط - العالم العربي (Asharq Al-Awsat)\thttps://aawsat.com/feed/arab-world\tعربية\tar\t1\t2026-06-19 19:43:56\t633\n30002\tالمركز السويدي للمعلومات\thttps://www.sinfo.org/feed/\tSE\tar\t0\tNULL\t0\n29\tصحيفة الوطن (Al Watan)\thttps://alwatannews.net/rssFeed/0\tعربية\tar\t0\t2026-06-19 17:27:34\t9193\n6\tDagens Nyheter (DN)\thttps://www.dn.se/rss\tSE\tsv\t1\t2026-06-19 19:40:49\t8582\n7\tSvenska Dagbladet (SvD)\thttps://www.svd.se/feed/articles.rss\tSE\tsv\t1\t2026-06-19 19:40:53\t8338\n8\tSVT Nyheter\thttps://www.svt.se/rss.xml\tSE\tsv\t1\t2026-06-19 19:41:00\t4712\n11\tSydsvenskan\thttps://www.sydsvenskan.se/feeds/feed.xml\tSE\tsv\t1\t2026-06-19 19:41:24\t11770\n9\tExpressen\thttps://feeds.expressen.se/nyheter\tSE\tsv\t1\t2026-06-19 19:41:07\t7276\n",
+  "stderr": "",
+  "execution_time_ms": 1134
+}

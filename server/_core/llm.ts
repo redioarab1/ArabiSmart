@@ -203,10 +203,10 @@ const buildProviders = (): Provider[] => {
       apiKey: process.env.SAMBANOVA_API_KEY,
       modelMap: {
         "llama-3.3-70b-versatile": "Meta-Llama-3.3-70B-Instruct",
-        "llama-3.1-8b-instant": "Meta-Llama-3.1-8B-Instruct",
+        "llama-3.1-8b-instant": "Meta-Llama-3.3-70B-Instruct", // 3.1-8B غير متاح في SambaNova
         "deepseek-r1-distill-llama-70b": "DeepSeek-R1",
         "groq/compound": "Meta-Llama-3.3-70B-Instruct",
-        "groq/compound-mini": "Meta-Llama-3.1-8B-Instruct",
+        "groq/compound-mini": "Meta-Llama-3.3-70B-Instruct",
         "meta-llama/llama-4-scout-17b-16e-instruct": "Meta-Llama-3.3-70B-Instruct",
       },
       defaultModel: "Meta-Llama-3.3-70B-Instruct",

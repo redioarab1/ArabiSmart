@@ -1,0 +1,73 @@
+{
+  "query": "SELECT id, name, url, category, language, isActive, lastFetchedAt FROM rssSources WHERE isActive = 0 OR language = 'sv' ORDER BY language, isActive DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SELECT id, name, url, category, language, isActive, lastFetchedAt FROM rssSources WHERE isActive = 0 OR language = 'sv' ORDER BY language, isActive DESC;",
+  "rows": [
+    {
+      "id": "29",
+      "name": "صحيفة الوطن (Al Watan)",
+      "url": "https://alwatannews.net/rssFeed/0",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "0",
+      "lastFetchedAt": "2026-06-19 17:27:34"
+    },
+    {
+      "id": "30002",
+      "name": "المركز السويدي للمعلومات",
+      "url": "https://www.sinfo.org/feed/",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "0",
+      "lastFetchedAt": "NULL"
+    },
+    {
+      "id": "6",
+      "name": "Dagens Nyheter (DN)",
+      "url": "https://www.dn.se/rss",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:40:49"
+    },
+    {
+      "id": "7",
+      "name": "Svenska Dagbladet (SvD)",
+      "url": "https://www.svd.se/feed/articles.rss",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:40:53"
+    },
+    {
+      "id": "8",
+      "name": "SVT Nyheter",
+      "url": "https://www.svt.se/rss.xml",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:00"
+    },
+    {
+      "id": "9",
+      "name": "Expressen",
+      "url": "https://feeds.expressen.se/nyheter",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:07"
+    },
+    {
+      "id": "11",
+      "name": "Sydsvenskan",
+      "url": "https://www.sydsvenskan.se/feeds/feed.xml",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "lastFetchedAt": "2026-06-19 19:41:24"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\turl\tcategory\tlanguage\tisActive\tlastFetchedAt\n29\tصحيفة الوطن (Al Watan)\thttps://alwatannews.net/rssFeed/0\tعربية\tar\t0\t2026-06-19 17:27:34\n30002\tالمركز السويدي للمعلومات\thttps://www.sinfo.org/feed/\tSE\tar\t0\tNULL\n6\tDagens Nyheter (DN)\thttps://www.dn.se/rss\tSE\tsv\t1\t2026-06-19 19:40:49\n7\tSvenska Dagbladet (SvD)\thttps://www.svd.se/feed/articles.rss\tSE\tsv\t1\t2026-06-19 19:40:53\n8\tSVT Nyheter\thttps://www.svt.se/rss.xml\tSE\tsv\t1\t2026-06-19 19:41:00\n9\tExpressen\thttps://feeds.expressen.se/nyheter\tSE\tsv\t1\t2026-06-19 19:41:07\n11\tSydsvenskan\thttps://www.sydsvenskan.se/feeds/feed.xml\tSE\tsv\t1\t2026-06-19 19:41:24\n",
+  "stderr": "",
+  "execution_time_ms": 564
+}

@@ -1,0 +1,226 @@
+{
+  "query": "\n-- تعطيل The New Arab (403 دائم)\nUPDATE rssSources SET isActive = 0 WHERE url LIKE '%alaraby.co.uk%';\n\n-- إضافة مصادر سويدية جديدة\nINSERT IGNORE INTO rssSources (name, url, category, language, isActive) VALUES\n  ('Aftonbladet', 'https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/', 'SE', 'sv', 1),\n  ('Göteborgs-Posten', 'https://www.gp.se/rss', 'SE', 'sv', 1),\n  ('Nyheter24', 'https://nyheter24.se/feed/', 'SE', 'sv', 1),\n  ('SR Ekot', 'https://api.sr.se/api/rss/program/4540?format=145', 'SE', 'sv', 1),\n  ('SVT Nyheter Väst', 'https://www.svt.se/nyheter/lokalt/vast/rss.xml', 'SE', 'sv', 1);\n\n-- التحقق من النتيجة\nSELECT id, name, category, language, isActive, url FROM rssSources ORDER BY category, language, name;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute \n-- تعطيل The New Arab (403 دائم)\nUPDATE rssSources SET isActive = 0 WHERE url LIKE '%alaraby.co.uk%';\n\n-- إضافة مصادر سويدية جديدة\nINSERT IGNORE INTO rssSources (name, url, category, language, isActive) VALUES\n  ('Aftonbladet', 'https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/', 'SE', 'sv', 1),\n  ('Göteborgs-Posten', 'https://www.gp.se/rss', 'SE', 'sv', 1),\n  ('Nyheter24', 'https://nyheter24.se/feed/', 'SE', 'sv', 1),\n  ('SR Ekot', 'https://api.sr.se/api/rss/program/4540?format=145', 'SE', 'sv', 1),\n  ('SVT Nyheter Väst', 'https://www.svt.se/nyheter/lokalt/vast/rss.xml', 'SE', 'sv', 1);\n\n-- التحقق من النتيجة\nSELECT id, name, category, language, isActive, url FROM rssSources ORDER BY category, language, name;\n",
+  "rows": [
+    {
+      "id": "4",
+      "name": "Swed24",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://www.swed24.se/feed"
+    },
+    {
+      "id": "60001",
+      "name": "الكومبس",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://alkompis.se/news/feed"
+    },
+    {
+      "id": "30002",
+      "name": "المركز السويدي للمعلومات",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "0",
+      "url": "https://www.sinfo.org/feed/"
+    },
+    {
+      "id": "30001",
+      "name": "راديو السويد (Sveriges Radio - Arabic)",
+      "category": "SE",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://api.sr.se/api/rss/program/83?format=145"
+    },
+    {
+      "id": "90001",
+      "name": "Aftonbladet",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/"
+    },
+    {
+      "id": "6",
+      "name": "Dagens Nyheter (DN)",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://www.dn.se/rss"
+    },
+    {
+      "id": "9",
+      "name": "Expressen",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://feeds.expressen.se/nyheter"
+    },
+    {
+      "id": "90002",
+      "name": "Göteborgs-Posten",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://www.gp.se/rss"
+    },
+    {
+      "id": "90003",
+      "name": "Nyheter24",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://nyheter24.se/feed/"
+    },
+    {
+      "id": "90004",
+      "name": "SR Ekot",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://api.sr.se/api/rss/program/4540?format=145"
+    },
+    {
+      "id": "7",
+      "name": "Svenska Dagbladet (SvD)",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://www.svd.se/feed/articles.rss"
+    },
+    {
+      "id": "8",
+      "name": "SVT Nyheter",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://www.svt.se/rss.xml"
+    },
+    {
+      "id": "90005",
+      "name": "SVT Nyheter Väst",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://www.svt.se/nyheter/lokalt/vast/rss.xml"
+    },
+    {
+      "id": "11",
+      "name": "Sydsvenskan",
+      "category": "SE",
+      "language": "sv",
+      "isActive": "1",
+      "url": "https://www.sydsvenskan.se/feeds/feed.xml"
+    },
+    {
+      "id": "13",
+      "name": "الجزيرة",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779"
+    },
+    {
+      "id": "25",
+      "name": "الجزيرة نت (Al Jazeera)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c"
+    },
+    {
+      "id": "30",
+      "name": "الحرة (Alhurra)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://www.alhurra.com/rss"
+    },
+    {
+      "id": "26",
+      "name": "الشرق الأوسط - العالم العربي (Asharq Al-Awsat)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://aawsat.com/feed/arab-world"
+    },
+    {
+      "id": "23",
+      "name": "الشرق الأوسط (Asharq Al-Awsat)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://aawsat.com/feed"
+    },
+    {
+      "id": "28",
+      "name": "العربي الجديد (The New Arab)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "0",
+      "url": "https://www.alaraby.co.uk/rss"
+    },
+    {
+      "id": "27",
+      "name": "بي بي سي عربي (BBC Arabic)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://feeds.bbci.co.uk/arabic/rss.xml"
+    },
+    {
+      "id": "19",
+      "name": "دويتشه فيله (DW Arabic)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://rss.dw.com/rdf/rss-ar-all"
+    },
+    {
+      "id": "16",
+      "name": "روسيا اليوم (RT Arabic)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://arabic.rt.com/rss"
+    },
+    {
+      "id": "14",
+      "name": "سكاي نيوز عربية",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://www.skynewsarabia.com/rss.xml"
+    },
+    {
+      "id": "29",
+      "name": "صحيفة الوطن (Al Watan)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "0",
+      "url": "https://alwatannews.net/rssFeed/0"
+    },
+    {
+      "id": "24",
+      "name": "عربي21 (Arabi21)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://arabi21.com/feed"
+    },
+    {
+      "id": "17",
+      "name": "فرانس 24 (France 24)",
+      "category": "عربية",
+      "language": "ar",
+      "isActive": "1",
+      "url": "https://www.france24.com/ar/rss"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tcategory\tlanguage\tisActive\turl\n4\tSwed24\tSE\tar\t1\thttps://www.swed24.se/feed\n60001\tالكومبس\tSE\tar\t1\thttps://alkompis.se/news/feed\n30002\tالمركز السويدي للمعلومات\tSE\tar\t0\thttps://www.sinfo.org/feed/\n30001\tراديو السويد (Sveriges Radio - Arabic)\tSE\tar\t1\thttps://api.sr.se/api/rss/program/83?format=145\n90001\tAftonbladet\tSE\tsv\t1\thttps://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/\n6\tDagens Nyheter (DN)\tSE\tsv\t1\thttps://www.dn.se/rss\n9\tExpressen\tSE\tsv\t1\thttps://feeds.expressen.se/nyheter\n90002\tGöteborgs-Posten\tSE\tsv\t1\thttps://www.gp.se/rss\n90003\tNyheter24\tSE\tsv\t1\thttps://nyheter24.se/feed/\n90004\tSR Ekot\tSE\tsv\t1\thttps://api.sr.se/api/rss/program/4540?format=145\n7\tSvenska Dagbladet (SvD)\tSE\tsv\t1\thttps://www.svd.se/feed/articles.rss\n8\tSVT Nyheter\tSE\tsv\t1\thttps://www.svt.se/rss.xml\n90005\tSVT Nyheter Väst\tSE\tsv\t1\thttps://www.svt.se/nyheter/lokalt/vast/rss.xml\n11\tSydsvenskan\tSE\tsv\t1\thttps://www.sydsvenskan.se/feeds/feed.xml\n13\tالجزيرة\tعربية\tar\t1\thttps://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779\n25\tالجزيرة نت (Al Jazeera)\tعربية\tar\t1\thttps://www.aljazeera.net/aljazeerarss/a7c17f16-4318-4f0a-8451-240756ef239b/20967390-4100-4104-897d-f421f6ef7f5c\n30\tالحرة (Alhurra)\tعربية\tar\t1\thttps://www.alhurra.com/rss\n26\tالشرق الأوسط - العالم العربي (Asharq Al-Awsat)\tعربية\tar\t1\thttps://aawsat.com/feed/arab-world\n23\tالشرق الأوسط (Asharq Al-Awsat)\tعربية\tar\t1\thttps://aawsat.com/feed\n28\tالعربي الجديد (The New Arab)\tعربية\tar\t0\thttps://www.alaraby.co.uk/rss\n27\tبي بي سي عربي (BBC Arabic)\tعربية\tar\t1\thttps://feeds.bbci.co.uk/arabic/rss.xml\n19\tدويتشه فيله (DW Arabic)\tعربية\tar\t1\thttps://rss.dw.com/rdf/rss-ar-all\n16\tروسيا اليوم (RT Arabic)\tعربية\tar\t1\thttps://arabic.rt.com/rss\n14\tسكاي نيوز عربية\tعربية\tar\t1\thttps://www.skynewsarabia.com/rss.xml\n29\tصحيفة الوطن (Al Watan)\tعربية\tar\t0\thttps://alwatannews.net/rssFeed/0\n24\tعربي21 (Arabi21)\tعربية\tar\t1\thttps://arabi21.com/feed\n17\tفرانس 24 (France 24)\tعربية\tar\t1\thttps://www.france24.com/ar/rss\n",
+  "stderr": "",
+  "execution_time_ms": 815
+}

@@ -1,0 +1,85 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "activityLogs"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "archivedNews"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "autoArchiveLogs"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "breakingNews"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "categories"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "comments"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "dailySummaries"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "favorites"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "fetchLogs"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "folderItems"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "folders"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "liveChannels"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "news"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "newsCategories"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "newsTranslations"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "notebookMessages"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "notebookSessions"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "pageViews"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "podcasts"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "ratings"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "rssSources"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "users"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "videos"
+    },
+    {
+      "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA": "youtubeChannels"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_CYisMZJ5WxxAv8Cz8dg9ZA\n__drizzle_migrations\nactivityLogs\narchivedNews\nautoArchiveLogs\nbreakingNews\ncategories\ncomments\ndailySummaries\nfavorites\nfetchLogs\nfolderItems\nfolders\nliveChannels\nnews\nnewsCategories\nnewsTranslations\nnotebookMessages\nnotebookSessions\npageViews\npodcasts\nratings\nrssSources\nusers\nvideos\nyoutubeChannels\n",
+  "stderr": "",
+  "execution_time_ms": 584
+}
