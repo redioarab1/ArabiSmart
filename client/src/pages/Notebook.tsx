@@ -305,7 +305,7 @@ export default function Notebook() {
                     مجاني
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">نموذج قوي ومتوازن للتحليل الإخباري العميق</p>
+                <p className="text-xs text-muted-foreground">نموذج قوي ومتوازن، متخصص في التحليل الإخباري العميق ضمن منصة arabi/Ai</p>
               </div>
             </div>
 
