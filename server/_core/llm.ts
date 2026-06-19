@@ -1,4 +1,3 @@
-import { ENV } from "./env";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -159,6 +158,102 @@ export type ResponseFormat =
   | { type: "json_object" }
   | { type: "json_schema"; json_schema: JsonSchema };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// نظام Load Balancing الذكي بين Groq وSambaNova وCerebras
+// ─────────────────────────────────────────────────────────────────────────────
+
+type Provider = {
+  name: string;
+  apiUrl: string;
+  apiKey: string;
+  /** خريطة من اسم النموذج العام إلى الاسم الفعلي عند هذا المزود */
+  modelMap: Record<string, string>;
+  defaultModel: string;
+  /** هل يدعم response_format json_schema؟ */
+  supportsJsonSchema: boolean;
+};
+
+const buildProviders = (): Provider[] => {
+  const providers: Provider[] = [];
+
+  // ── Groq ──────────────────────────────────────────────────────────────────
+  if (process.env.GROQ_API_KEY) {
+    providers.push({
+      name: "Groq",
+      apiUrl: "https://api.groq.com/openai/v1/chat/completions",
+      apiKey: process.env.GROQ_API_KEY,
+      modelMap: {
+        "llama-3.3-70b-versatile": "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant": "llama-3.1-8b-instant",
+        "deepseek-r1-distill-llama-70b": "deepseek-r1-distill-llama-70b",
+        "groq/compound": "compound-beta",
+        "groq/compound-mini": "compound-beta-mini",
+        "meta-llama/llama-4-scout-17b-16e-instruct": "meta-llama/llama-4-scout-17b-16e-instruct",
+      },
+      defaultModel: "llama-3.3-70b-versatile",
+      supportsJsonSchema: true,
+    });
+  }
+
+  // ── SambaNova ─────────────────────────────────────────────────────────────
+  if (process.env.SAMBANOVA_API_KEY) {
+    providers.push({
+      name: "SambaNova",
+      apiUrl: "https://api.sambanova.ai/v1/chat/completions",
+      apiKey: process.env.SAMBANOVA_API_KEY,
+      modelMap: {
+        "llama-3.3-70b-versatile": "Meta-Llama-3.3-70B-Instruct",
+        "llama-3.1-8b-instant": "Meta-Llama-3.1-8B-Instruct",
+        "deepseek-r1-distill-llama-70b": "DeepSeek-R1",
+        "groq/compound": "Meta-Llama-3.3-70B-Instruct",
+        "groq/compound-mini": "Meta-Llama-3.1-8B-Instruct",
+        "meta-llama/llama-4-scout-17b-16e-instruct": "Meta-Llama-3.3-70B-Instruct",
+      },
+      defaultModel: "Meta-Llama-3.3-70B-Instruct",
+      supportsJsonSchema: false, // SambaNova لا يدعم json_schema بشكل موثوق
+    });
+  }
+
+  // ── Cerebras ──────────────────────────────────────────────────────────────
+  if (process.env.CEREBRAS_API_KEY) {
+    providers.push({
+      name: "Cerebras",
+      apiUrl: "https://api.cerebras.ai/v1/chat/completions",
+      apiKey: process.env.CEREBRAS_API_KEY,
+      modelMap: {
+        "llama-3.3-70b-versatile": "gpt-oss-120b",
+        "llama-3.1-8b-instant": "gpt-oss-120b",
+        "deepseek-r1-distill-llama-70b": "gpt-oss-120b",
+        "groq/compound": "gpt-oss-120b",
+        "groq/compound-mini": "gpt-oss-120b",
+        "meta-llama/llama-4-scout-17b-16e-instruct": "gpt-oss-120b",
+      },
+      defaultModel: "gpt-oss-120b",
+      supportsJsonSchema: false, // Cerebras لا يدعم json_schema
+    });
+  }
+
+  return providers;
+};
+
+// حالة Round-Robin: يتناوب بين المزودين بالتسلسل
+let providerIndex = 0;
+
+/**
+ * يختار المزود التالي بنظام Round-Robin مع Fallback تلقائي عند الفشل.
+ * - يبدأ من المزود الحالي في الدور
+ * - إذا فشل، ينتقل للتالي تلقائياً
+ * - إذا فشلت جميع المزودين، يرجع للـ Manus Forge
+ */
+const getNextProvider = (providers: Provider[]): Provider | null => {
+  if (providers.length === 0) return null;
+  const p = providers[providerIndex % providers.length];
+  providerIndex = (providerIndex + 1) % providers.length;
+  return p;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const ensureArray = (
   value: MessageContent | MessageContent[]
 ): MessageContent[] => (Array.isArray(value) ? value : [value]);
@@ -258,29 +353,6 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
-// تحديد URL ومفتاح API:
-// - إذا وُجد OPENAI_API_KEY → يستخدم OpenAI
-// - إذا وُجد GROQ_API_KEY → يستخدم Groq (مجاني 14,400 طلب/يوم)
-// - إذا وُجد GEMINI_API_KEY → يستخدم Google Gemini (مجاني)
-// - وإلا → يستخدم Manus Forge
-const resolveApiUrl = () => {
-  if (process.env.OPENAI_API_KEY) {
-    return "https://api.openai.com/v1/chat/completions";
-  }
-  if (process.env.GROQ_API_KEY) {
-    return "https://api.groq.com/openai/v1/chat/completions";
-  }
-  if (process.env.GEMINI_API_KEY) {
-    return "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-  }
-  return ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
-};
-
-const resolveApiKey = () =>
-  process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY || ENV.forgeApiKey;
-
 // النموذج الافتراضي لكل خدمة - توزيع مُحسَّن
 export const DEFAULT_MODELS = {
   classification: "llama-3.1-8b-instant" as GroqModel,     // سريع وخفيف للتصنيف
@@ -290,21 +362,6 @@ export const DEFAULT_MODELS = {
   podcast: "llama-3.3-70b-versatile" as GroqModel,          // جودة عالية لسكريبت البودكاست
   analysis: "deepseek-r1-distill-llama-70b" as GroqModel,   // تفكير عميق للتحليل المعمّق
   search: "groq/compound" as GroqModel,                      // بحث ويب للمعلومات الحديثة
-};
-
-const resolveModel = (requestedModel?: string) => {
-  if (requestedModel) return requestedModel;
-  if (process.env.OPENAI_API_KEY) return "gpt-4o-mini";
-  // النموذج الافتراضي للمهام العامة
-  if (process.env.GROQ_API_KEY) return "llama-3.3-70b-versatile";
-  if (process.env.GEMINI_API_KEY) return "gemini-2.0-flash";
-  return "gemini-2.5-flash";
-};
-
-const assertApiKey = () => {
-  if (!resolveApiKey()) {
-    throw new Error("LLM API key is not configured. Set OPENAI_API_KEY or BUILT_IN_FORGE_API_KEY");
-  }
 };
 
 const normalizeResponseFormat = ({
@@ -352,9 +409,13 @@ const normalizeResponseFormat = ({
   };
 };
 
+/**
+ * استدعاء LLM مع نظام Load Balancing الذكي:
+ * - يتناوب بين Groq وSambaNova وCerebras بنظام Round-Robin
+ * - عند فشل أحدهم (rate limit أو خطأ)، ينتقل للتالي تلقائياً
+ * - إذا فشلت جميع المزودين، يستخدم Manus Forge كـ fallback نهائي
+ */
 export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
-  assertApiKey();
-
   const {
     messages,
     tools,
@@ -367,30 +428,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     model: requestedModel,
   } = params;
 
-  const payload: Record<string, unknown> = {
-    model: resolveModel(requestedModel),
-    messages: messages.map(normalizeMessage),
-  };
-
-  if (tools && tools.length > 0) {
-    payload.tools = tools;
-  }
-
-  const normalizedToolChoice = normalizeToolChoice(
-    toolChoice || tool_choice,
-    tools
-  );
-  if (normalizedToolChoice) {
-    payload.tool_choice = normalizedToolChoice;
-  }
-
-  // احترام max_tokens المُمَرَّر من الاستدعاء إن وجد، وإلا استخدام القيمة الافتراضية
   const callerMaxTokens = params.max_tokens ?? params.maxTokens;
-  payload.max_tokens = callerMaxTokens ?? (process.env.GROQ_API_KEY ? 8192 : 32768);
-  // حقل thinking مدعوم فقط في Manus Forge وليس في Groq/Gemini
-  if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
-    payload.thinking = { budget_tokens: 128 };
-  }
 
   const normalizedResponseFormat = normalizeResponseFormat({
     responseFormat,
@@ -399,24 +437,166 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     output_schema,
   });
 
-  if (normalizedResponseFormat) {
-    payload.response_format = normalizedResponseFormat;
+  const normalizedMessages = messages.map(normalizeMessage);
+
+  const normalizedToolChoice = normalizeToolChoice(
+    toolChoice || tool_choice,
+    tools
+  );
+
+  // بناء قائمة المزودين المتاحين
+  const providers = buildProviders();
+
+  // إذا لم يكن هناك مزود خارجي، استخدم Manus Forge مباشرة
+  if (providers.length === 0) {
+    return callForge(params, normalizedMessages, normalizedResponseFormat, normalizedToolChoice, callerMaxTokens);
   }
 
-  const response = await fetch(resolveApiUrl(), {
+  // محاولة كل مزود بالتناوب
+  const errors: string[] = [];
+  const startIndex = providerIndex;
+
+  for (let attempt = 0; attempt < providers.length; attempt++) {
+    const provider = getNextProvider(providers)!;
+
+    try {
+      const result = await callProvider(
+        provider,
+        requestedModel,
+        normalizedMessages,
+        tools,
+        normalizedToolChoice,
+        normalizedResponseFormat,
+        callerMaxTokens
+      );
+      return result;
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.warn(`[LLM] ${provider.name} failed: ${errMsg.slice(0, 120)}`);
+      errors.push(`${provider.name}: ${errMsg.slice(0, 80)}`);
+      // استمر للمزود التالي
+    }
+  }
+
+  // جميع المزودين فشلوا — جرّب Manus Forge كـ fallback نهائي
+  console.warn(`[LLM] All providers failed, falling back to Manus Forge. Errors: ${errors.join(" | ")}`);
+  try {
+    return await callForge(params, normalizedMessages, normalizedResponseFormat, normalizedToolChoice, callerMaxTokens);
+  } catch (forgeErr) {
+    throw new Error(
+      `LLM invoke failed on all providers. Errors: ${errors.join(" | ")} | Forge: ${forgeErr instanceof Error ? forgeErr.message : String(forgeErr)}`
+    );
+  }
+}
+
+/** استدعاء مزود خارجي (Groq / SambaNova / Cerebras) */
+async function callProvider(
+  provider: Provider,
+  requestedModel: string | undefined,
+  normalizedMessages: ReturnType<typeof normalizeMessage>[],
+  tools: Tool[] | undefined,
+  normalizedToolChoice: "none" | "auto" | ToolChoiceExplicit | undefined,
+  normalizedResponseFormat: ReturnType<typeof normalizeResponseFormat>,
+  callerMaxTokens: number | undefined
+): Promise<InvokeResult> {
+  // تحديد النموذج الفعلي عند هذا المزود
+  const genericModel = requestedModel ?? "llama-3.3-70b-versatile";
+  const actualModel = provider.modelMap[genericModel] ?? provider.defaultModel;
+
+  const payload: Record<string, unknown> = {
+    model: actualModel,
+    messages: normalizedMessages,
+    max_tokens: callerMaxTokens ?? 8192,
+  };
+
+  if (tools && tools.length > 0) {
+    payload.tools = tools;
+  }
+
+  if (normalizedToolChoice) {
+    payload.tool_choice = normalizedToolChoice;
+  }
+
+  // response_format: فقط إذا كان المزود يدعم json_schema، وإلا استخدم json_object
+  if (normalizedResponseFormat) {
+    if (normalizedResponseFormat.type === "json_schema" && !provider.supportsJsonSchema) {
+      // تحويل json_schema إلى json_object للمزودين الذين لا يدعمونه
+      payload.response_format = { type: "json_object" };
+      // أضف تعليمات JSON في رسالة النظام
+      const systemMsg = normalizedMessages.find(m => m.role === "system");
+      if (systemMsg && typeof systemMsg.content === "string") {
+        systemMsg.content += "\n\nأجب بـ JSON صالح فقط دون أي نص إضافي.";
+      }
+    } else {
+      payload.response_format = normalizedResponseFormat;
+    }
+  }
+
+  const response = await fetch(provider.apiUrl, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${resolveApiKey()}`,
+      authorization: `Bearer ${provider.apiKey}`,
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
+    throw new Error(`${response.status} ${response.statusText} – ${errorText.slice(0, 200)}`);
+  }
+
+  return (await response.json()) as InvokeResult;
+}
+
+/** استدعاء Manus Forge كـ fallback نهائي */
+async function callForge(
+  params: InvokeParams,
+  normalizedMessages: ReturnType<typeof normalizeMessage>[],
+  normalizedResponseFormat: ReturnType<typeof normalizeResponseFormat>,
+  normalizedToolChoice: "none" | "auto" | ToolChoiceExplicit | undefined,
+  callerMaxTokens: number | undefined
+): Promise<InvokeResult> {
+  const forgeApiUrl = process.env.BUILT_IN_FORGE_API_URL
+    ? `${process.env.BUILT_IN_FORGE_API_URL.replace(/\/$/, "")}/v1/chat/completions`
+    : "https://forge.manus.im/v1/chat/completions";
+  const forgeApiKey = process.env.BUILT_IN_FORGE_API_KEY;
+
+  if (!forgeApiKey) {
+    throw new Error("No LLM API key configured (GROQ_API_KEY, SAMBANOVA_API_KEY, CEREBRAS_API_KEY, or BUILT_IN_FORGE_API_KEY)");
+  }
+
+  const payload: Record<string, unknown> = {
+    model: "gemini-2.5-flash",
+    messages: normalizedMessages,
+    thinking: { budget_tokens: 128 },
+    max_tokens: callerMaxTokens ?? 32768,
+  };
+
+  if (params.tools && params.tools.length > 0) {
+    payload.tools = params.tools;
+  }
+
+  if (normalizedToolChoice) {
+    payload.tool_choice = normalizedToolChoice;
+  }
+
+  if (normalizedResponseFormat) {
+    payload.response_format = normalizedResponseFormat;
+  }
+
+  const response = await fetch(forgeApiUrl, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${forgeApiKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Forge: ${response.status} ${response.statusText} – ${errorText.slice(0, 200)}`);
   }
 
   return (await response.json()) as InvokeResult;
