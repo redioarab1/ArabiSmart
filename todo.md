@@ -1070,3 +1070,12 @@
 - [x] إضافة ffmpeg-static كـ dependency لضمان عمل FFmpeg في Cloud Run
 - [x] اختبار ناجح: فيديو مولَّد ومرفوع على S3 بنجاح
 - [x] 32/32 اختبارات ناجحة بعد الإصلاح
+
+## ميزة NotebookLM - محادثة ذكية مع الأخبار
+- [x] إنشاء جداول notebook_sessions وnotebook_messages في schema.ts
+- [x] إنشاء server/routers/notebook.ts مع procedures: chat وgetSessions وgetMessages
+- [x] بناء نظام RAG: البحث النصي في الأخبار + إرسال السياق إلى LLM
+- [x] إنشاء صفحة client/src/pages/Notebook.tsx بواجهة احترافية
+- [x] إضافة رابط NotebookLM في التنقل الرئيسي (MobileBottomNav + footer)
+- [x] تسجيل notebook router في routers.ts الرئيسي
+- [x] 32/32 اختبارات ناجحة، 0 أخطاء TypeScript

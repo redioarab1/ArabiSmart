@@ -382,3 +382,29 @@ export const activityLogs = mysqlTable("activityLogs", {
 });
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = typeof activityLogs.$inferInsert;
+
+/**
+ * Notebook sessions - NotebookLM-style AI chat sessions on news
+ */
+export const notebookSessions = mysqlTable("notebookSessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("userId", { length: 255 }), // null for anonymous
+  sessionKey: varchar("sessionKey", { length: 64 }).notNull().unique(),
+  title: varchar("title", { length: 255 }).notNull().default("محادثة جديدة"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type NotebookSession = typeof notebookSessions.$inferSelect;
+
+/**
+ * Notebook messages - messages in each session
+ */
+export const notebookMessages = mysqlTable("notebookMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  role: mysqlEnum("role", ["user", "assistant"]).notNull(),
+  content: text("content").notNull(),
+  sources: text("sources"), // JSON array of news IDs used as context
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type NotebookMessage = typeof notebookMessages.$inferSelect;

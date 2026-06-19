@@ -176,6 +176,13 @@
       "when": 1780935418511,
       "tag": "0024_lean_harry_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1781861708671,
+      "tag": "0025_rich_killer_shrike",
+      "breakpoints": true
     }
   ]
 }

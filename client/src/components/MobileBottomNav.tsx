@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Tv, BookOpen, FileText, User } from "lucide-react";
+import { Home, Tv, BookOpen, FileText, User, Sparkles } from "lucide-react";
 import { useAuth } from "@/\_core/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,7 @@ const navItems = [
   { href: "/", icon: Home, label: "الرئيسية" },
   { href: "/live", icon: Tv, label: "البث" },
   { href: "/daily-summary", icon: FileText, label: "الملخص" },
-  { href: "/archive", icon: BookOpen, label: "الأرشيف" },
+  { href: "/notebook", icon: Sparkles, label: "Notebook" },
   { href: "/profile", icon: User, label: "حسابي" },
 ];
 

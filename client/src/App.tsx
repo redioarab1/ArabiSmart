@@ -21,6 +21,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Folders = lazy(() => import("./pages/Folders"));
 const FolderDetail = lazy(() => import("./pages/FolderDetail"));
 const DailySummary = lazy(() => import("./pages/DailySummary"));
+const Notebook = lazy(() => import("./pages/Notebook"));
 const Videos = lazy(() => import("./pages/Videos"));
 const LiveTV = lazy(() => import("./pages/LiveTV"));
 const About = lazy(() => import("./pages/About"));
@@ -76,6 +77,7 @@ function Router() {
         <Route path="/folders" component={Folders} />
         <Route path="/folders/:id" component={FolderDetail} />
         <Route path="/daily-summary" component={DailySummary} />
+        <Route path="/notebook" component={Notebook} />
         <Route path="/videos" component={Videos} />
         <Route path="/live" component={LiveTV} />
         <Route path="/about" component={About} />

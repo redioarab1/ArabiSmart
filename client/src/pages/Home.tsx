@@ -816,6 +816,8 @@ export default function Home() {
             <Link href="/terms"><span className="hover:text-foreground cursor-pointer transition-colors">بنود الخدمة</span></Link>
             <span>•</span>
             <Link href="/daily-summary"><span className="hover:text-foreground cursor-pointer transition-colors">{t.dailySummary}</span></Link>
+            <span>•</span>
+            <Link href="/notebook"><span className="hover:text-foreground cursor-pointer transition-colors">Notebook AI</span></Link>
           </div>
           <div className="flex items-center justify-center gap-3">
             <a
