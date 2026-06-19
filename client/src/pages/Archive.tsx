@@ -149,13 +149,13 @@ export default function ArchivePage() {
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
                                 <span>
-                                  {new Date(newsItem.publishedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : lang === "sv" ? "sv-SE" : "en-US")}
+                                  {new Date(newsItem.publishedAt).toLocaleDateString(lang === "ar" ? "en-GB" : lang === "sv" ? "sv-SE" : "en-US")}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <Archive className="h-4 w-4" />
                                 <span>
-                                  {new Date(item.archivedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : lang === "sv" ? "sv-SE" : "en-US")}
+                                  {new Date(item.archivedAt).toLocaleDateString(lang === "ar" ? "en-GB" : lang === "sv" ? "sv-SE" : "en-US")}
                                 </span>
                               </div>
                             </div>

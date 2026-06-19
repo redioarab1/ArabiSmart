@@ -721,7 +721,7 @@ export default function Home() {
                               <span>{new Date(item.publishedAt).toLocaleDateString("en-GB")}</span>
                             </div>
                             <span className="text-[10px] opacity-70">
-                              {new Date(item.createdAt).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+                              {new Date(item.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                             </span>
                             <span className="text-[10px] opacity-70 arabic-text">
                               ⏱ {calculateReadingTime(displayDescription || item.description || "", detectLanguage(displayTitle))}
@@ -838,7 +838,7 @@ export default function Home() {
           </p>
           {stats?.lastUpdate && (
             <p className="text-xs text-muted-foreground arabic-text">
-              آخر تحديث: {new Date(stats.lastUpdate).toLocaleString("ar-SA")}
+              آخر تحديث: {new Date(stats.lastUpdate).toLocaleString("en-GB")}
             </p>
           )}
         </div>

@@ -428,7 +428,7 @@ export default function NewsDetail() {
                     <span>{new Date(news.publishedAt).toLocaleDateString("en-GB")}</span>
                   </div>
                   <span className="text-xs opacity-70">
-                    استورد: {new Date(news.createdAt).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+                    استورد: {new Date(news.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               </div>

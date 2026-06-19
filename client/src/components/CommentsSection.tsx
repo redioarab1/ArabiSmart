@@ -189,7 +189,7 @@ export default function CommentsSection({ newsId }: CommentsSectionProps) {
                       <div>
                         <p className="font-medium arabic-text">{comment.user.name || "مستخدم"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleString("ar-SA")}
+                          {new Date(comment.createdAt).toLocaleString("en-GB")}
                         </p>
                       </div>
                       {user && user.id === comment.userId && (

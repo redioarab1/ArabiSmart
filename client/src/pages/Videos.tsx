@@ -59,7 +59,7 @@ export default function Videos() {
   const videoList = data?.videos || [];
 
   function formatDate(date: Date | string) {
-    return new Date(date).toLocaleDateString("ar-SA", {
+    return new Date(date).toLocaleDateString("en-GB", {
       year: "numeric",
       month: "short",
       day: "numeric",

@@ -84,7 +84,7 @@ export default function AdminAnalytics() {
 
   // Format daily views for chart
   const chartData = (stats?.dailyViews || []).map((d) => ({
-    date: new Date(d.date).toLocaleDateString("ar-SA", { month: "short", day: "numeric" }),
+    date: new Date(d.date).toLocaleDateString("en-GB", { month: "short", day: "numeric" }),
     مشاهدات: Number(d.count),
   }));
 

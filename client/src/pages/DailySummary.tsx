@@ -81,15 +81,13 @@ type NewsItem = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(date: Date | string) {
-  return new Intl.DateTimeFormat("ar-EG", {
+  return new Intl.DateTimeFormat("en-GB", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
-    calendar: "gregory",
   }).format(new Date(date));
 }
 function formatDateShort(date: Date | string) {
-  return new Intl.DateTimeFormat("ar-EG", {
+  return new Intl.DateTimeFormat("en-GB", {
     year: "numeric", month: "short", day: "numeric",
-    calendar: "gregory",
   }).format(new Date(date));
 }
 function toISODate(date: Date | string) {
@@ -362,7 +360,7 @@ function PodcastPanel({ summary }: { summary: Summary }) {
             onClick={async () => {
               if (!script) return;
               setIsDownloading(true);
-              const dateStr = new Date(summary.date).toLocaleDateString("ar-SA", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "-");
+              const dateStr = new Date(summary.date).toLocaleDateString("en-GB", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "-");
               try {
                 await downloadAudioFromSpeech(script, `بودكاست-${dateStr}.webm`);
               } finally {
@@ -836,7 +834,7 @@ export default function DailySummary() {
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
                 <span className="arabic-text">
-                  آخر تحديث: {new Date(activeSummary.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit", calendar: "gregory" })}
+                  آخر تحديث: {new Date(activeSummary.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                 </span>
                 <Button
                   variant="ghost"
@@ -926,7 +924,7 @@ export default function DailySummary() {
                     <div className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-2`}>
                       <stat.icon className={`h-4 w-4 ${stat.cls}`} />
                     </div>
-                    <p className={`text-2xl font-bold ${stat.cls}`}>{stat.value.toLocaleString("ar-EG")}</p>
+                    <p className={`text-2xl font-bold ${stat.cls}`}>{stat.value.toLocaleString("en-GB")}</p>
                     <p className="text-xs text-muted-foreground arabic-text mt-0.5">{stat.label}</p>
                   </div>
                 ))}
@@ -1262,7 +1260,7 @@ export default function DailySummary() {
                   />
                   <p className="text-xs text-muted-foreground arabic-text text-center">
                     تم التوليد: {(activeSummary as any).videoGeneratedAt
-                      ? new Date((activeSummary as any).videoGeneratedAt).toLocaleString("ar-EG", { calendar: "gregory" })
+                      ? new Date((activeSummary as any).videoGeneratedAt).toLocaleString("en-GB")
                       : ""}
                   </p>
                   <div className="flex gap-2">

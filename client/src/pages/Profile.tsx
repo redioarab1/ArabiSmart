@@ -132,7 +132,7 @@ export default function Profile() {
                   <div className="flex gap-2 mt-2 justify-end">
                     <Badge>{user.role === "admin" ? (lang === "ar" ? "مسؤول" : lang === "sv" ? "Admin" : "Admin") : (lang === "ar" ? "مستخدم" : lang === "sv" ? "Användare" : "User")}</Badge>
                     <Badge variant="outline">
-                      {lang === "ar" ? "انضم" : lang === "sv" ? "Gick med" : "Joined"}: {new Date(user.createdAt).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "sv" ? "sv-SE" : "en-US")}
+                      {lang === "ar" ? "انضم" : lang === "sv" ? "Gick med" : "Joined"}: {new Date(user.createdAt).toLocaleDateString(lang === "ar" ? "en-GB" : lang === "sv" ? "sv-SE" : "en-US")}
                     </Badge>
                   </div>
                 </div>
@@ -229,7 +229,7 @@ export default function Profile() {
                           خبر #{comment.newsId}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleDateString("ar-SA")}
+                          {new Date(comment.createdAt).toLocaleDateString("en-GB")}
                         </span>
                       </div>
                       <p className="text-sm arabic-text text-right">{comment.content}</p>

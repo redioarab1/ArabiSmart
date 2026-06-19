@@ -31,7 +31,7 @@ function getActionInfo(action: string) {
 }
 
 function formatDate(date: Date | string) {
-  return new Date(date).toLocaleString("ar-SA", {
+  return new Date(date).toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -118,7 +118,7 @@ export default function AdminActivityLog() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-4">
-              <p className="text-2xl font-bold text-white">{summary?.total?.toLocaleString("ar-SA") ?? 0}</p>
+              <p className="text-2xl font-bold text-white">{summary?.total?.toLocaleString("en-GB") ?? 0}</p>
               <p className="text-slate-400 text-sm arabic-text mt-1">إجمالي العمليات</p>
             </CardContent>
           </Card>
@@ -130,7 +130,7 @@ export default function AdminActivityLog() {
           </Card>
           <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-4">
-              <p className="text-2xl font-bold text-red-400">{summary?.errors?.toLocaleString("ar-SA") ?? 0}</p>
+              <p className="text-2xl font-bold text-red-400">{summary?.errors?.toLocaleString("en-GB") ?? 0}</p>
               <p className="text-slate-400 text-sm arabic-text mt-1">عمليات فاشلة</p>
             </CardContent>
           </Card>
@@ -185,7 +185,7 @@ export default function AdminActivityLog() {
           </div>
           <div className="flex items-center gap-1 text-slate-400 text-sm arabic-text">
             <Filter className="w-4 h-4" />
-            <span>{total.toLocaleString("ar-SA")} سجل</span>
+            <span>{total.toLocaleString("en-GB")} سجل</span>
           </div>
         </div>
 
@@ -279,7 +279,7 @@ export default function AdminActivityLog() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-slate-400 text-sm arabic-text">
-              صفحة {page} من {totalPages} ({total.toLocaleString("ar-SA")} سجل)
+              صفحة {page} من {totalPages} ({total.toLocaleString("en-GB")} سجل)
             </p>
             <div className="flex items-center gap-2">
               <Button

@@ -245,7 +245,7 @@ export function StoryGenerator({
     ctx.textAlign = "right";
     ctx.fillText(source, W - 24, footerY + 4);
 
-    const dateStr = new Date(publishedAt).toLocaleDateString("ar-EG", {
+    const dateStr = new Date(publishedAt).toLocaleDateString("en-GB", {
       year: "numeric",
       month: "long",
       day: "numeric",

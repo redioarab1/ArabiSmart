@@ -251,11 +251,11 @@ function SortableNewsCard({
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {new Date(news.publishedAt).toLocaleDateString("ar-EG")}
+                  {new Date(news.publishedAt).toLocaleDateString("en-GB")}
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  {new Date(news.publishedAt).toLocaleTimeString("ar-EG", {
+                  {new Date(news.publishedAt).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}

@@ -432,7 +432,7 @@ export default function AdminDashboard() {
                         </p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <span className="arabic-text">المصدر: {news.source}</span>
-                          <span>{new Date(news.publishedAt).toLocaleDateString('ar-EG')}</span>
+                          <span>{new Date(news.publishedAt).toLocaleDateString('en-GB')}</span>
                         </div>
                       </div>
                       <div className="flex gap-2">

@@ -238,7 +238,7 @@ export default function AdminBreakingNews() {
                           ترتيب: {item.sortOrder}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground">
-                          {new Date(item.createdAt).toLocaleDateString("ar-SA")}
+                          {new Date(item.createdAt).toLocaleDateString("en-GB")}
                         </span>
                       </div>
                     </div>

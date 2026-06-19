@@ -124,7 +124,7 @@ export default function AdminUsers() {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {user.createdAt && (
                         <span className="text-xs text-slate-500 hidden sm:block">
-                          {new Date(user.createdAt).toLocaleDateString("ar-SA")}
+                          {new Date(user.createdAt).toLocaleDateString("en-GB")}
                         </span>
                       )}
                       <Button

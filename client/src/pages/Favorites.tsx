@@ -246,7 +246,7 @@ export default function Favorites() {
                         </Badge>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span>{new Date(item.publishedAt).toLocaleDateString("ar-SA")}</span>
+                          <span>{new Date(item.publishedAt).toLocaleDateString("en-GB")}</span>
                         </div>
                       </div>
                       <CardTitle className="line-clamp-2 arabic-text text-right leading-relaxed group-hover:text-primary transition-colors">

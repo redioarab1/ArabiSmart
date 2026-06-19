@@ -310,7 +310,7 @@ export default function AdminNews() {
                       <td className="px-4 py-3 hidden lg:table-cell">
                         <span className="text-xs text-slate-500">
                           {item.publishedAt
-                            ? new Date(item.publishedAt).toLocaleDateString("ar-SA", {
+                            ? new Date(item.publishedAt).toLocaleDateString("en-GB", {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric",

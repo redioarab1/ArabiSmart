@@ -49,7 +49,7 @@ const CHAT_MODEL = "llama-3.3-70b-versatile";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(date: Date | string) {
-  return new Date(date).toLocaleString("ar-SA", {
+  return new Date(date).toLocaleString("en-GB", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
