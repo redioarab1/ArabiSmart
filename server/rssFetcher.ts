@@ -106,8 +106,9 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
           // Get the inserted news ID
           const newsId = Number(insertResult[0].insertId);
 
-          // Classify and link news to categories using AI
+          // Classify and link news to categories using AI (with delay to avoid rate limit)
           if (newsId && article.title) {
+            await new Promise(r => setTimeout(r, 2500)); // 2.5s delay between requests
             await classifyAndLinkNews(
               newsId,
               article.title,
@@ -178,8 +179,9 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
         // Get the inserted news ID
         const newsId = Number(insertResult[0].insertId);
 
-        // Classify and link news to categories using AI
+        // Classify and link news to categories using AI (with delay to avoid rate limit)
         if (newsId && item.title) {
+          await new Promise(r => setTimeout(r, 2500)); // 2.5s delay between requests
           await classifyAndLinkNews(
             newsId,
             item.title,

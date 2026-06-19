@@ -8,18 +8,18 @@ import { newsCategories } from "../drizzle/schema";
  */
 export async function classifyNews(title: string, description: string): Promise<number[]> {
   try {
-    // تقليل حجم النص لتجنب تجاوز حدود الـ tokens
-    const shortTitle = title.slice(0, 150);
-    const shortDesc = (description || "").slice(0, 200);
-    const prompt = `صنّف: "${shortTitle}. ${shortDesc}"
+    // تقليل حجم النص بشكل كبير لتجنب rate limit
+    const shortTitle = title.slice(0, 80);
+    const shortDesc = (description || "").slice(0, 80);
+    const prompt = `"${shortTitle} ${shortDesc}"
 1=عاجل 2=محلي 3=رياضة 4=سياسة 5=اقتصاد 6=عالمي
-JSON: {"categories":[رقم]}`;
+{"categories":[n]}`;
 
-    // استخدام llama-3.3-70b-versatile للتصنيف (حد 100K token/دقيقة)
+    // استخدام qwen3-32b للتصنيف - حد أعلى ومستقل عن نموذج المحادثة
     const response = await invokeLLM({
-      model: "llama-3.3-70b-versatile",
+      model: "qwen/qwen3-32b",
       messages: [
-        { role: "system", content: 'Classify news. Return JSON: {"categories":[1]}' },
+        { role: "system", content: 'Classify Arabic news. Return only JSON: {"categories":[number]}. Categories: 1=breaking 2=local 3=sports 4=politics 5=economy 6=world' },
         { role: "user", content: prompt },
       ],
       response_format: { type: "json_object" },
