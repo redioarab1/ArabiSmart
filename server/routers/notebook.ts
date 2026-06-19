@@ -10,7 +10,7 @@ import { publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { notebookSessions, notebookMessages, news } from "../../drizzle/schema";
 import { eq, desc, like, or, sql } from "drizzle-orm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM, DEFAULT_MODELS, type GroqModel } from "../_core/llm";
 import crypto from "crypto";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -162,6 +162,7 @@ export const notebookRouter = router({
         sessionKey: z.string(),
         message: z.string().min(1).max(1000),
         language: z.enum(["ar", "sv", "en"]).default("ar"),
+        model: z.string().optional(), // اختيار النموذج اختياري
       })
     )
     .mutation(async ({ input }) => {
@@ -219,10 +220,11 @@ export const notebookRouter = router({
         { role: "user" as const, content: input.message },
       ];
 
-      // Call LLM
+      // Call LLM - use selected model or default chat model
+      const selectedModel = input.model || DEFAULT_MODELS.chat;
       let aiContent = "";
       try {
-        const response = await invokeLLM({ messages: llmMessages });
+        const response = await invokeLLM({ messages: llmMessages, model: selectedModel });
         aiContent =
           (response as { choices?: Array<{ message?: { content?: string } }> })
             ?.choices?.[0]?.message?.content || "عذراً، لم أتمكن من الإجابة في الوقت الحالي.";

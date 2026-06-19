@@ -55,6 +55,54 @@ export type ToolChoice =
   | ToolChoiceByName
   | ToolChoiceExplicit;
 
+// النماذج المتاحة في Groq مجاناً
+export type GroqModel =
+  | "llama-3.3-70b-versatile"
+  | "deepseek-r1-distill-llama-70b"
+  | "llama-3.1-8b-instant"
+  | "groq/compound"
+  | "groq/compound-mini"
+  | "meta-llama/llama-4-scout-17b-16e-instruct";
+
+export const GROQ_MODELS: Record<GroqModel, { name: string; description: string; useCase: string; icon: string }> = {
+  "llama-3.3-70b-versatile": {
+    name: "Llama 3.3 70B",
+    description: "نموذج قوي ومتوازن للمهام العامة والتحليل",
+    useCase: "الملخصات اليومية والتحليل الإخباري",
+    icon: "🦙",
+  },
+  "deepseek-r1-distill-llama-70b": {
+    name: "DeepSeek R1",
+    description: "نموذج متخصص في التفكير العميق والاستدلال المنطقي",
+    useCase: "التحليل المعمّق والأسئلة المعقدة",
+    icon: "🔍",
+  },
+  "llama-3.1-8b-instant": {
+    name: "Llama 3.1 8B",
+    description: "نموذج خفيف وسريع جداً للمهام البسيطة",
+    useCase: "الردود السريعة والتصنيف",
+    icon: "⚡",
+  },
+  "groq/compound": {
+    name: "Compound Beta",
+    description: "نموذج مركّب يجمع قدرات متعددة مع بحث ويب",
+    useCase: "الأسئلة التي تتطلب معلومات حديثة",
+    icon: "🌐",
+  },
+  "groq/compound-mini": {
+    name: "Compound Mini",
+    description: "نسخة مخففة من Compound مع بحث ويب",
+    useCase: "البحث السريع والردود المختصرة",
+    icon: "🔎",
+  },
+  "meta-llama/llama-4-scout-17b-16e-instruct": {
+    name: "Llama 4 Scout",
+    description: "أحدث نماذج Meta مع دعم ممتاز للعربية",
+    useCase: "المهام العامة والمحادثة",
+    icon: "🚀",
+  },
+};
+
 export type InvokeParams = {
   messages: Message[];
   tools?: Tool[];
@@ -66,6 +114,7 @@ export type InvokeParams = {
   output_schema?: OutputSchema;
   responseFormat?: ResponseFormat;
   response_format?: ResponseFormat;
+  model?: GroqModel | string; // اختيار النموذج اختياري
 };
 
 export type ToolCall = {
@@ -228,13 +277,25 @@ const resolveApiUrl = () => {
     ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
     : "https://forge.manus.im/v1/chat/completions";
 };
+
 const resolveApiKey = () =>
   process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY || ENV.forgeApiKey;
 
-const resolveModel = () => {
+// النموذج الافتراضي لكل خدمة
+export const DEFAULT_MODELS = {
+  classification: "llama-3.1-8b-instant" as GroqModel,    // سريع للتصنيف
+  summary: "llama-3.3-70b-versatile" as GroqModel,         // جودة عالية للملخص
+  translation: "llama-3.1-8b-instant" as GroqModel,        // سريع للترجمة
+  chat: "llama-3.3-70b-versatile" as GroqModel,            // جودة عالية للمحادثة
+  analysis: "deepseek-r1-distill-llama-70b" as GroqModel,  // تفكير عميق للتحليل
+  search: "groq/compound" as GroqModel,                     // بحث ويب
+};
+
+const resolveModel = (requestedModel?: string) => {
+  if (requestedModel) return requestedModel;
   if (process.env.OPENAI_API_KEY) return "gpt-4o-mini";
-  // meta-llama/llama-4-scout-17b-16e-instruct يدعم json_schema في Groq
-  if (process.env.GROQ_API_KEY) return "meta-llama/llama-4-scout-17b-16e-instruct";
+  // النموذج الافتراضي للمهام العامة
+  if (process.env.GROQ_API_KEY) return "llama-3.3-70b-versatile";
   if (process.env.GEMINI_API_KEY) return "gemini-2.0-flash";
   return "gemini-2.5-flash";
 };
@@ -302,10 +363,11 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     output_schema,
     responseFormat,
     response_format,
+    model: requestedModel,
   } = params;
 
   const payload: Record<string, unknown> = {
-    model: resolveModel(),
+    model: resolveModel(requestedModel),
     messages: messages.map(normalizeMessage),
   };
 

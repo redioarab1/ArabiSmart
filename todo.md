@@ -1084,3 +1084,10 @@
 - [ ] تعديل server/_core/llm.ts لدعم Gemini API
 - [ ] إضافة GEMINI_API_KEY كـ secret
 - [ ] اختبار Gemini مع Notebook وتصنيف الأخبار
+
+## إضافة النماذج المجانية عبر Groq
+- [ ] التحقق من توفر Llama 3.3 70B وDeepSeek R1 وCompound Beta وLlama 3.1 8B في Groq
+- [ ] تحديث llm.ts لدعم اختيار النموذج ديناميكياً
+- [ ] تحديث notebook router لقبول اختيار النموذج من المستخدم
+- [ ] تحديث صفحة /AI بواجهة اختيار النموذج مع وصف لكل نموذج
+- [ ] توظيف النماذج: DeepSeek R1 للتحليل العميق، Llama 3.3 70B للملخص، Llama 3.1 8B للتصنيف السريع

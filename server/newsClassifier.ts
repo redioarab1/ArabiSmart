@@ -1,4 +1,4 @@
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, DEFAULT_MODELS } from "./_core/llm";
 import { getDb } from "./db";
 import { newsCategories } from "../drizzle/schema";
 
@@ -27,6 +27,7 @@ export async function classifyNews(title: string, description: string): Promise<
     // Groq يدعم json_object فقط، بينما Forge/Gemini يدعم json_schema
     const useJsonObject = !!process.env.GROQ_API_KEY;
     const response = await invokeLLM({
+      model: DEFAULT_MODELS.classification, // llama-3.1-8b-instant - سريع ورخيص للتصنيف
       messages: [
         { role: "system", content: "أنت نظام تصنيف أخبار. أرجع فقط JSON بالشكل: {\"categories\": [1, 2]}" },
         { role: "user", content: prompt },
