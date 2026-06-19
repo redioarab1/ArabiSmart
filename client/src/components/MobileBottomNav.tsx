@@ -7,7 +7,7 @@ const navItems = [
   { href: "/", icon: Home, label: "الرئيسية" },
   { href: "/live", icon: Tv, label: "البث" },
   { href: "/daily-summary", icon: FileText, label: "الملخص" },
-  { href: "/notebook", icon: Sparkles, label: "Notebook" },
+  { href: "/AI", icon: Sparkles, label: "AI" },
   { href: "/profile", icon: User, label: "حسابي" },
 ];
 

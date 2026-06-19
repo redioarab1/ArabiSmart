@@ -77,7 +77,7 @@ function Router() {
         <Route path="/folders" component={Folders} />
         <Route path="/folders/:id" component={FolderDetail} />
         <Route path="/daily-summary" component={DailySummary} />
-        <Route path="/notebook" component={Notebook} />
+        <Route path="/AI" component={Notebook} />
         <Route path="/videos" component={Videos} />
         <Route path="/live" component={LiveTV} />
         <Route path="/about" component={About} />
