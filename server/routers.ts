@@ -1007,6 +1007,7 @@ export const appRouter = router({
         const { invokeLLM } = await import("./_core/llm");
         const langName = input.targetLanguage === "en" ? "English" : "Swedish";
         const result = await invokeLLM({
+          model: "llama-3.3-70b-versatile", // جودة عالية للترجمة
           messages: [
             {
               role: "system",
@@ -1037,6 +1038,7 @@ export const appRouter = router({
         const { invokeLLM } = await import("./_core/llm");
         const dateStr = new Date(row.date).toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
         const result = await invokeLLM({
+          model: "llama-3.3-70b-versatile", // جودة عالية لسكريبت البودكاست
           messages: [
             {
               role: "system",
@@ -1272,6 +1274,7 @@ export const appRouter = router({
         const textToTranslate = `Title: ${article.title}\n\nDescription: ${article.description || ""}`;
 
         const llmResponse = await invokeLLM({
+          model: "llama-3.1-8b-instant", // سريع وكافي لترجمة الأخبار
           messages: [
             {
               role: "system",
@@ -1366,6 +1369,7 @@ export const appRouter = router({
           try {
             const langName = input.language === "en" ? "English" : "Swedish";
             const llmResponse = await invokeLLM({
+              model: "llama-3.1-8b-instant", // سريع وكافي للترجمة الجماعية
               messages: [
                 { role: "system", content: `Translate this Arabic news to ${langName}. Return JSON: {title, description}` },
                 { role: "user", content: `Title: ${article.title}\nDescription: ${article.description || ""}` },

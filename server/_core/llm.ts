@@ -281,14 +281,15 @@ const resolveApiUrl = () => {
 const resolveApiKey = () =>
   process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY || ENV.forgeApiKey;
 
-// النموذج الافتراضي لكل خدمة
+// النموذج الافتراضي لكل خدمة - توزيع مُحسَّن
 export const DEFAULT_MODELS = {
-  classification: "llama-3.1-8b-instant" as GroqModel,    // سريع للتصنيف
-  summary: "llama-3.3-70b-versatile" as GroqModel,         // جودة عالية للملخص
-  translation: "llama-3.1-8b-instant" as GroqModel,        // سريع للترجمة
-  chat: "llama-3.3-70b-versatile" as GroqModel,            // جودة عالية للمحادثة
-  analysis: "deepseek-r1-distill-llama-70b" as GroqModel,  // تفكير عميق للتحليل
-  search: "groq/compound" as GroqModel,                     // بحث ويب
+  classification: "llama-3.1-8b-instant" as GroqModel,     // سريع وخفيف للتصنيف
+  summary: "llama-3.3-70b-versatile" as GroqModel,          // جودة عالية للملخص اليومي
+  translation: "llama-3.1-8b-instant" as GroqModel,         // سريع وكافي للترجمة
+  chat: "llama-3.3-70b-versatile" as GroqModel,             // النموذج الوحيد في /AI
+  podcast: "llama-3.3-70b-versatile" as GroqModel,          // جودة عالية لسكريبت البودكاست
+  analysis: "deepseek-r1-distill-llama-70b" as GroqModel,   // تفكير عميق للتحليل المعمّق
+  search: "groq/compound" as GroqModel,                      // بحث ويب للمعلومات الحديثة
 };
 
 const resolveModel = (requestedModel?: string) => {

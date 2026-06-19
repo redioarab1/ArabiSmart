@@ -103,8 +103,9 @@ The summary should:
 - Analyze trends and patterns`,
   };
 
-  // Call LLM with structured output
+  // Call LLM with structured output - llama-3.3-70b-versatile للملخص اليومي (جودة عالية)
   const response = await invokeLLM({
+    model: "llama-3.3-70b-versatile",
     messages: [
       {
         role: "system",

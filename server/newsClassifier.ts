@@ -15,9 +15,9 @@ export async function classifyNews(title: string, description: string): Promise<
 1=عاجل 2=محلي 3=رياضة 4=سياسة 5=اقتصاد 6=عالمي
 {"categories":[n]}`;
 
-    // استخدام qwen3-32b للتصنيف - حد أعلى ومستقل عن نموذج المحادثة
+    // استخدام llama-3.1-8b-instant للتصنيف - سريع وخفيف ومستقل عن نموذج المحادثة
     const response = await invokeLLM({
-      model: "qwen/qwen3-32b",
+      model: "llama-3.1-8b-instant",
       messages: [
         { role: "system", content: 'Classify Arabic news. Return only JSON: {"categories":[number]}. Categories: 1=breaking 2=local 3=sports 4=politics 5=economy 6=world' },
         { role: "user", content: prompt },

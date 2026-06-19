@@ -1,7 +1,6 @@
 /**
- * Notebook.tsx — NotebookLM-style AI chat page with model selection
- * Allows users to have intelligent conversations about news articles
- * using different free AI models via Groq
+ * Notebook.tsx — ArabiSmart AI chat page
+ * محادثة ذكية مع الأخبار باستخدام Llama 3.3 70B عبر Groq
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -21,11 +20,6 @@ import {
   Loader2,
   BookOpen,
   ChevronRight,
-  ChevronDown,
-  Zap,
-  Brain,
-  Globe,
-  Cpu,
 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
@@ -38,7 +32,6 @@ interface Message {
   content: string;
   sources?: Array<{ id: number; title: string; source: string; publishedAt: Date }>;
   createdAt?: Date;
-  model?: string;
 }
 
 interface Session {
@@ -50,58 +43,8 @@ interface Session {
 
 const SESSION_KEY_STORAGE = "arabismart_notebook_session";
 
-// ─── Model Definitions ────────────────────────────────────────────────────────
-
-const MODELS = [
-  {
-    id: "llama-3.3-70b-versatile",
-    name: "Llama 3.3 70B",
-    shortName: "70B",
-    description: "نموذج قوي ومتوازن للمهام العامة والتحليل الإخباري",
-    badge: "موصى به",
-    badgeColor: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-    icon: <span className="text-lg">🦙</span>,
-    color: "from-emerald-500 to-teal-600",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/30",
-  },
-  {
-    id: "deepseek-r1-distill-llama-70b",
-    name: "DeepSeek R1",
-    shortName: "R1",
-    description: "متخصص في التفكير العميق والاستدلال المنطقي المعقد",
-    badge: "تفكير عميق",
-    badgeColor: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-    icon: <span className="text-lg">🔍</span>,
-    color: "from-blue-500 to-indigo-600",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/30",
-  },
-  {
-    id: "groq/compound",
-    name: "Compound Beta",
-    shortName: "Compound",
-    description: "يجمع قدرات متعددة مع بحث ويب للمعلومات الحديثة",
-    badge: "بحث ويب",
-    badgeColor: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-    icon: <span className="text-lg">🌐</span>,
-    color: "from-orange-500 to-amber-600",
-    bgColor: "bg-orange-500/10",
-    borderColor: "border-orange-500/30",
-  },
-  {
-    id: "llama-3.1-8b-instant",
-    name: "Llama 3.1 8B",
-    shortName: "8B",
-    description: "نموذج خفيف وسريع جداً للردود الفورية والمهام البسيطة",
-    badge: "سريع",
-    badgeColor: "bg-violet-500/10 text-violet-600 border-violet-500/20",
-    icon: <span className="text-lg">⚡</span>,
-    color: "from-violet-500 to-purple-600",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/30",
-  },
-];
+// النموذج الوحيد المستخدم في صفحة /AI
+const CHAT_MODEL = "llama-3.3-70b-versatile";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -145,78 +88,6 @@ function renderInlineBold(text: string) {
   );
 }
 
-// ─── Model Selector Component ─────────────────────────────────────────────────
-
-function ModelSelector({
-  selectedModel,
-  onSelect,
-}: {
-  selectedModel: string;
-  onSelect: (id: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const current = MODELS.find((m) => m.id === selectedModel) || MODELS[0];
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all",
-          current.bgColor,
-          current.borderColor,
-          "hover:opacity-80"
-        )}
-      >
-        {current.icon}
-        <span>{current.shortName}</span>
-        <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
-      </button>
-
-      {open && (
-        <div className="absolute bottom-full mb-2 right-0 w-72 bg-background border border-border rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="p-2 border-b border-border">
-            <p className="text-xs font-semibold text-muted-foreground px-2">اختر النموذج</p>
-          </div>
-          <div className="p-1.5 space-y-1">
-            {MODELS.map((model) => (
-              <button
-                key={model.id}
-                onClick={() => {
-                  onSelect(model.id);
-                  setOpen(false);
-                }}
-                className={cn(
-                  "w-full flex items-start gap-3 p-2.5 rounded-lg text-right transition-all",
-                  selectedModel === model.id
-                    ? cn(model.bgColor, model.borderColor, "border")
-                    : "hover:bg-muted/60"
-                )}
-              >
-                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", model.bgColor)}>
-                  {model.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-semibold">{model.name}</span>
-                    <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border", model.badgeColor)}>
-                      {model.badge}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-tight">{model.description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-          <div className="p-2 border-t border-border bg-muted/30">
-            <p className="text-[10px] text-muted-foreground text-center">جميع النماذج مجانية عبر Groq</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Notebook() {
@@ -227,7 +98,6 @@ export default function Notebook() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -260,14 +130,13 @@ export default function Notebook() {
           content: data.content,
           sources: data.sources as Message["sources"],
           createdAt: new Date(),
-          model: selectedModel,
         };
         setMessages((prev) => [...prev, assistantMsg]);
         setIsTyping(false);
         utils.notebook.getMessages.invalidate({ sessionKey });
       }
     },
-    onError: (err) => {
+    onError: () => {
       setIsTyping(false);
       const errorMsg: Message = {
         role: "assistant",
@@ -333,9 +202,9 @@ export default function Notebook() {
       sessionKey,
       message: trimmed,
       language: "ar",
-      model: selectedModel,
+      model: CHAT_MODEL,
     });
-  }, [input, isTyping, sessionKey, selectedModel, chatMutation]);
+  }, [input, isTyping, sessionKey, chatMutation]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -363,7 +232,6 @@ export default function Notebook() {
   ];
 
   const isEmpty = messages.length === 0 && !loadingMessages;
-  const currentModelInfo = MODELS.find((m) => m.id === selectedModel) || MODELS[0];
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -371,15 +239,17 @@ export default function Notebook() {
       <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg",
-              currentModelInfo.color
-            )}>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
               <h1 className="font-bold text-base leading-tight">ArabiSmart AI</h1>
-              <p className="text-xs text-muted-foreground">محادثة ذكية مع الأخبار • مجاناً</p>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground">محادثة ذكية مع الأخبار</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-medium">
+                  🦙 Llama 3.3 70B
+                </span>
+              </div>
             </div>
           </div>
 
@@ -415,41 +285,28 @@ export default function Notebook() {
         {/* Empty State */}
         {isEmpty && (
           <div className="flex flex-col items-center justify-center pt-10 pb-8 text-center">
-            <div className={cn(
-              "w-20 h-20 rounded-2xl bg-gradient-to-br flex items-center justify-center mb-6 shadow-lg",
-              currentModelInfo.color
-            )}>
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-6 shadow-lg">
               <BookOpen className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold mb-2">مرحباً في ArabiSmart AI</h2>
-            <p className="text-muted-foreground max-w-md mb-6 text-sm leading-relaxed">
+            <p className="text-muted-foreground max-w-md mb-3 text-sm leading-relaxed">
               اسألني عن أي خبر أو موضوع وسأجيبك بناءً على آخر الأخبار. يمكنني تلخيص الأحداث، تحليل المواقف، ومقارنة وجهات النظر.
             </p>
 
-            {/* Model Cards */}
-            <div className="grid grid-cols-2 gap-2 w-full max-w-lg mb-6">
-              {MODELS.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => setSelectedModel(model.id)}
-                  className={cn(
-                    "flex items-start gap-2 p-3 rounded-xl border text-right transition-all",
-                    selectedModel === model.id
-                      ? cn(model.bgColor, model.borderColor, "shadow-sm")
-                      : "border-border hover:bg-muted/50"
-                  )}
-                >
-                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5", model.bgColor)}>
-                    {model.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="text-xs font-semibold truncate">{model.name}</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground leading-tight line-clamp-2">{model.description}</p>
-                  </div>
-                </button>
-              ))}
+            {/* Model Info Card */}
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 mb-6 max-w-sm w-full">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 text-lg">
+                🦙
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">Llama 3.3 70B</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    مجاني
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">نموذج قوي ومتوازن للتحليل الإخباري العميق</p>
+              </div>
             </div>
 
             {/* Suggestion chips */}
@@ -488,7 +345,7 @@ export default function Notebook() {
                   "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1",
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground"
-                    : cn("bg-gradient-to-br text-white", currentModelInfo.color)
+                    : "bg-gradient-to-br from-emerald-500 to-teal-600 text-white"
                 )}
               >
                 {msg.role === "user" ? (
@@ -500,20 +357,6 @@ export default function Notebook() {
 
               {/* Bubble */}
               <div className={cn("flex-1 max-w-[85%]", msg.role === "user" ? "items-end" : "items-start")}>
-                {/* Model badge for assistant */}
-                {msg.role === "assistant" && msg.model && (
-                  <div className="mb-1">
-                    {(() => {
-                      const m = MODELS.find((x) => x.id === msg.model);
-                      return m ? (
-                        <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border", m.badgeColor)}>
-                          {m.icon} {m.shortName}
-                        </span>
-                      ) : null;
-                    })()}
-                  </div>
-                )}
-
                 <div
                   className={cn(
                     "rounded-2xl px-4 py-3 text-sm",
@@ -565,10 +408,7 @@ export default function Notebook() {
           {/* Typing indicator */}
           {isTyping && (
             <div className="flex gap-3">
-              <div className={cn(
-                "w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center shrink-0 mt-1",
-                currentModelInfo.color
-              )}>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 mt-1">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div className="bg-muted/70 border border-border/50 rounded-2xl rounded-tl-sm px-4 py-3">
@@ -589,11 +429,6 @@ export default function Notebook() {
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex gap-2 items-end">
-            {/* Model Selector */}
-            <div className="shrink-0">
-              <ModelSelector selectedModel={selectedModel} onSelect={setSelectedModel} />
-            </div>
-
             <div className="flex-1 relative">
               <Textarea
                 ref={textareaRef}
@@ -610,10 +445,7 @@ export default function Notebook() {
               onClick={handleSend}
               disabled={!input.trim() || isTyping || !sessionKey}
               size="icon"
-              className={cn(
-                "w-11 h-11 rounded-xl bg-gradient-to-br text-white shadow-lg shrink-0 hover:opacity-90",
-                currentModelInfo.color
-              )}
+              className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shrink-0 hover:opacity-90"
             >
               {isTyping ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -623,7 +455,7 @@ export default function Notebook() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-2">
-            Enter للإرسال • Shift+Enter لسطر جديد • جميع النماذج مجانية
+            Enter للإرسال • Shift+Enter لسطر جديد • مجاني بالكامل
           </p>
         </div>
         <div className="h-16 md:h-0" />
