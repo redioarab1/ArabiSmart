@@ -239,7 +239,7 @@ export const appRouter = router({
     text: publicProcedure
       .input(
         z.object({
-          text: z.string(),
+          text: z.string().max(5000, "النص طويل جداً (الحد الأقصى 5000 حرف)"),
           targetLang: z.enum(["ar", "sv", "en"]),
           sourceLang: z.enum(["ar", "sv", "en"]).optional(),
         })

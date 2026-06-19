@@ -2,11 +2,13 @@
  * Alkompis Web Scraper
  * 
  * Since Alkompis doesn't provide a working RSS feed, this scraper
- * fetches news directly from their website using axios and cheerio.
+ * fetches news directly from their website using node's native fetch (undici).
+ * Note: axios/node-http fail with "HPE_CR_EXPECTED" on this server due to
+ * non-standard HTTP/1.1 headers; native fetch handles it correctly.
  */
 
-import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { execSync } from 'child_process';
 
 interface AlkompisArticle {
   title: string;
@@ -19,17 +21,18 @@ export async function scrapeAlkompis(): Promise<AlkompisArticle[]> {
   try {
     console.log('[Alkompis Scraper] Starting scrape...');
     
-    const response = await axios.get('https://alkompis.se/news', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'ar,en-US;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive',
-      },
-      timeout: 10000,
-    });
+    // Use curl to bypass HPE_CR_EXPECTED issue with Node.js HTTP parser
+    let html: string;
+    try {
+      html = execSync(
+        'curl -s -k --max-time 15 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "https://alkompis.se/news"',
+        { encoding: 'utf8', timeout: 20000 }
+      );
+    } catch (curlErr: any) {
+      throw new Error(`curl failed: ${curlErr.message}`);
+    }
 
-    const $ = cheerio.load(response.data);
+    const $ = cheerio.load(html);
     const articles: AlkompisArticle[] = [];
     const seen = new Set<string>();
 

@@ -15,11 +15,12 @@ export async function classifyNews(title: string, description: string): Promise<
 1=عاجل 2=محلي 3=رياضة 4=سياسة 5=اقتصاد 6=عالمي
 {"categories":[n]}`;
 
-    // استخدام llama-3.1-8b-instant للتصنيف - سريع وخفيف ومستقل عن نموذج المحادثة
+    // استخدام llama-3.1-8b-instant للتصنيف - max_tokens=50 لتجنب تجاوز حد TPM=6000
     const response = await invokeLLM({
       model: "llama-3.1-8b-instant",
+      max_tokens: 50, // الرد قصير جداً: {"categories":[n]}
       messages: [
-        { role: "system", content: 'Classify Arabic news. Return only JSON: {"categories":[number]}. Categories: 1=breaking 2=local 3=sports 4=politics 5=economy 6=world' },
+        { role: "system", content: 'Return JSON only: {"categories":[n]}. 1=breaking 2=local 3=sports 4=politics 5=economy 6=world' },
         { role: "user", content: prompt },
       ],
       response_format: { type: "json_object" },

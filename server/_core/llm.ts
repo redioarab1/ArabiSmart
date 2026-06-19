@@ -384,8 +384,9 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  // Groq يدعم max_tokens محدودة، Gemini/Forge يدعم 32768
-  payload.max_tokens = process.env.GROQ_API_KEY ? 8192 : 32768;
+  // احترام max_tokens المُمَرَّر من الاستدعاء إن وجد، وإلا استخدام القيمة الافتراضية
+  const callerMaxTokens = params.max_tokens ?? params.maxTokens;
+  payload.max_tokens = callerMaxTokens ?? (process.env.GROQ_API_KEY ? 8192 : 32768);
   // حقل thinking مدعوم فقط في Manus Forge وليس في Groq/Gemini
   if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
     payload.thinking = { budget_tokens: 128 };
