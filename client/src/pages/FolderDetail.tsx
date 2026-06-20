@@ -219,6 +219,10 @@ function SortableNewsCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isSwedishOrEnglish = news.language === 'sv' || news.language === 'en';
+  const displayTitle = (isSwedishOrEnglish && news.translatedTitle) ? news.translatedTitle : news.title;
+  const displayDescription = (isSwedishOrEnglish && news.translatedDescription) ? news.translatedDescription : news.description;
+
   return (
     <div ref={setNodeRef} style={style}>
       <Card className="hover:shadow-lg transition-shadow">
@@ -233,12 +237,12 @@ function SortableNewsCard({
               </div>
               <Link href={`/news/${news.id}`}>
                 <CardTitle className="text-xl hover:text-primary cursor-pointer mb-2">
-                  {news.title}
+                  {displayTitle}
                 </CardTitle>
               </Link>
-              {news.description && (
+              {displayDescription && (
                 <CardDescription className="line-clamp-2 mb-3">
-                  {news.description}
+                  {displayDescription}
                 </CardDescription>
               )}
               {note && (

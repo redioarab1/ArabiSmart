@@ -4,6 +4,7 @@ import { news, rssSources, fetchLogs } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { scrapeAlkompis } from "./alkompis-scraper";
 import { classifyAndLinkNews } from "./newsClassifier";
+import { translateNewsToArabic } from "./autoTranslate";
 import { pingGoogleSitemap } from "./sitemap";
 
 const parser = new Parser({
@@ -163,6 +164,22 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
         const imageUrl = extractImageUrl(item);
         const publishedAt = item.isoDate || item.pubDate || new Date().toISOString();
 
+        // Auto-translate Swedish/English news to Arabic
+        let translatedTitle: string | null = null;
+        let translatedDescription: string | null = null;
+        if ((language === "sv" || language === "en") && item.title) {
+          const translation = await translateNewsToArabic(
+            item.title,
+            item.contentSnippet || item.content?.substring(0, 400) || null,
+            language as "sv" | "en"
+          );
+          if (translation) {
+            translatedTitle = translation.translatedTitle;
+            translatedDescription = translation.translatedDescription;
+            console.log(`[AutoTranslate] ✅ Translated: ${item.title.substring(0, 50)}...`);
+          }
+        }
+
         const insertResult = await db.insert(news).values({
           title: item.title,
           description: item.contentSnippet || item.content?.substring(0, 500) || null,
@@ -174,6 +191,8 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
           language: language as "ar" | "sv" | "en",
           publishedAt: new Date(publishedAt),
           isManual: 0,
+          translatedTitle,
+          translatedDescription,
         });
 
         // Get the inserted news ID
@@ -181,11 +200,11 @@ export async function fetchRSSFeed(sourceId: number, sourceUrl: string, sourceNa
 
         // Classify and link news to categories using AI (with delay to avoid rate limit)
         if (newsId && item.title) {
-          await new Promise(r => setTimeout(r, 2500)); // 2.5s delay between requests
+          await new Promise(r => setTimeout(r, 1500)); // 1.5s delay (translation already added delay)
           await classifyAndLinkNews(
             newsId,
-            item.title,
-            item.contentSnippet || item.content?.substring(0, 500) || ""
+            translatedTitle || item.title,
+            translatedDescription || item.contentSnippet || item.content?.substring(0, 500) || ""
           );
         }
 

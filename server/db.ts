@@ -122,6 +122,8 @@ async function _getNewsFromDb(params: {
         language: news.language,
         publishedAt: news.publishedAt,
         createdAt: news.createdAt,
+        translatedTitle: news.translatedTitle,
+        translatedDescription: news.translatedDescription,
       })
       .from(news)
       .innerJoin(newsCategories, eqOp(newsCategories.newsId, news.id))

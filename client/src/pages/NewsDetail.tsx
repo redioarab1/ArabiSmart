@@ -192,9 +192,13 @@ export default function NewsDetail() {
 
   // Determine which translation to show (active one or original)
   const activeTransData = activeTranslation ? newsTranslations[activeTranslation] : null;
-  const displayTitle = activeTransData?.title || news.title;
-  const displayDescription = activeTransData?.description || news.description || "";
-  const isTranslated = !!activeTransData;
+  // Use auto-translated title/description for Swedish/English news if available
+  const isSwedishOrEnglish = news.language === 'sv' || news.language === 'en';
+  const autoTranslatedTitle = isSwedishOrEnglish ? (news as any).translatedTitle : null;
+  const autoTranslatedDescription = isSwedishOrEnglish ? (news as any).translatedDescription : null;
+  const displayTitle = activeTransData?.title || autoTranslatedTitle || news.title;
+  const displayDescription = activeTransData?.description || autoTranslatedDescription || news.description || "";
+  const isTranslated = !!(activeTransData || autoTranslatedTitle);
   // Get the two target languages for this article based on its original language
   const newsLang = (news.language || "ar") as "ar" | "en" | "sv";
   const translationTargets = getTranslationTargets(newsLang);
@@ -436,6 +440,16 @@ export default function NewsDetail() {
               <CardTitle className="text-3xl arabic-text text-right leading-relaxed news-headline">
                 {displayTitle}
               </CardTitle>
+              
+              {/* Auto-translation badge for Swedish/English news */}
+              {autoTranslatedTitle && !activeTransData && (
+                <div className="flex justify-end">
+                  <Badge variant="secondary" className="text-xs arabic-text gap-1">
+                    <Languages className="h-3 w-3" />
+                    ترجمة آلية
+                  </Badge>
+                </div>
+              )}
               
               {displayDescription && (
                 <p className="text-lg text-muted-foreground arabic-text text-right leading-relaxed whitespace-pre-wrap news-description">

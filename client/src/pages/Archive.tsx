@@ -101,6 +101,9 @@ export default function ArchivePage() {
               {archivedNews.map((item: any) => {
                 const newsItem = item.news;
                 if (!newsItem) return null;
+                const isSwedishOrEnglish = newsItem.language === 'sv' || newsItem.language === 'en';
+                const displayTitle = (isSwedishOrEnglish && newsItem.translatedTitle) ? newsItem.translatedTitle : newsItem.title;
+                const displayDescription = (isSwedishOrEnglish && newsItem.translatedDescription) ? newsItem.translatedDescription : newsItem.description;
 
                 return (
                   <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -135,13 +138,13 @@ export default function ArchivePage() {
                             </Button>
                           </div>
                           <CardTitle className="text-xl arabic-text leading-relaxed">
-                            {newsItem.title}
+                            {displayTitle}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          {newsItem.description && (
+                          {displayDescription && (
                             <p className="text-muted-foreground arabic-text line-clamp-2">
-                              {newsItem.description}
+                              {displayDescription}
                             </p>
                           )}
                           <div className="flex items-center justify-between">

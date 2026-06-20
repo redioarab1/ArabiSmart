@@ -295,6 +295,17 @@
 - [ ] صفحة إعدادات الإشعارات
 
 
+## ترجمة تلقائية للأخبار السويدية/الإنجليزية - المرحلة الحالية
+- [x] إضافة حقلَي translatedTitle وtranslatedDescription في جدول news (schema + migration)
+- [x] إنشاء server/autoTranslate.ts — خدمة ترجمة تلقائية بالذكاء الاصطناعي
+- [x] تحديث server/rssFetcher.ts لاستدعاء الترجمة عند استيراد أخبار sv/en وحفظ الحقلين
+- [x] تحديث server/db.ts لإرجاع translatedTitle/translatedDescription في استعلامات categoryId
+- [x] تحديث Home.tsx لعرض العنوان المترجم تلقائياً للأخبار السويدية/الإنجليزية
+- [x] تحديث NewsDetail.tsx لعرض العنوان المترجم مع شارة "ترجمة آلية"
+- [x] تحديث Archive.tsx لعرض العنوان المترجم
+- [x] تحديث Favorites.tsx لعرض العنوان المترجم
+- [x] تحديث FolderDetail.tsx لعرض العنوان المترجم
+
 ## تحويل الموقع إلى تطبيق موبايل - Apache Cordova (المرحلة 17)
 
 ### تثبيت وإعداد Cordova

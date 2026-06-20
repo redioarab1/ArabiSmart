@@ -611,9 +611,12 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayNewsData.items.map((item) => {
                   const translation = translations[item.id];
-                  const displayTitle = translation?.title || item.title;
-                  const displayDescription = translation?.description || item.description;
-                  const isTranslated = !!translation;
+                  // Use auto-translated title for Swedish/English news if available
+                  const autoTranslatedTitle = (item.language === 'sv' || item.language === 'en') ? (item as any).translatedTitle : null;
+                  const autoTranslatedDescription = (item.language === 'sv' || item.language === 'en') ? (item as any).translatedDescription : null;
+                  const displayTitle = translation?.title || autoTranslatedTitle || item.title;
+                  const displayDescription = translation?.description || autoTranslatedDescription || item.description;
+                  const isTranslated = !!(translation || autoTranslatedTitle);
                    const isFav = favorites.has(item.id);
                   const isArchived = archived.has(item.id);
                   return (

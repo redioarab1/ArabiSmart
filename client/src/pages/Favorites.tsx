@@ -210,6 +210,9 @@ export default function Favorites() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredFavorites.map((fav) => {
                 const item = fav.news;
+                const isSwedishOrEnglish = item.language === 'sv' || item.language === 'en';
+                const displayTitle = (isSwedishOrEnglish && (item as any).translatedTitle) ? (item as any).translatedTitle : item.title;
+                const displayDescription = (isSwedishOrEnglish && (item as any).translatedDescription) ? (item as any).translatedDescription : item.description;
                 
                 return (
                   <Card 
@@ -250,11 +253,11 @@ export default function Favorites() {
                         </div>
                       </div>
                       <CardTitle className="line-clamp-2 arabic-text text-right leading-relaxed group-hover:text-primary transition-colors">
-                        {item.title}
+                        {displayTitle}
                       </CardTitle>
-                      {item.description && (
+                      {displayDescription && (
                         <CardDescription className="line-clamp-3 arabic-text text-right leading-relaxed">
-                          {item.description}
+                          {displayDescription}
                         </CardDescription>
                       )}
                     </CardHeader>

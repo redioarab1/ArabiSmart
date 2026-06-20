@@ -47,6 +47,8 @@ export const news = mysqlTable("news", {
   publishedAt: timestamp("publishedAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   isManual: int("isManual").default(0).notNull(), // 0 = auto, 1 = manual
+  translatedTitle: text("translatedTitle"), // Arabic translation for Swedish/English news
+  translatedDescription: text("translatedDescription"), // Arabic translation for Swedish/English news
 }, (table) => ({
   // تحسين أداء الاستعلامات الأكثر تكراراً
   publishedAtIdx: index("idx_news_publishedAt").on(table.publishedAt),
