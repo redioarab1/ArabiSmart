@@ -1979,5 +1979,135 @@ export const appRouter = router({
         };
       }),
   }),
+
+  wrapUp: router({
+    getToday: publicProcedure
+      .input(z.object({ lang: z.enum(["ar", "sv", "en"]).default("ar") }).optional())
+      .query(async ({ input }) => {
+        const lang = input?.lang ?? "ar";
+        const dbConn = await import("./db").then((m) => m.getDb());
+        if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB not ready" });
+        const { dailyWrapUp, news } = await import("../drizzle/schema");
+        const { eq, desc, gte } = await import("drizzle-orm");
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+
+        const [existing] = await dbConn
+          .select()
+          .from(dailyWrapUp)
+          .where(eq(dailyWrapUp.date, todayStr))
+          .limit(1);
+
+        if (existing) {
+          return {
+            date: existing.date,
+            headlines: JSON.parse(existing.headlines) as Array<{id:number;title:string;summary:string;source:string;link:string;category:string;image?:string}>,
+            generatedAt: existing.generatedAt,
+            cached: true,
+          };
+        }
+
+        const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const todayNews = await dbConn
+          .select()
+          .from(news)
+          .where(gte(news.publishedAt, since))
+          .orderBy(desc(news.publishedAt))
+          .limit(60);
+
+        if (todayNews.length === 0) {
+          return { date: todayStr, headlines: [] as Array<{id:number;title:string;summary:string;source:string;link:string;category:string;image?:string}>, generatedAt: new Date(), cached: false };
+        }
+
+        const { invokeLLM } = await import("./_core/llm");
+        const newsText = todayNews
+          .slice(0, 40)
+          .map((n, i) => `${i + 1}. [${n.source}] ${n.title}${n.description ? " - " + n.description.slice(0, 120) : ""}`)
+          .join("\n");
+
+        const systemPrompt = lang === "ar"
+          ? `أنت محرر إخباري متخصص. مهمتك اختيار أبرز 8 أخبار من اليوم وكتابة ملخص موجز لكل منها (جملة واحدة فقط). أعط أولوية للأخبار السويدية والعربية ذات التأثير الواسع. أجب بالعربية فقط.`
+          : lang === "sv"
+          ? `Du är en nyhetsredaktör. Välj de 8 viktigaste nyheterna och skriv en kort sammanfattning (en mening) för varje. Prioritera svenska och arabiska nyheter. Svara på svenska.`
+          : `You are a news editor. Select the 8 most important news stories and write a brief one-sentence summary for each. Prioritize Swedish and Arabic news. Reply in English.`;
+
+        const result = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `اختر أبرز 8 أخبار ولخصها:\n\n${newsText}` },
+          ],
+          model: "llama-3.3-70b-versatile",
+          max_tokens: 800,
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "wrap_up",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  headlines: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        index: { type: "integer", description: "رقم الخبر في القائمة (1-based)" },
+                        summary: { type: "string", description: "ملخص موجز بجملة واحدة" },
+                      },
+                      required: ["index", "summary"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["headlines"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const raw = result.choices[0]?.message?.content as string;
+        const parsed = JSON.parse(raw) as { headlines: { index: number; summary: string }[] };
+
+        const headlines = parsed.headlines
+          .filter((h) => h.index >= 1 && h.index <= todayNews.length)
+          .map((h) => {
+            const n = todayNews[h.index - 1];
+            return {
+              id: n.id,
+              title: n.title,
+              summary: h.summary,
+              source: n.source,
+              link: n.link,
+              category: n.category,
+              image: n.image ?? undefined,
+            };
+          });
+
+        await dbConn.insert(dailyWrapUp).values({
+          date: todayStr,
+          language: lang,
+          headlines: JSON.stringify(headlines),
+          generatedAt: new Date(),
+        }).onDuplicateKeyUpdate({
+          set: { headlines: JSON.stringify(headlines), updatedAt: new Date() },
+        });
+
+        return { date: todayStr, headlines, generatedAt: new Date(), cached: false };
+      }),
+
+    refresh: protectedProcedure
+      .input(z.object({ lang: z.enum(["ar", "sv", "en"]).default("ar") }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+        const dbConn2 = await import("./db").then((m) => m.getDb());
+        if (!dbConn2) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB not ready" });
+        const { dailyWrapUp } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const todayStr = new Date().toISOString().slice(0, 10);
+        await dbConn2.delete(dailyWrapUp).where(eq(dailyWrapUp.date, todayStr));
+        return { success: true };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

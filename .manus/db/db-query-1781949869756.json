@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `dailyWrapUp` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`date` varchar(10) NOT NULL,\n\t`language` enum('ar','sv','en') NOT NULL DEFAULT 'ar',\n\t`headlines` text NOT NULL,\n\t`generatedAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `dailyWrapUp_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `dailyWrapUp_date_unique` UNIQUE(`date`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2314CRdWUYqTNA3.07fa7ba0386c --database CYisMZJ5WxxAv8Cz8dg9ZA --execute CREATE TABLE `dailyWrapUp` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`date` varchar(10) NOT NULL,\n\t`language` enum('ar','sv','en') NOT NULL DEFAULT 'ar',\n\t`headlines` text NOT NULL,\n\t`generatedAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `dailyWrapUp_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `dailyWrapUp_date_unique` UNIQUE(`date`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 817
+}

@@ -408,3 +408,17 @@ export const notebookMessages = mysqlTable("notebookMessages", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type NotebookMessage = typeof notebookMessages.$inferSelect;
+
+/**
+ * Daily Wrap-Up table - stores AI-generated "اليوم في سطور" cards
+ */
+export const dailyWrapUp = mysqlTable("dailyWrapUp", {
+  id: int("id").autoincrement().primaryKey(),
+  date: varchar("date", { length: 10 }).notNull().unique(), // YYYY-MM-DD
+  language: mysqlEnum("language", ["ar", "sv", "en"]).notNull().default("ar"),
+  headlines: text("headlines").notNull(), // JSON array of {id, title, summary, source, link, category}
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type DailyWrapUp = typeof dailyWrapUp.$inferSelect;
+export type InsertDailyWrapUp = typeof dailyWrapUp.$inferInsert;

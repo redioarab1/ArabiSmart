@@ -45,6 +45,7 @@ import { calculateReadingTime, detectLanguage } from "@/lib/readingTime";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { BreakingNewsTicker } from "@/components/BreakingNewsTicker";
+import { DailyWrapUp } from "@/components/DailyWrapUp";
 import {
   Select,
   SelectContent,
@@ -794,6 +795,7 @@ export default function Home() {
           </div>
           {/* Sidebar - Most Viewed & RSS */}
           <div className="lg:w-72 xl:w-80 flex-shrink-0">
+            <DailyWrapUp />
             <MostViewedSidebar />
           </div>
           </div>
